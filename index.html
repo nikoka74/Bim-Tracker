@@ -235,7 +235,6 @@
             </div>
         </div>
 
-        <!-- تابە سەرەکییەکانی بەشەکان بۆ گۆڕینی کامل سایتەکە -->
         <div class="section-tabs">
             <button class="section-tab-btn active" id="tabLFD" onclick="switchSection('lfd')">بەشی LFD</button>
             <button class="section-tab-btn" id="tabMoveIn" onclick="switchSection('movein')">بەشی Move-In</button>
@@ -260,17 +259,10 @@
             <span>ئاگاداری:</span> <span id="broadcastTextContent"></span>
         </div>
 
-        <!-- بەشی ئەدمین -->
         <div class="admin-panel" id="adminPanel">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
                 <h3 style="font-size:12px; color:var(--primary); font-weight: 700;" id="lblAdminTitle">بەشی بەڕێوەبەر و ناردنی فایل</h3>
                 <button class="tool-btn" onclick="manualRefreshData()" style="padding: 3px 6px; font-size: 10px;">نوێکردنەوە</button>
-            </div>
-
-            <!-- لێرەدا باڕی چات لابراوە و ڕاپۆرتی گشتی واتساپ جێگیر کراوە -->
-            <div class="admin-sub-box" style="border: 1px dashed #25d366;">
-                <label style="font-size: 10px; color: #25d366; font-weight: bold;">ناردنی ڕاپۆرتی گشتی بۆ واتساپ:</label>
-                <button class="btn btn-whatsapp" style="width: 100%; margin-top: 6px; padding: 6px; font-size: 10px;" onclick="shareToWhatsApp()" id="btnWhatsappAdmin">ناردنی تۆتەڵی گشتی بۆ واتساپ</button>
             </div>
 
             <div class="admin-sub-box">
@@ -340,7 +332,6 @@
                 <canvas id="statsChart"></canvas>
             </div>
 
-            <!-- خشتەی ڕیزبەندی کە بەپێی بەشی هەڵبژێردراو دەگۆڕێت -->
             <div class="leaderboard-box">
                 <div class="leaderboard-title" id="leaderboardBoxTitle">
                     <span id="lblLeaderboardTitle">ڕیزبەندی تیمەکان</span>
@@ -391,7 +382,7 @@
 
         <div class="btn-toolbar">
             <button class="btn btn-myteam" onclick="shareMyTeamToWhatsApp()" id="btnMyTeamWA">ناردنی تیمی خۆم بۆ واتساپ</button>
-            <button class="btn btn-whatsapp" id="btnWhatsapp" onclick="shareToWhatsApp()" style="display:none;">ڕاپۆرتی گشتی واتساپ</button>
+            <button class="btn btn-whatsapp" id="btnWhatsapp" onclick="shareToWhatsApp()">ناردنی تۆتەڵی گشتی بۆ واتساپ</button>
             <button class="btn btn-image" onclick="exportAsImage()" id="btnImg">وێنە</button>
             <button class="btn btn-pdf" onclick="window.print()" id="btnPdf">PDF</button>
             <button class="btn btn-excel" onclick="adminExportExcel('daily')" id="btnExcel">Excel</button>
@@ -568,7 +559,7 @@
                 notesPlaceholder: "هۆکار...",
                 submitText: "ناردن یان نوێکردنەوەی ڕاپۆرت",
                 btnMyTeamWA: "ناردنی تیمی خۆم بۆ واتساپ",
-                btnWhatsapp: "ڕاپۆرتی گشتی واتساپ",
+                btnWhatsapp: "ناردنی تۆتەڵی گشتی بۆ واتساپ",
                 toastSaved: "تۆمارکرا!", refreshToast: "داتاکان نوێکرانەوە!",
                 adminPassPrompt: "وشەی تێپەڕی بەڕێوەبەر بنووسە:", wrongPass: "وشەی تێپەڕ هەڵەیە!",
                 adminOpen: "بەشی بەڕێوەبەر کرایەوە", adminClosed: "بەشی بەڕێوەبەر داخرا",
