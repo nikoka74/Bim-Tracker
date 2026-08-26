@@ -136,14 +136,11 @@
 
         .leaderboard-box { margin-top: 8px; background: var(--card-bg); border-radius: 8px; padding: 8px; border: 1px solid var(--border-color); }
         .leaderboard-title { font-size: 11px; font-weight: bold; color: var(--primary); margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 4px; }
-        .leaderboard-item { display: flex; flex-direction: column; padding: 6px; border-bottom: 1px solid var(--border-color); font-size: 10px; gap: 3px; }
+        .leaderboard-item { display: flex; flex-direction: column; padding: 6px; border-bottom: 1px solid var(--border-color); font-size: 10px; gap: 3px; cursor: grab; }
+        .leaderboard-item:active { cursor: grabbing; }
         .leaderboard-item:last-child { border-bottom: none; }
         .leaderboard-row-top { display: flex; justify-content: space-between; align-items: center; width: 100%; }
         .leaderboard-reason { background: rgba(239, 68, 68, 0.08); color: #dc2626; padding: 3px 6px; border-radius: 6px; font-size: 9px; width: 100%; margin-top: 3px; }
-
-        .team-admin-controls { display: flex; gap: 3px; align-items: center; margin-top: 2px; }
-        .team-admin-btn { background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-color); font-size: 9px; padding: 2px 5px; border-radius: 4px; cursor: pointer; }
-        .team-admin-btn:hover { background: var(--primary); color: white; }
 
         .rank-badge { width: 18px; height: 18px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-weight: bold; font-size: 9px; margin-left: 6px; }
         html[dir="ltr"] .rank-badge { margin-left: 0; margin-right: 6px; }
@@ -315,7 +312,7 @@
 
             <div class="leaderboard-box">
                 <div class="leaderboard-title">
-                    <span id="lblLeaderboardLFD">ڕیزبەندی تیمەکانی LFD</span>
+                    <span id="lblLeaderboardLFD">ڕیزبەندی تیمەکانی LFD (دەتوانیت ڕایکێشیت بۆ گۆڕینی شوێن)</span>
                     <span id="adminTotalLFD" style="font-size: 9px; background: var(--primary); color: white; padding: 2px 4px; border-radius: 4px;">Total: 0</span>
                 </div>
                 <div id="leaderboardLFDContainer"></div>
@@ -460,8 +457,13 @@
         if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
         const db = firebase.database();
 
-        let defaultLfdTeams = ["Team 16", "Team 24", "Team 28", "Team 29", "Team 31", "Team 37", "Team 39", "Team 40", "Team 45", "Team 73", "Team 76", "Team 83", "Team 87", "Team 88"];
+        let defaultLfdTeams = ["Team 16", "Team 17", "Team 24", "Team 28", "Team 29", "Team 31", "Team 37", "Team 39", "Team 40", "Team 45", "Team 73", "Team 76", "Team 83", "Team 87", "Team 88"];
         let lfdTeams = JSON.parse(localStorage.getItem('bim_lfd_teams')) || defaultLfdTeams;
+        if (!lfdTeams.includes("Team 17")) {
+            let idx16 = lfdTeams.indexOf("Team 16");
+            if (idx16 !== -1) lfdTeams.splice(idx16 + 1, 0, "Team 17");
+            else lfdTeams.unshift("Team 17");
+        }
         lfdTeams = [...new Set(lfdTeams)];
         localStorage.setItem('bim_lfd_teams', JSON.stringify(lfdTeams));
 
@@ -772,20 +774,6 @@
             showToast(translations[lang].teamAdded);
             populateTeamDropdown();
             render();
-        }
-
-        function deleteTeam(section, teamName) {
-            if (!confirm(`دڵنیای لە سڕینەوەی تیم (${teamName})؟`)) return;
-            if (section === 'lfd') {
-                lfdTeams = lfdTeams.filter(t => t !== teamName);
-                db.ref('settings/lfd_teams').set(lfdTeams);
-            } else {
-                moveInTeams = moveInTeams.filter(t => t !== teamName);
-                db.ref('settings/movein_teams').set(moveInTeams);
-            }
-            populateTeamDropdown();
-            render();
-            showToast("تیمەکە سڕایەوە");
         }
 
         function setFilter(filterType) {
@@ -1259,6 +1247,23 @@
             updateChartTheme();
         }
 
+        function moveTeamPosition(sectionName, index, direction) {
+            let arr = sectionName === 'lfd' ? lfdTeams : moveInTeams;
+            let targetIndex = index + direction;
+            if (targetIndex < 0 || targetIndex >= arr.length) return;
+            
+            let item = arr.splice(index, 1)[0];
+            arr.splice(targetIndex, 0, item);
+
+            if (sectionName === 'lfd') {
+                db.ref('settings/lfd_teams').set(lfdTeams);
+            } else {
+                db.ref('settings/movein_teams').set(moveInTeams);
+            }
+            populateTeamDropdown();
+            render();
+        }
+
         function renderList(teamsArray, sectionName) {
             let list = [], sectionTotal = 0;
             teamsArray.forEach((t, originalIndex) => {
@@ -1292,8 +1297,9 @@
                 let adminControlsHTML = "";
                 if (isAdmin) {
                     adminControlsHTML = `
-                        <div class="team-admin-controls">
-                            <button class="team-admin-btn" onclick="deleteTeam('${sectionName}', '${item.name}')" style="color:#ef4444;" title="سڕینەوە">❌ سڕینەوە</button>
+                        <div style="display: flex; gap: 4px; margin-top: 4px;">
+                            <button class="tool-btn" style="font-size:9px; padding: 2px 6px;" onclick="moveTeamPosition('${sectionName}', ${item.originalIndex}, -1)">⬆️ بەرزکردنەوە</button>
+                            <button class="tool-btn" style="font-size:9px; padding: 2px 6px;" onclick="moveTeamPosition('${sectionName}', ${item.originalIndex}, 1)">⬇️ دابەزاندن</button>
                         </div>
                     `;
                 }
@@ -1416,4 +1422,3 @@
     </script>
 </body>
 </html>
-
