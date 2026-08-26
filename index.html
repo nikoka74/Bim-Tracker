@@ -779,16 +779,19 @@
             let lang = document.getElementById('langSelect').value;
             if (!teamName) return alert("تکایە ناوی تیم بنووسە!");
 
+            let numericPart = teamName.replace(/\D/g, '');
+            let formattedTeamName = numericPart ? `Team ${numericPart}` : teamName;
+
             if (section === 'lfd') {
-                if (!lfdTeams.includes(teamName)) {
-                    if (positionChoice === 'start') lfdTeams.unshift(teamName);
-                    else lfdTeams.push(teamName);
+                if (!lfdTeams.includes(formattedTeamName)) {
+                    if (positionChoice === 'start') lfdTeams.unshift(formattedTeamName);
+                    else lfdTeams.push(formattedTeamName);
                     db.ref('settings/lfd_teams').set(lfdTeams);
                 }
             } else {
-                if (!moveInTeams.includes(teamName)) {
-                    if (positionChoice === 'start') moveInTeams.unshift(teamName);
-                    else moveInTeams.push(teamName);
+                if (!moveInTeams.includes(formattedTeamName)) {
+                    if (positionChoice === 'start') moveInTeams.unshift(formattedTeamName);
+                    else moveInTeams.push(formattedTeamName);
                     db.ref('settings/movein_teams').set(moveInTeams);
                 }
             }
@@ -1033,23 +1036,23 @@
         function getDetailsFromInputs() {
             if (currentSection === 'lfd') {
                 return {
-                    paid: parseInt(document.getElementById('c_paid')?.value) || 0,
-                    disc: parseInt(document.getElementById('c_disc')?.value) || 0,
-                    reconn: parseInt(document.getElementById('c_reconn')?.value) || 0,
-                    special: parseInt(document.getElementById('c_special')?.value) || 0,
-                    dist: parseInt(document.getElementById('c_dist')?.value) || 0,
-                    inaccess: parseInt(document.getElementById('c_inaccess')?.value) || 0,
-                    closed: parseInt(document.getElementById('c_closed')?.value) || 0,
-                    notfound: parseInt(document.getElementById('c_notfound')?.value) || 0,
-                    denied: parseInt(document.getElementById('c_denied')?.value) || 0
+                    Paid: parseInt(document.getElementById('c_paid')?.value) || 0,
+                    Disconnected: parseInt(document.getElementById('c_disc')?.value) || 0,
+                    Reconnected: parseInt(document.getElementById('c_reconn')?.value) || 0,
+                    Special: parseInt(document.getElementById('c_special')?.value) || 0,
+                    Distributed: parseInt(document.getElementById('c_dist')?.value) || 0,
+                    Inaccessible: parseInt(document.getElementById('c_inaccess')?.value) || 0,
+                    Closed: parseInt(document.getElementById('c_closed')?.value) || 0,
+                    NotFound: parseInt(document.getElementById('c_notfound')?.value) || 0,
+                    Denied: parseInt(document.getElementById('c_denied')?.value) || 0
                 };
             } else {
                 return {
-                    inst_meter: parseInt(document.getElementById('c_inst_meter')?.value) || 0,
-                    inst_encl: parseInt(document.getElementById('c_inst_encl')?.value) || 0,
-                    inst_3p: parseInt(document.getElementById('c_inst_3p')?.value) || 0,
-                    bim_team: parseInt(document.getElementById('c_bim_team')?.value) || 0,
-                    other_team: parseInt(document.getElementById('c_other_team')?.value) || 0
+                    "Inst. Meter": parseInt(document.getElementById('c_inst_meter')?.value) || 0,
+                    "Inst. Encl": parseInt(document.getElementById('c_inst_encl')?.value) || 0,
+                    "3P Encl": parseInt(document.getElementById('c_inst_3p')?.value) || 0,
+                    "BIM Team": parseInt(document.getElementById('c_bim_team')?.value) || 0,
+                    "Other Team": parseInt(document.getElementById('c_other_team')?.value) || 0
                 };
             }
         }
@@ -1098,21 +1101,21 @@
 
         function fillInputsWithDetails(d, notes, offday) {
             if (currentSection === 'lfd') {
-                if(document.getElementById('c_paid')) document.getElementById('c_paid').value = d.paid || 0;
-                if(document.getElementById('c_disc')) document.getElementById('c_disc').value = d.disc || 0;
-                if(document.getElementById('c_reconn')) document.getElementById('c_reconn').value = d.reconn || 0;
-                if(document.getElementById('c_special')) document.getElementById('c_special').value = d.special || 0;
-                if(document.getElementById('c_dist')) document.getElementById('c_dist').value = d.dist || 0;
-                if(document.getElementById('c_inaccess')) document.getElementById('c_inaccess').value = d.inaccess || 0;
-                if(document.getElementById('c_closed')) document.getElementById('c_closed').value = d.closed || 0;
-                if(document.getElementById('c_notfound')) document.getElementById('c_notfound').value = d.notfound || 0;
-                if(document.getElementById('c_denied')) document.getElementById('c_denied').value = d.denied || 0;
+                if(document.getElementById('c_paid')) document.getElementById('c_paid').value = d.Paid || d.paid || 0;
+                if(document.getElementById('c_disc')) document.getElementById('c_disc').value = d.Disconnected || d.disc || 0;
+                if(document.getElementById('c_reconn')) document.getElementById('c_reconn').value = d.Reconnected || d.reconn || 0;
+                if(document.getElementById('c_special')) document.getElementById('c_special').value = d.Special || d.special || 0;
+                if(document.getElementById('c_dist')) document.getElementById('c_dist').value = d.Distributed || d.dist || 0;
+                if(document.getElementById('c_inaccess')) document.getElementById('c_inaccess').value = d.Inaccessible || d.inaccess || 0;
+                if(document.getElementById('c_closed')) document.getElementById('c_closed').value = d.Closed || d.closed || 0;
+                if(document.getElementById('c_notfound')) document.getElementById('c_notfound').value = d.NotFound || d.notfound || 0;
+                if(document.getElementById('c_denied')) document.getElementById('c_denied').value = d.Denied || d.denied || 0;
             } else {
-                if(document.getElementById('c_inst_meter')) document.getElementById('c_inst_meter').value = d.inst_meter || 0;
-                if(document.getElementById('c_inst_encl')) document.getElementById('c_inst_encl').value = d.inst_encl || 0;
-                if(document.getElementById('c_inst_3p')) document.getElementById('c_inst_3p').value = d.inst_3p || 0;
-                if(document.getElementById('c_bim_team')) document.getElementById('c_bim_team').value = d.bim_team || 0;
-                if(document.getElementById('c_other_team')) document.getElementById('c_other_team').value = d.other_team || 0;
+                if(document.getElementById('c_inst_meter')) document.getElementById('c_inst_meter').value = d["Inst. Meter"] || d.inst_meter || 0;
+                if(document.getElementById('c_inst_encl')) document.getElementById('c_inst_encl').value = d["Inst. Encl"] || d.inst_encl || 0;
+                if(document.getElementById('c_inst_3p')) document.getElementById('c_inst_3p').value = d["3P Encl"] || d.inst_3p || 0;
+                if(document.getElementById('c_bim_team')) document.getElementById('c_bim_team').value = d["BIM Team"] || d.bim_team || 0;
+                if(document.getElementById('c_other_team')) document.getElementById('c_other_team').value = d["Other Team"] || d.other_team || 0;
             }
             if(document.getElementById('c_notes')) document.getElementById('c_notes').value = notes || '';
             if(document.getElementById('c_offday')) document.getElementById('c_offday').checked = offday || false;
@@ -1239,49 +1242,52 @@
             window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
         }
 
+        // لێرەدا فەنکشنی ڕاپۆرتی گشتی واتساپ بەو شێوازەی داوات کردووە جێگیر کراوە
         function shareToWhatsApp() {
             let activeTeams = currentSection === 'lfd' ? lfdTeams : moveInTeams;
-            let sectionGrandTotal = 0;
-            let submittedTeamsCount = 0;
-            let summaryList = [];
+            let sortedTeams = [...activeTeams].sort((a, b) => {
+                let numA = parseInt((a.match(/\d+/) || [0])[0]);
+                let numB = parseInt((b.match(/\d+/) || [0])[0]);
+                return numA - numB;
+            });
 
-            activeTeams.forEach(teamName => {
+            let totalTeamsCount = sortedTeams.length;
+            let summaryData = {};
+            let grandTotalCases = 0;
+
+            // کۆکردنەوەی گشتی جۆرەکان بۆ هەموو تیمە چالاکەکان
+            sortedTeams.forEach(teamName => {
                 let uniqueKey = getUniqueTeamKey(teamName, currentSection);
                 let teamData = cloudStore[uniqueKey];
-
-                if (teamData && teamData.submitted) {
-                    submittedTeamsCount++;
-                    if (!teamData.offday) sectionGrandTotal += teamData.total || 0;
-                    
-                    if (teamData.offday) {
-                        summaryList.push(`- ${teamName}: پشوو (Off-Day)`);
-                    } else {
-                        let detailsText = [];
-                        if (teamData.details) {
-                            for (let [k, v] of Object.entries(teamData.details)) {
-                                if (v > 0) detailsText.push(`${k}: ${v}`);
-                            }
+                if (teamData && teamData.submitted && !teamData.offday && teamData.details) {
+                    for (let [k, v] of Object.entries(teamData.details)) {
+                        let val = Number(v) || 0;
+                        if (val > 0) {
+                            summaryData[k] = (summaryData[k] || 0) + val;
+                            grandTotalCases += val;
                         }
-                        let detailsFormatted = detailsText.length > 0 ? ` [${detailsText.join(', ')}]` : '';
-                        summaryList.push(`- ${teamName}: ${teamData.total} کار${detailsFormatted}`);
                     }
-                } else {
-                    summaryList.push(`- ${teamName}: نەنێردراوە`);
                 }
             });
 
-            let text = `📋 *تۆتەڵی گشتی ڕاپۆرتی BIM Operations (${currentSection.toUpperCase()})*\n`;
-            text += `📅 بەروار: ${selectedAdminDate}\n`;
-            text += `👥 تیمە نێردراوەکان: ${submittedTeamsCount} لە ${activeTeams.length}\n`;
-            text += `🏆 *کۆی گشتی بەش: ${sectionGrandTotal} کار*\n\n`;
-            
-            if (summaryList.length > 0) {
-                text += `📌 *وردەکاری تیمەکان و جۆری پۆینتەکان:*\n` + summaryList.join('\n');
-            } else {
-                text += `هیچ داتایەک لەم بەروارەدا تۆمار نەکراوە.`;
-            }
+            let cleanTeamNumbers = sortedTeams.map(t => (t.match(/\d+/) || [t])[0]);
 
-            window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+            let report = `📋 تۆتەڵی گشتی ڕاپۆرتی BIM Operations (${currentSection.toUpperCase()})\n`;
+            report += `📅 بەروار: ${selectedAdminDate}\n`;
+            report += `👥 تیمەکان: (${cleanTeamNumbers.join(', ')}) — (${totalTeamsCount} تیم)\n`;
+            report += `📌 کۆی گشتی جۆرەکان (Total Cases):\n`;
+            
+            if (Object.keys(summaryData).length > 0) {
+                for (const [caseType, count] of Object.entries(summaryData)) {
+                    report += `${caseType}: ${count}\n`;
+                }
+            } else {
+                report += `هیچ داتایەک تۆمار نەکراوە\n`;
+            }
+            
+            report += `\nGrand total Team cases: ${grandTotalCases}`;
+
+            window.open(`https://wa.me/?text=${encodeURIComponent(report)}`, '_blank');
         }
 
         function toggleTheme() {
