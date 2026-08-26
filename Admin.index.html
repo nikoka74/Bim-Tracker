@@ -1,0 +1,1336 @@
+<!DOCTYPE html>
+<html lang="ku" dir="rtl" id="htmlRoot">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bim Company - Operations Tracker</title>
+    
+    <link rel="manifest" id="dynamicManifest">
+    <meta name="theme-color" content="#0284c7">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="BIM Operations">
+
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700&display=swap');
+
+        :root {
+            --bg-color: #f1f5f9;
+            --card-bg: #ffffff;
+            --text-color: #0f172a;
+            --border-color: #cbd5e1;
+            --input-bg: #ffffff;
+            --primary: #0284c7;
+            --primary-hover: #0369a1;
+        }
+
+        body.dark-mode {
+            --bg-color: #090d16;
+            --card-bg: #111c2e;
+            --text-color: #f8fafc;
+            --border-color: #1e293b;
+            --input-bg: #0b0f19;
+            --primary: #38bdf8;
+            --primary-hover: #0ea5e9;
+        }
+
+        * { box-sizing: border-box; font-family: 'Vazirmatn', sans-serif; margin: 0; padding: 0; }
+        body { background-color: var(--bg-color); color: var(--text-color); padding: 12px; transition: background 0.3s ease, color 0.3s ease; }
+        .app-container { max-width: 650px; margin: 0 auto; background: var(--card-bg); border-radius: 16px; padding: 16px; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05); border: 1px solid var(--border-color); }
+        
+        .app-header-bar { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 12px; margin-bottom: 14px; }
+        .brand-box { display: flex; align-items: center; gap: 8px; cursor: pointer; user-select: none; }
+        .brand-box h1 { font-size: 16px; color: var(--primary); font-weight: 700; letter-spacing: -0.5px; }
+        .brand-box p { font-size: 10px; opacity: 0.7; font-weight: 400; }
+
+        .top-tools { display: flex; gap: 6px; align-items: center; }
+        .tool-btn { background: var(--card-bg); border: 1px solid var(--border-color); padding: 5px 8px; border-radius: 8px; cursor: pointer; color: var(--text-color); font-weight: 500; font-size: 11px; display: flex; align-items: center; gap: 4px; outline: none; transition: all 0.2s; }
+        .tool-btn:hover { background: var(--primary); color: white; border-color: var(--primary); }
+        .install-btn { background: #10b981; color: white; border-color: #10b981; display: none; }
+        
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .refresh-btn.spinning svg { animation: spin 0.6s linear; }
+
+        /* ستايلي تۆتەڵی گشتی پۆینتەکان */
+        .total-points-card {
+            background: linear-gradient(135deg, #6366f1, #a855f7);
+            color: white;
+            padding: 16px 20px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            box-shadow: 0 8px 20px -4px rgba(99, 102, 241, 0.35);
+            margin-bottom: 14px;
+        }
+        .total-points-card .icon-container {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 10px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .total-points-card h3 {
+            margin: 0 0 2px 0;
+            font-size: 13px;
+            font-weight: 500;
+            opacity: 0.9;
+        }
+        .total-points-card .counter {
+            font-size: 26px;
+            font-weight: 700;
+            line-height: 1;
+        }
+
+        .broadcast-ticker { background: var(--primary); color: white; padding: 8px 12px; border-radius: 8px; font-size: 11px; margin-bottom: 12px; font-weight: 500; display: flex; align-items: center; gap: 8px; box-shadow: 0 2px 4px rgba(2,132,199,0.2); }
+
+        .progress-container { margin-bottom: 14px; background: var(--border-color); border-radius: 8px; height: 14px; overflow: hidden; position: relative; }
+        .progress-bar { background: linear-gradient(90deg, #10b981, #059669); height: 100%; width: 0%; transition: width 0.4s ease-in-out; }
+        .progress-text { position: absolute; width: 100%; text-align: center; font-size: 9px; font-weight: 700; line-height: 14px; color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,0.3); }
+
+        .control-group { background: var(--card-bg); padding: 12px; border-radius: 12px; margin-bottom: 12px; border: 1px solid var(--border-color); }
+        label { font-size: 11px; font-weight: 600; display: block; margin-bottom: 4px; color: var(--text-color); }
+        select, input, textarea { width: 100%; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--border-color); font-size: 12px; outline: none; background: var(--input-bg); color: var(--text-color); transition: border-color 0.2s; }
+        select:focus, input:focus, textarea:focus { border-color: var(--primary); }
+
+        .section-tabs { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; margin-bottom: 10px; }
+        .section-tab-btn { background: var(--card-bg); border: 1px solid var(--border-color); padding: 8px; border-radius: 8px; font-weight: 600; font-size: 11px; cursor: pointer; color: var(--text-color); text-align: center; transition: all 0.2s; }
+        .section-tab-btn.active { background: var(--primary); color: white; border-color: var(--primary); box-shadow: 0 4px 12px rgba(2, 132, 199, 0.25); }
+
+        .cases-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 8px; }
+        .case-item { background: var(--bg-color); border: 1px solid var(--border-color); padding: 6px; border-radius: 8px; font-size: 10px; text-align: center; font-weight: 600; }
+        .case-item input { text-align: center; font-weight: 700; padding: 4px; font-size: 12px; margin-top: 4px; background: var(--card-bg); }
+
+        .offday-container { display: flex; align-items: center; gap: 8px; margin-top: 10px; background: var(--bg-color); padding: 8px 10px; border-radius: 8px; border: 1px solid var(--border-color); }
+        .offday-container input { width: 16px; height: 16px; cursor: pointer; accent-color: #f59e0b; }
+
+        .btn-submit-main { 
+            background: linear-gradient(135deg, #2563eb, #1d4ed8); 
+            color: white; width: 100%; padding: 10px; border: none; border-radius: 8px; 
+            font-size: 13px; font-weight: 700; cursor: pointer; margin-top: 10px; 
+            display: flex; align-items: center; justify-content: center; gap: 8px; 
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3); transition: transform 0.1s;
+        }
+        .btn-submit-main:active { transform: scale(0.98); }
+
+        .btn-toolbar { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; margin-bottom: 8px; }
+        .btn { padding: 9px 6px; border: none; border-radius: 8px; font-size: 11px; font-weight: 600; cursor: pointer; color: white; text-align: center; transition: opacity 0.2s; display: flex; align-items: center; justify-content: center; gap: 5px; }
+        .btn:hover { opacity: 0.9; }
+        .btn-whatsapp { background-color: #25d366; }
+        .btn-myteam { background-color: #059669; }
+        .btn-image { background-color: #f59e0b; }
+        .btn-pdf { background-color: #8b5cf6; }
+        .btn-excel { background-color: #10b981; }
+
+        .admin-panel { display: none; background: var(--card-bg); border: 2px solid var(--primary); border-radius: 12px; padding: 12px; margin-bottom: 12px; box-shadow: 0 10px 20px rgba(0,0,0,0.05); }
+        .admin-panel.active { display: block; }
+        
+        .filter-bar { display: flex; gap: 4px; margin-bottom: 8px; flex-wrap: wrap; }
+        .filter-btn { background: var(--bg-color); border: 1px solid var(--border-color); color: var(--text-color); font-size: 10px; font-weight: 600; padding: 5px 8px; border-radius: 6px; cursor: pointer; flex: 1; text-align: center; }
+        .filter-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
+
+        .admin-sub-box { background: var(--bg-color); border: 1px solid var(--border-color); padding: 8px; border-radius: 8px; margin-top: 8px; margin-bottom: 8px; }
+
+        .leaderboard-box { margin-top: 8px; background: var(--card-bg); border-radius: 8px; padding: 8px; border: 1px solid var(--border-color); }
+        .leaderboard-title { font-size: 11px; font-weight: bold; color: var(--primary); margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 4px; }
+        .leaderboard-item { display: flex; flex-direction: column; padding: 6px; border-bottom: 1px solid var(--border-color); font-size: 10px; gap: 3px; }
+        .leaderboard-item:last-child { border-bottom: none; }
+        .leaderboard-row-top { display: flex; justify-content: space-between; align-items: center; width: 100%; }
+        .leaderboard-reason { background: rgba(239, 68, 68, 0.08); color: #dc2626; padding: 3px 6px; border-radius: 6px; font-size: 9px; width: 100%; margin-top: 3px; }
+
+        .rank-badge { width: 18px; height: 18px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-weight: bold; font-size: 9px; margin-left: 6px; }
+        html[dir="ltr"] .rank-badge { margin-left: 0; margin-right: 6px; }
+        .rank-1 { background: #f59e0b; color: white; }
+        .rank-2 { background: #94a3b8; color: white; }
+        .rank-3 { background: #b45309; color: white; }
+        .rank-other { background: var(--border-color); color: var(--text-color); }
+
+        .toast { position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%); background: #10b981; color: white; padding: 8px 16px; border-radius: 8px; font-weight: 600; font-size: 11px; display: none; z-index: 1000; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3); }
+        
+        .live-alert-banner { background: #ef4444; color: white; padding: 6px 10px; border-radius: 8px; font-size: 11px; margin-bottom: 8px; font-weight: bold; display: none; align-items: center; justify-content: space-between; }
+
+        .team-targets-info { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-bottom: 8px; background: var(--bg-color); padding: 8px; border-radius: 8px; text-align: center; border: 1px solid var(--border-color); }
+        .team-targets-info div h5 { font-size: 9px; opacity: 0.7; }
+        .team-targets-info div p { font-size: 11px; font-weight: bold; color: var(--primary); }
+
+        .custom-modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(15, 23, 42, 0.75); backdrop-filter: blur(4px);
+            display: none; align-items: center; justify-content: center; z-index: 9999;
+        }
+        .custom-modal-box {
+            background: var(--card-bg); border: 1px solid var(--border-color);
+            width: 90%; max-width: 320px; padding: 18px; border-radius: 14px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3); text-align: center;
+        }
+        .custom-modal-box h3 { font-size: 13px; margin-bottom: 6px; color: var(--primary); font-weight: 700; }
+        .custom-modal-box p { font-size: 10px; opacity: 0.8; margin-bottom: 10px; }
+        .custom-modal-box input {
+            text-align: center; font-size: 16px; letter-spacing: 3px;
+            font-weight: bold; padding: 8px; margin-bottom: 10px; border-radius: 8px;
+        }
+        .modal-btn-row { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+        .modal-btn { padding: 8px; border-radius: 8px; font-weight: 600; font-size: 11px; cursor: pointer; border: none; }
+        .modal-btn-confirm { background: var(--primary); color: white; }
+        .modal-btn-cancel { background: var(--bg-color); color: var(--text-color); border: 1px solid var(--border-color); }
+    </style>
+</head>
+<body>
+    <div id="toast" class="toast">Saved!</div>
+
+    <div id="customModalOverlay" class="custom-modal-overlay">
+        <div class="custom-modal-box">
+            <h3 id="modalTitle">تەماشاكردنی پاراستن</h3>
+            <p id="modalDesc">تکایە پین کۆدی تیمەکەت بنووسە</p>
+            <input type="password" id="customModalInput" placeholder="••••" autocomplete="off">
+            <div class="modal-btn-row">
+                <button class="modal-btn modal-btn-cancel" onclick="closeCustomModal(false)">پەشیمانبوونەوە</button>
+                <button class="modal-btn modal-btn-confirm" id="modalConfirmBtn">پشتڕاستکردنەوە</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="app-container" id="reportArea">
+        <div class="app-header-bar">
+            <div class="brand-box" onclick="handleHeaderClick()" title="دەکرێت کرتەی سێ قۆڵی بکەیت بۆ ئەدمین">
+                <div>
+                    <h1>Bim Company</h1>
+                    <p id="lblSubHeader">سیستمی بەڕێوەبردنی ئامار</p>
+                </div>
+            </div>
+            <div class="top-tools">
+                <button id="installAppBtn" class="tool-btn install-btn" onclick="installPwaApp()">ئەپ</button>
+                <button class="tool-btn refresh-btn" onclick="manualRefreshData()" id="btnRefreshMain" title="نوێکردنەوەی داتاکان">
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
+                    <span id="lblRefreshText">نوێکردنەوە</span>
+                </button>
+                <select id="langSelect" class="tool-btn" style="padding: 5px;" onchange="changeLanguage()">
+                    <option value="ku" selected>کوردی</option>
+                    <option value="en">EN</option>
+                    <option value="ar">AR</option>
+                </select>
+                <button class="tool-btn" onclick="toggleTheme()" title="گۆڕینی ڕەنگ">🌓</button>
+            </div>
+        </div>
+
+        <!-- کارتی سەرەکی بۆ نیشاندانی تۆتەڵی گشتی پۆینتەکان -->
+        <div class="total-points-card">
+            <div class="icon-container">
+                <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+            </div>
+            <div>
+                <h3 id="lblGrandTotalTitle">کۆی گشتی پۆینتەکانی ئەمڕۆ</h3>
+                <span id="grandTotalPoints" class="counter">0</span>
+            </div>
+        </div>
+
+        <div id="liveAlertBanner" class="live-alert-banner">
+            <span id="liveAlertText">ئاگاداری نوێ!</span>
+            <button onclick="document.getElementById('liveAlertBanner').style.display='none'" style="background:none; border:none; color:white; font-weight:bold; cursor:pointer;">✕</button>
+        </div>
+
+        <div id="broadcastTicker" class="broadcast-ticker" style="display:none;">
+            <span>ئاگاداری:</span> <span id="broadcastTextContent"></span>
+        </div>
+
+        <!-- بەشی ئەدمین -->
+        <div class="admin-panel" id="adminPanel">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                <h3 style="font-size:12px; color:var(--primary); font-weight: 700;" id="lblAdminTitle">بەشی بەڕێوەبەر و ناردنی فایل</h3>
+                <button class="tool-btn" onclick="manualRefreshData()" style="padding: 3px 6px; font-size: 10px;">نوێکردنەوە</button>
+            </div>
+
+            <div class="admin-sub-box">
+                <label style="font-size: 10px; color: var(--primary); font-weight: bold;">ناردنی ئاگاداری گشتی بۆ هەمووان:</label>
+                <div style="display: flex; gap: 6px; margin-top: 4px;">
+                    <input type="text" id="adminBroadcastInput" placeholder="پەیام بنووسە..." style="flex: 2; font-size: 11px;">
+                    <button class="btn" style="background: var(--primary); flex: 1; font-size: 10px;" onclick="saveBroadcastMessage()">بڵاوکردنەوە</button>
+                </div>
+            </div>
+
+            <div class="admin-sub-box" style="border: 1px dashed #10b981;">
+                <label style="font-size: 10px; color: #10b981; font-weight: bold;">گۆڕینی فایلی CSV بۆ فایلی KML:</label>
+                <input type="file" id="csvFileForKml" accept=".csv" style="font-size: 10px; margin-bottom: 4px;">
+                <button class="btn" style="background: #10b981; width: 100%; padding: 5px; font-size: 10px;" onclick="convertExcelToKml()">دروستکردن و داگرتنی KML</button>
+            </div>
+
+            <div class="admin-sub-box" style="border: 1px solid var(--primary);">
+                <label style="font-size: 10px; color: var(--primary); font-weight: bold;">ئەپلۆدکردن و ناردنی فایل بۆ تیمی دیاریکراو:</label>
+                <div style="display: grid; grid-template-columns: 1fr; gap: 6px; margin-bottom: 4px;">
+                    <select id="kmlTargetTeam" style="font-size: 10px;">
+                        <option value="">-- هەڵبژاردنی تیم --</option>
+                    </select>
+                    <input type="file" id="teamFileUploader" accept=".kml,.csv,.txt,.xlsx,.gpx" style="font-size: 10px;">
+                </div>
+                <button class="btn" style="background: var(--primary); width: 100%; padding: 5px; font-size: 10px;" onclick="uploadFileForSpecificTeam()">ئەپلۆد و ناردن بۆ تیم</button>
+            </div>
+
+            <div class="admin-sub-box">
+                <label style="font-size: 10px; color: var(--primary); font-weight: bold;" id="lblHistoryDate">دیاریکردنی بەروار (ڕۆژانی پێشوو):</label>
+                <input type="date" id="adminDateSelector" onchange="onAdminDateChange()" style="font-weight: bold; text-align: center; font-size: 11px;">
+            </div>
+            
+            <div class="admin-sub-box">
+                <label style="color: var(--primary); font-weight: bold; margin-bottom: 4px; font-size: 10px;" id="lblAddTeamTitle">زیادکردنی تیمی نوێ:</label>
+                <div style="display: flex; gap: 4px; margin-bottom: 4px;">
+                    <select id="newTeamSection" style="flex: 1; font-size: 10px;">
+                        <option value="lfd">بەشی LFD</option>
+                        <option value="movein">بەشی Move-In</option>
+                    </select>
+                    <input type="text" id="newTeamNameInput" placeholder="ناوی تیم (Team 99)" style="flex: 2; font-size: 10px;">
+                </div>
+                <button class="btn" style="background: var(--primary); width: 100%; padding: 5px; font-size: 10px;" onclick="addNewTeam()" id="btnAddTeamBtn">زیادکردنی تیم</button>
+            </div>
+
+            <div class="filter-bar">
+                <button class="filter-btn active" id="f_all" onclick="setFilter('all')">هەموو</button>
+                <button class="filter-btn" id="f_achieved" onclick="setFilter('achieved')">گەیشتوو (≥7)</button>
+                <button class="filter-btn" id="f_missed" onclick="setFilter('missed')">نەگەیشتوو (<7)</button>
+                <button class="filter-btn" id="f_offday" onclick="setFilter('offday')">پشوو</button>
+            </div>
+
+            <div style="display: flex; gap: 4px; margin-top: 6px; flex-wrap: wrap;">
+                <button class="btn" style="background:#10b981; flex:1; font-size: 10px;" onclick="adminExportExcel('daily')" id="btnExcelAdmin">Excel (ڕۆژانە)</button>
+                <button class="btn" style="background:var(--primary); flex:1; font-size: 10px;" onclick="adminExportExcel('monthly')" id="btnExcelMonthly">Excel (مانگانە)</button>
+                <button class="btn" style="background:#8b5cf6; flex:1; font-size: 10px;" onclick="window.print()" id="btnPdfAdmin">PDF</button>
+                <button class="btn" style="background:#ef4444; flex:1; font-size: 10px;" onclick="adminClearData()" id="btnClearCloud">سڕینەوە</button>
+            </div>
+
+            <div style="background:var(--bg-color); border:1px solid var(--border-color); border-radius:8px; padding:8px; margin-top:8px; height:130px; display:flex; align-items:center; justify-content:center;">
+                <canvas id="statsChart"></canvas>
+            </div>
+
+            <div class="leaderboard-box">
+                <div class="leaderboard-title">
+                    <span id="lblLeaderboardLFD">ڕیزبەندی تیمەکانی LFD</span>
+                    <span id="adminTotalLFD" style="font-size: 9px; background: var(--primary); color: white; padding: 2px 4px; border-radius: 4px;">Total: 0</span>
+                </div>
+                <div id="leaderboardLFDContainer"></div>
+            </div>
+
+            <div class="leaderboard-box" style="margin-top: 6px;">
+                <div class="leaderboard-title" style="color: #10b981; border-color: #10b981;">
+                    <span id="lblLeaderboardMoveIn">ڕیزبەندی تیمەکانی Move-In</span>
+                    <span id="adminTotalMoveIn" style="font-size: 9px; background: #10b981; color: white; padding: 2px 4px; border-radius: 4px;">Total: 0</span>
+                </div>
+                <div id="leaderboardMoveInContainer"></div>
+            </div>
+        </div>
+
+        <div class="progress-container">
+            <div class="progress-bar" id="progressBar"></div>
+            <div class="progress-text" id="progressText">Submitted: 0%</div>
+        </div>
+
+        <div class="control-group">
+            <div class="section-tabs">
+                <button class="section-tab-btn active" id="tabLFD" onclick="switchSection('lfd')">بەشی LFD</button>
+                <button class="section-tab-btn" id="tabMoveIn" onclick="switchSection('movein')">بەشی Move-In</button>
+            </div>
+
+            <label for="teamSelect" id="lblSelectTeam">تیمەکەت هەڵبژێرە:</label>
+            <select id="teamSelect" onchange="loadTeamData()">
+                <option value="" id="optChooseTeam">-- تیم هەڵبژێرە --</option>
+            </select>
+
+            <div class="team-targets-info" id="teamTargetsBox" style="margin-top: 8px; display: none;">
+                <div><h5>ڕۆژانە</h5><p id="targetDailyVal">7</p></div>
+                <div><h5>هەفتانە</h5><p id="targetWeeklyVal">42</p></div>
+                <div><h5>مانگانە</h5><p id="targetMonthlyVal">180</p></div>
+            </div>
+
+            <div id="teamFileDownloadBox" class="admin-sub-box" style="border: 1px dashed var(--primary); margin-top: 8px; display: none;">
+                <label style="font-size: 10px; color: var(--primary); font-weight: bold;" id="lblTeamFileTitle">فایلی نەخشە / ڕێنمایی تایبەت بە تیمەکەت:</label>
+                <button class="btn" style="background: var(--primary); width: 100%; padding: 6px; font-size: 11px; margin-top: 4px;" onclick="promptPinAndDownloadTeamFile()" id="btnDownloadTeamFile">داگرتنی فایلی تیمەکەم (بە پین کۆد)</button>
+            </div>
+
+            <div class="cases-grid" id="casesGridContainer"></div>
+
+            <div class="offday-container">
+                <input type="checkbox" id="c_offday" onchange="saveDraftStateLocally()">
+                <label for="c_offday" id="lblOffdayText" style="margin-bottom:0; cursor:pointer; font-weight:600; font-size:11px; color:#d97706;">مۆڵەت / پشوو (Off-Day)</label>
+            </div>
+
+            <div style="margin-top: 8px;">
+                <label for="c_notes" id="lblNotesTitle" style="color: #dc2626; font-weight: 600; font-size:11px;">هۆکاری نەگەیشتن بە تاڕگێت (تاڕگێت: 7):</label>
+                <textarea id="c_notes" rows="2" placeholder="هۆکار..." oninput="saveDraftStateLocally()"></textarea>
+            </div>
+
+            <button class="btn-submit-main" id="btnSave" onclick="promptPinAndSave()">
+                <span id="btnSubmitText">ناردن یان نوێکردنەوەی ڕاپۆرت</span>
+            </button>
+        </div>
+
+        <div class="btn-toolbar">
+            <button class="btn btn-myteam" onclick="shareMyTeamToWhatsApp()" id="btnMyTeamWA">ناردنی تیمی خۆم بۆ واتساپ</button>
+            <button class="btn btn-whatsapp" id="btnWhatsapp" onclick="shareToWhatsApp()">ڕاپۆرتی گشتی واتساپ</button>
+            <button class="btn btn-image" onclick="exportAsImage()" id="btnImg">وێنە</button>
+            <button class="btn btn-pdf" onclick="window.print()" id="btnPdf">PDF</button>
+            <button class="btn btn-excel" onclick="adminExportExcel('daily')" id="btnExcel">Excel</button>
+        </div>
+    </div>
+
+    <script>
+        function playAlertSound() {
+            try {
+                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                const oscillator = audioCtx.createOscillator();
+                const gainNode = audioCtx.createGain();
+                
+                oscillator.type = 'triangle';
+                oscillator.frequency.setValueAtTime(650, audioCtx.currentTime); 
+                
+                gainNode.gain.setValueAtTime(0.2, audioCtx.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(audioCtx.destination);
+                
+                oscillator.start();
+                oscillator.stop(audioCtx.currentTime + 0.4);
+            } catch(e) {
+                console.log("Audio not supported or blocked");
+            }
+        }
+
+        function setupPwaManifest() {
+            let manifestData = {
+                "name": "BIM Operations Management",
+                "short_name": "BIM Operations",
+                "start_url": window.location.href,
+                "display": "standalone",
+                "background_color": "#090d16",
+                "theme_color": "#0284c7",
+                "icons": [
+                    { "src": "https://cdn-icons-png.flaticon.com/512/1006/1006771.png", "sizes": "192x192", "type": "image/png" },
+                    { "src": "https://cdn-icons-png.flaticon.com/512/1006/1006771.png", "sizes": "512x512", "type": "image/png" }
+                ]
+            };
+            let stringManifest = JSON.stringify(manifestData);
+            let blob = new Blob([stringManifest], {type: 'application/json'});
+            let manifestURL = URL.createObjectURL(blob);
+            document.getElementById('dynamicManifest').setAttribute('href', manifestURL);
+        }
+
+        let deferredPrompt;
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            document.getElementById('installAppBtn').style.display = 'flex';
+        });
+
+        function installPwaApp() {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                deferredPrompt.userChoice.then((choiceResult) => {
+                    if (choiceResult.outcome === 'accepted') {
+                        document.getElementById('installAppBtn').style.display = 'none';
+                    }
+                    deferredPrompt = null;
+                });
+            } else {
+                alert("ئەپەکە دەتوانرێت لە ڕێگەی بڕۆزەرەوە (Add to Home Screen) دابمەزرێت!");
+            }
+        }
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDdX6iplyIuYevuh6Ceyd7SMRZWmZy8pqY",
+            authDomain: "bim-operations.firebaseapp.com",
+            databaseURL: "https://bim-operations-default-rtdb.firebaseio.com",
+            projectId: "bim-operations",
+            storageBucket: "bim-operations.firebasestorage.app",
+            messagingSenderId: "601649835431",
+            appId: "1:601649835431:web:da5fd50f5f6dfb330d5a82",
+            measurementId: "G-JKY20T7HDR"
+        };
+        
+        if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
+        const db = firebase.database();
+
+        let defaultLfdTeams = ["Team 16", "Team 24", "Team 28", "Team 29", "Team 31", "Team 37", "Team 39", "Team 40", "Team 45", "Team 73", "Team 76", "Team 83", "Team 87"];
+        let lfdTeams = JSON.parse(localStorage.getItem('bim_lfd_teams')) || defaultLfdTeams;
+        lfdTeams = [...new Set(lfdTeams)];
+        localStorage.setItem('bim_lfd_teams', JSON.stringify(lfdTeams));
+
+        let moveInTeams = JSON.parse(localStorage.getItem('bim_movein_teams')) || ["Team 28"];
+
+        let currentSection = 'lfd';
+        const DAILY_TARGET = 7;
+        const WEEKLY_TARGET = 42;
+        const MONTHLY_TARGET = 180;
+        let isAdmin = false;
+        let headerClickCount = 0;
+        let headerClickTimer = null;
+        const ADMIN_HASH = "QklNMTk5Mg==";
+        let cloudStore = {};
+        let yesterdayStore = {};
+        let teamFilesStore = {};
+        let broadcastMsg = "";
+        let currentFilter = 'all';
+        let currentSyncRef = null;
+        let broadcastSyncRef = null;
+        let yesterdaySyncRef = null;
+        let filesSyncRef = null;
+        let myChart = null;
+        let previousBroadcast = null;
+
+        let todayFormatted = new Date().toISOString().split('T')[0];
+        let selectedAdminDate = todayFormatted;
+
+        function getYesterdayDateStr() {
+            let d = new Date();
+            d.setDate(d.getDate() - 1);
+            return d.toISOString().split('T')[0];
+        }
+        let yesterdayFormatted = getYesterdayDateStr();
+        let modalResolveCallback = null;
+
+        function showCustomModal(title, desc, isPasswordType = true) {
+            return new Promise((resolve) => {
+                document.getElementById('modalTitle').innerText = title;
+                document.getElementById('modalDesc').innerText = desc;
+                let inputField = document.getElementById('customModalInput');
+                inputField.value = '';
+                inputField.type = isPasswordType ? 'password' : 'text';
+                
+                document.getElementById('customModalOverlay').style.display = 'flex';
+                inputField.focus();
+
+                modalResolveCallback = resolve;
+                inputField.onkeydown = function(e) { if (e.key === 'Enter') confirmCustomModal(); };
+                document.getElementById('modalConfirmBtn').onclick = confirmCustomModal;
+            });
+        }
+
+        function confirmCustomModal() {
+            let val = document.getElementById('customModalInput').value;
+            document.getElementById('customModalOverlay').style.display = 'none';
+            if (modalResolveCallback) modalResolveCallback(val);
+        }
+
+        function closeCustomModal(val) {
+            document.getElementById('customModalOverlay').style.display = 'none';
+            if (modalResolveCallback) modalResolveCallback(val);
+        }
+
+        const translations = {
+            ku: {
+                dir: "rtl",
+                subHeader: "سیستمی بەڕێوەبردنی ئامار",
+                grandTotalTitle: "کۆی گشتی پۆینتەکانی ئەمڕۆ",
+                adminTitle: "بەشی بەڕێوەبەر و ناردنی فایل",
+                historyDate: "دیاریکردنی بەروار (ڕۆژانی پێشوو):",
+                fAll: "هەموو", fAchieved: "گەیشتوو (≥7)", fMissed: "نەگەیشتوو (<7)", fOffday: "پشوو",
+                excelAdmin: "Excel (ڕۆژانە)", excelMonthly: "Excel (مانگانە)", pdfAdmin: "PDF", clearCloud: "سڕینەوە",
+                leaderboardLFD: "ڕیزبەندی تیمەکانی LFD", leaderboardMoveIn: "ڕیزبەندی تیمەکانی Move-In",
+                progressText: "نێردراو: ",
+                selectTeam: "تیمەکەت هەڵبژێرە:", chooseTeam: "-- تیم هەڵبژێرە --",
+                offdayText: "مۆڵەت / پشوو (Off-Day)",
+                notesTitle: "هۆکاری نەگەیشتن بە تاڕگێت (تاڕگێت: 7):",
+                notesPlaceholder: "هۆکار...",
+                submitText: "ناردن یان نوێکردنەوەی ڕاپۆرت",
+                btnMyTeamWA: "تۆتەڵی تیمی خۆم بۆ واتساپ",
+                btnWhatsapp: "تۆتەڵی گشتی واتساپ",
+                toastSaved: "تۆمارکرا!", refreshToast: "داتاکان نوێکرانەوە!",
+                adminPassPrompt: "وشەی تێپەڕی بەڕێوەبەر بنووسە:", wrongPass: "وشەی تێپەڕ هەڵەیە!",
+                adminOpen: "بەشی بەڕێوەبەر کرایەوە", adminClosed: "بەشی بەڕێوەبەر داخرا",
+                selectTeamAlert: "تکایە سەرەتا تیمەکەت هەڵبژێرە!",
+                cloudSuccess: "داتاکان سەرکەوتووانە پاشەکەوتکران!",
+                clearConfirm: "دڵنیای لە سڕینەوەی داتاکانی ئەم بەروارە؟",
+                clearedToast: "داتاکان سڕانەوە", tabLFD: "بەشی LFD", tabMoveIn: "بەشی Move-In",
+                addTeamTitle: "زیادکردنی تیمی نوێ:", addTeamBtn: "زیادکردنی تیم", teamAdded: "تیمی نوێ زیادکرا!",
+                refreshText: "نوێکردنەوە",
+                wrongPin: "❌ پین کۆدەکەی تیم هەڵەیە!",
+                teamFileTitle: "فایلی نەخشە / ڕێنمایی تایبەت بە تیمەکەت:",
+                btnDownloadFileText: "داگرتنی فایلی تیمەکەم (بە پین کۆد)"
+            },
+            en: {
+                dir: "ltr",
+                subHeader: "Operations Management",
+                grandTotalTitle: "Today's Grand Total Points",
+                adminTitle: "Admin Panel & File Dispatch",
+                historyDate: "Select Date:",
+                fAll: "All", fAchieved: "Target Met", fMissed: "Target Missed", fOffday: "Off-Day",
+                excelAdmin: "Excel (Daily)", excelMonthly: "Excel (Monthly)", pdfAdmin: "PDF", clearCloud: "Clear",
+                leaderboardLFD: "LFD Leaderboard", leaderboardMoveIn: "Move-In Leaderboard",
+                progressText: "Submitted: ",
+                selectTeam: "Select Your Team:", chooseTeam: "-- Choose Team --",
+                offdayText: "Off-Day / Leave",
+                notesTitle: "Reason for missing target (Target: 7):",
+                notesPlaceholder: "Reason...",
+                submitText: "SUBMIT / UPDATE REPORT",
+                btnMyTeamWA: "My Team Total to WhatsApp",
+                btnWhatsapp: "General Total to WhatsApp",
+                toastSaved: "Saved!", refreshToast: "Refreshed!",
+                adminPassPrompt: "Admin password:", wrongPass: "Incorrect password!",
+                adminOpen: "Admin panel opened", adminClosed: "Admin panel closed",
+                selectTeamAlert: "Please select your team first!",
+                cloudSuccess: "Data saved successfully!",
+                clearConfirm: "Are you sure to clear data?",
+                clearedToast: "Cleared", tabLFD: "LFD Section", tabMoveIn: "Move-In Section",
+                addTeamTitle: "Add Team:", addTeamBtn: "Add Team", teamAdded: "Team added!",
+                refreshText: "Refresh",
+                wrongPin: "❌ Incorrect Team PIN!",
+                teamFileTitle: "Team Specific Map / Guide File:",
+                btnDownloadFileText: "Download My Team File (Pin Code)"
+            },
+            ar: {
+                dir: "rtl",
+                subHeader: "إدارة العمليات",
+                grandTotalTitle: "إجمالي النقاط الكلي اليوم",
+                adminTitle: "لوحة التحكم وإرسال الملفات",
+                historyDate: "تحديد التاريخ:",
+                fAll: "الكل", fAchieved: "حقق الهدف", fMissed: "لم يحقق", fOffday: "إجازة",
+                excelAdmin: "إكسل (يومي)", excelMonthly: "إكسل (شهري)", pdfAdmin: "PDF", clearCloud: "مسح",
+                leaderboardLFD: "متصدرو LFD", leaderboardMoveIn: "متصدرو Move-In",
+                progressText: "المرسل: ",
+                selectTeam: "اختر فريقك:", chooseTeam: "-- اختر الفريق --",
+                offdayText: "إجازة / عطلة",
+                notesTitle: "سبب عدم الوصول للهدف (الهدف: 7):",
+                notesPlaceholder: "السبب...",
+                submitText: "إرسال أو تحديث التقرير",
+                btnMyTeamWA: "إجمالي فريقي لواتساب",
+                btnWhatsapp: "الإجمالي العام لواتساب",
+                toastSaved: "تم الحفظ!", refreshToast: "تم التحديث!",
+                adminPassPrompt: "كلمة مرور المسؤول:", wrongPass: "كلمة المرور غير صحيحة!",
+                adminOpen: "تم فتح لوحة التحكم", adminClosed: "تم إغلاق لوحة التحكم",
+                selectTeamAlert: "يرجى اختيار فريقك أولاً!",
+                cloudSuccess: "تم الحفظ بنجاح!",
+                clearConfirm: "هل أنت متأكد من مسح البيانات؟",
+                clearedToast: "تم المسح", tabLFD: "قسم LFD", tabMoveIn: "قسم Move-In",
+                addTeamTitle: "إضافة فريق:", addTeamBtn: "إضافة", teamAdded: "تمت الإضافة!",
+                refreshText: "تحديث",
+                wrongPin: "❌ رمز الأمان غير صحيح!",
+                teamFileTitle: "ملف الخريطة / الدليل الخاص بفريقك:",
+                btnDownloadFileText: "تحميل ملف فريقي (بررمز الأمان)"
+            }
+        };
+
+        function switchSection(sec) {
+            currentSection = sec;
+            document.getElementById('tabLFD').classList.remove('active');
+            document.getElementById('tabMoveIn').classList.remove('active');
+            if (sec === 'lfd') document.getElementById('tabLFD').classList.add('active');
+            else document.getElementById('tabMoveIn').classList.add('active');
+            renderCasesGrid();
+            populateTeamDropdown();
+            loadTeamData();
+        }
+
+        function renderCasesGrid() {
+            let container = document.getElementById('casesGridContainer');
+            if (currentSection === 'lfd') {
+                container.innerHTML = `
+                    <div class="case-item">Paid <input type="number" id="c_paid" value="0" min="0" oninput="saveDraftStateLocally()"></div>
+                    <div class="case-item">Disc <input type="number" id="c_disc" value="0" min="0" oninput="saveDraftStateLocally()"></div>
+                    <div class="case-item">Reconn <input type="number" id="c_reconn" value="0" min="0" oninput="saveDraftStateLocally()"></div>
+                    <div class="case-item">Special <input type="number" id="c_special" value="0" min="0" oninput="saveDraftStateLocally()"></div>
+                    <div class="case-item">Dist <input type="number" id="c_dist" value="0" min="0" oninput="saveDraftStateLocally()"></div>
+                    <div class="case-item">Inaccess <input type="number" id="c_inaccess" value="0" min="0" oninput="saveDraftStateLocally()"></div>
+                    <div class="case-item">Closed <input type="number" id="c_closed" value="0" min="0" oninput="saveDraftStateLocally()"></div>
+                    <div class="case-item">Not Found <input type="number" id="c_notfound" value="0" min="0" oninput="saveDraftStateLocally()"></div>
+                    <div class="case-item">Denied <input type="number" id="c_denied" value="0" min="0" oninput="saveDraftStateLocally()"></div>
+                `;
+            } else {
+                container.innerHTML = `
+                    <div class="case-item">Inst. Meter <input type="number" id="c_inst_meter" value="0" min="0" oninput="saveDraftStateLocally()"></div>
+                    <div class="case-item">Inst. Encl <input type="number" id="c_inst_encl" value="0" min="0" oninput="saveDraftStateLocally()"></div>
+                    <div class="case-item">3P Encl <input type="number" id="c_inst_3p" value="0" min="0" oninput="saveDraftStateLocally()"></div>
+                    <div class="case-item">BIM Team <input type="number" id="c_bim_team" value="0" min="0" oninput="saveDraftStateLocally()"></div>
+                    <div class="case-item">Other Team <input type="number" id="c_other_team" value="0" min="0" oninput="saveDraftStateLocally()"></div>
+                `;
+            }
+        }
+
+        function populateTeamDropdown() {
+            let teamSelect = document.getElementById('teamSelect');
+            let kmlTeamSelect = document.getElementById('kmlTargetTeam');
+            let lang = document.getElementById('langSelect').value;
+            let teamsList = currentSection === 'lfd' ? lfdTeams : moveInTeams;
+            let allTeamsCombined = [...lfdTeams, ...moveInTeams];
+            let currentSelected = teamSelect.value;
+
+            let html = `<option value="">${translations[lang].chooseTeam}</option>`;
+            teamsList.forEach(t => { html += `<option value="${t}">${t}</option>`; });
+            teamSelect.innerHTML = html;
+            if (teamsList.includes(currentSelected)) teamSelect.value = currentSelected;
+
+            let kmlHtml = `<option value="">-- هەڵبژاردنی تیم --</option>`;
+            allTeamsCombined.forEach(t => { kmlHtml += `<option value="${t}">${t}</option>`; });
+            kmlTeamSelect.innerHTML = kmlHtml;
+        }
+
+        function convertExcelToKml() {
+            let fileInput = document.getElementById('csvFileForKml');
+            if (!fileInput.files.length) return alert("تکایە سەرەتا فایلی CSV هەڵبژێرە!");
+
+            let file = fileInput.files[0];
+            let reader = new FileReader();
+            reader.onload = function(e) {
+                let text = e.target.result;
+                let lines = text.split('\n');
+                if (lines.length < 2) return alert("فایلەکە پێکهاتەی دروستی نییە!");
+
+                let kmlContent = `<?xml version="1.0" encoding="UTF-8"?>\n`;
+                kmlContent += `<kml xmlns="http://www.opengis.net/kml/2.2">\n<Document>\n`;
+                kmlContent += `<name>BIM Operations Export</name>\n`;
+
+                for (let i = 1; i < lines.length; i++) {
+                    let line = lines[i].trim();
+                    if (!line) continue;
+                    let cols = line.split(',');
+                    if (cols.length >= 3) {
+                        let name = cols[0].replace(/"/g, '');
+                        let lat = cols[1].replace(/"/g, '');
+                        let lon = cols[2].replace(/"/g, '');
+                        kmlContent += `  <Placemark>\n`;
+                        kmlContent += `    <name>${name}</name>\n`;
+                        kmlContent += `    <Point>\n`;
+                        kmlContent += `      <coordinates>${lon},${lat},0</coordinates>\n`;
+                        kmlContent += `    </Point>\n`;
+                        kmlContent += `  </Placemark>\n`;
+                    }
+                }
+
+                kmlContent += `</Document>\n</kml>`;
+
+                let blob = new Blob([kmlContent], { type: 'application/vnd.google-earth.kml+xml' });
+                let link = document.createElement("a");
+                link.href = URL.createObjectURL(blob);
+                link.download = "Bim_Generated_Map.kml";
+                link.click();
+                showToast("فایلی KML بەسەرکەوتوویی دروستکرا و داگیرا!");
+            };
+            reader.readAsText(file);
+        }
+
+        function uploadFileForSpecificTeam() {
+            let teamName = document.getElementById('kmlTargetTeam').value;
+            let fileInput = document.getElementById('teamFileUploader');
+            if (!teamName || !fileInput.files.length) return alert("تکایە سەرەتا تیمێک هەڵبژێرە و فایلێک دیاری بکە!");
+
+            let file = fileInput.files[0];
+            let reader = new FileReader();
+            reader.onload = function(e) {
+                let base64Data = e.target.result;
+                let safeKey = teamName.replace(/[\.#$\/\[\]]/g, "_");
+                
+                let fileObj = {
+                    name: file.name,
+                    data: base64Data
+                };
+
+                db.ref(`team_files/${safeKey}`).set(fileObj).then(() => {
+                    showToast(`فایلی (${file.name}) بە سەرکەوتوویی نێردرا بۆ (${teamName})!`);
+                    document.getElementById('teamFileUploader').value = '';
+                });
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function addNewTeam() {
+            let section = document.getElementById('newTeamSection').value;
+            let teamName = document.getElementById('newTeamNameInput').value.trim();
+            let lang = document.getElementById('langSelect').value;
+            if (!teamName) return alert("تکایە ناوی تیم بنووسە!");
+
+            if (section === 'lfd') {
+                if (!lfdTeams.includes(teamName)) { lfdTeams.push(teamName); localStorage.setItem('bim_lfd_teams', JSON.stringify(lfdTeams)); }
+            } else {
+                if (!moveInTeams.includes(teamName)) { moveInTeams.push(teamName); localStorage.setItem('bim_movein_teams', JSON.stringify(moveInTeams)); }
+            }
+            document.getElementById('newTeamNameInput').value = '';
+            showToast(translations[lang].teamAdded);
+            populateTeamDropdown();
+            render();
+        }
+
+        function setFilter(filterType) {
+            currentFilter = filterType;
+            ['f_all', 'f_achieved', 'f_missed', 'f_offday'].forEach(id => document.getElementById(id).classList.remove('active'));
+            document.getElementById('f_' + filterType).classList.add('active');
+            render();
+        }
+
+        function onAdminDateChange() {
+            let dVal = document.getElementById('adminDateSelector').value;
+            if (dVal) { selectedAdminDate = dVal; initRealtimeSync(); }
+        }
+
+        function getStorageKeyPath() { return `daily_reports/${selectedAdminDate}`.replace(/[\.#$\/\[\]]/g, "_"); }
+
+        function saveBroadcastMessage() {
+            let msg = document.getElementById('adminBroadcastInput').value.trim();
+            db.ref('settings/broadcast').set(msg).then(() => {
+                showToast("پەیامی گشتی بڵاوکرایەوە!");
+                document.getElementById('adminBroadcastInput').value = '';
+            });
+        }
+
+        function initRealtimeSync() {
+            if (currentSyncRef) currentSyncRef.off();
+            currentSyncRef = db.ref(getStorageKeyPath());
+            currentSyncRef.on('value', (snapshot) => {
+                cloudStore = snapshot.val() || {};
+                render();
+                let t = document.getElementById('teamSelect').value;
+                if(t) loadTeamData();
+            });
+
+            if (!broadcastSyncRef) {
+                broadcastSyncRef = db.ref('settings/broadcast');
+                broadcastSyncRef.on('value', (snap) => {
+                    broadcastMsg = snap.val() || "";
+                    let ticker = document.getElementById('broadcastTicker');
+                    let textSpan = document.getElementById('broadcastTextContent');
+                    
+                    if (broadcastMsg.trim() !== "") {
+                        ticker.style.display = 'flex';
+                        textSpan.innerText = broadcastMsg;
+
+                        if (previousBroadcast !== null && previousBroadcast !== broadcastMsg) {
+                            playAlertSound();
+
+                            let banner = document.getElementById('liveAlertBanner');
+                            banner.style.display = 'flex';
+                            document.getElementById('liveAlertText').innerText = `ئاگاداری نوێ: ${broadcastMsg}`;
+                            if (window.Notification && Notification.permission === "granted") {
+                                new Notification("BIM Operations", { body: broadcastMsg });
+                            }
+                        }
+                        previousBroadcast = broadcastMsg;
+                    } else {
+                        ticker.style.display = 'none';
+                    }
+                });
+            }
+
+            if (!yesterdaySyncRef) {
+                let yPath = `daily_reports/${yesterdayFormatted}`.replace(/[\.#$\/\[\]]/g, "_");
+                yesterdaySyncRef = db.ref(yPath);
+                yesterdaySyncRef.on('value', (snap) => {
+                    yesterdayStore = snap.val() || {};
+                    render();
+                });
+            }
+
+            if (!filesSyncRef) {
+                filesSyncRef = db.ref('team_files');
+                filesSyncRef.on('value', (snap) => {
+                    teamFilesStore = snap.val() || {};
+                    let t = document.getElementById('teamSelect').value;
+                    if(t) checkTeamFile(t);
+                });
+            }
+        }
+
+        function checkTeamFile(teamName) {
+            let downloadBox = document.getElementById('teamFileDownloadBox');
+            let safeKey = teamName.replace(/[\.#$\/\[\]]/g, "_");
+            
+            if (teamFilesStore[safeKey] && teamFilesStore[safeKey].data) {
+                downloadBox.style.display = 'block';
+            } else {
+                downloadBox.style.display = 'none';
+            }
+        }
+
+        async function promptPinAndDownloadTeamFile() {
+            let lang = document.getElementById('langSelect').value;
+            let t = document.getElementById('teamSelect').value;
+            if (!t) return alert(translations[lang].selectTeamAlert);
+
+            let teamNumMatch = t.match(/\d+/);
+            if (!teamNumMatch) { downloadTeamFileDirect(t); return; }
+            let expectedPin = teamNumMatch[0] + teamNumMatch[0];
+
+            let enteredPin = await showCustomModal("پین کۆدی تیم", `پین کۆدی تیم بۆ (${t}) بنووسە بۆ داگرتنی فایلەکەت:`, true);
+            if (enteredPin === false || enteredPin === null) return;
+
+            if (enteredPin.trim() === expectedPin && /^\d+$/.test(enteredPin.trim())) {
+                downloadTeamFileDirect(t);
+            } else {
+                alert(translations[lang].wrongPin);
+            }
+        }
+
+        function downloadTeamFileDirect(teamName) {
+            let safeKey = teamName.replace(/[\.#$\/\[\]]/g, "_");
+            if (teamFilesStore[safeKey] && teamFilesStore[safeKey].data) {
+                let fileObj = teamFilesStore[safeKey];
+                let link = document.createElement("a");
+                link.href = fileObj.data;
+                link.download = fileObj.name || "team_map.kml";
+                link.click();
+                showToast("فایلەکە بە سەرکەوتوویی داگیرا!");
+            } else {
+                alert("هیچ فایلێک لە ئێستادا بۆ ئەم تیمە نەنێردراوە!");
+            }
+        }
+
+        function manualRefreshData() {
+            let lang = document.getElementById('langSelect').value;
+            db.ref(getStorageKeyPath()).once('value').then((snapshot) => {
+                cloudStore = snapshot.val() || {};
+                render();
+                let t = document.getElementById('teamSelect').value;
+                if(t) loadTeamData();
+                showToast(translations[lang].refreshToast);
+            });
+        }
+
+        function handleHeaderClick() {
+            headerClickCount++;
+            if (headerClickCount === 1) {
+                headerClickTimer = setTimeout(() => { headerClickCount = 0; }, 1000);
+            } else if (headerClickCount === 3) {
+                clearTimeout(headerClickTimer);
+                headerClickCount = 0;
+                toggleAdminBySecret();
+            }
+        }
+
+        async function toggleAdminBySecret() {
+            let lang = document.getElementById('langSelect').value;
+            let t = translations[lang];
+            if (!isAdmin) {
+                let pass = await showCustomModal("بەشی بەڕێوەبەر (Admin)", t.adminPassPrompt, true);
+                if (pass && btoa(pass) === ADMIN_HASH) {
+                    isAdmin = true;
+                    document.getElementById('adminPanel').classList.add('active');
+                    document.getElementById('adminDateSelector').value = selectedAdminDate;
+                    showToast(t.adminOpen);
+                    render();
+                } else if(pass !== false && pass !== null) alert(t.wrongPass);
+            } else {
+                isAdmin = false;
+                document.getElementById('adminPanel').classList.remove('active');
+                showToast(t.adminClosed);
+                render();
+            }
+        }
+
+        function changeLanguage() {
+            let lang = document.getElementById('langSelect').value;
+            localStorage.setItem('bim_lang', lang);
+            applyLanguage(lang);
+        }
+
+        function applyLanguage(lang) {
+            let t = translations[lang];
+            document.getElementById('htmlRoot').setAttribute('dir', t.dir);
+            document.getElementById('lblSubHeader').innerText = t.subHeader;
+            document.getElementById('lblGrandTotalTitle').innerText = t.grandTotalTitle;
+            document.getElementById('lblAdminTitle').innerText = t.adminTitle;
+            document.getElementById('lblHistoryDate').innerText = t.historyDate;
+            document.getElementById('lblRefreshText').innerText = t.refreshText;
+            document.getElementById('lblAddTeamTitle').innerText = t.addTeamTitle;
+            document.getElementById('btnAddTeamBtn').innerText = t.addTeamBtn;
+            document.getElementById('f_all').innerText = t.fAll;
+            document.getElementById('f_achieved').innerText = t.fAchieved;
+            document.getElementById('f_missed').innerText = t.fMissed;
+            document.getElementById('f_offday').innerText = t.fOffday;
+            document.getElementById('btnExcelAdmin').innerText = t.excelAdmin;
+            document.getElementById('btnExcelMonthly').innerText = t.excelMonthly;
+            document.getElementById('btnPdfAdmin').innerText = t.pdfAdmin;
+            document.getElementById('btnClearCloud').innerText = t.clearCloud;
+            document.getElementById('lblLeaderboardLFD').innerText = t.leaderboardLFD;
+            document.getElementById('lblLeaderboardMoveIn').innerText = t.leaderboardMoveIn;
+            document.getElementById('lblSelectTeam').innerText = t.selectTeam;
+            document.getElementById('tabLFD').innerText = t.tabLFD;
+            document.getElementById('tabMoveIn').innerText = t.tabMoveIn;
+            document.getElementById('lblOffdayText').innerText = t.offdayText;
+            document.getElementById('lblNotesTitle').innerText = t.notesTitle;
+            document.getElementById('c_notes').placeholder = t.notesPlaceholder;
+            document.getElementById('btnSubmitText').innerText = t.submitText;
+            document.getElementById('btnMyTeamWA').innerText = t.btnMyTeamWA;
+            document.getElementById('btnWhatsapp').innerText = t.btnWhatsapp;
+            document.getElementById('lblTeamFileTitle').innerText = t.teamFileTitle;
+            document.getElementById('btnDownloadTeamFile').innerText = t.btnDownloadFileText;
+            populateTeamDropdown();
+            render();
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            toast.innerText = msg;
+            toast.style.display = 'block';
+            setTimeout(() => { toast.style.display = 'none'; }, 2000);
+        }
+
+        function getDetailsFromInputs() {
+            if (currentSection === 'lfd') {
+                return {
+                    paid: parseInt(document.getElementById('c_paid')?.value) || 0,
+                    disc: parseInt(document.getElementById('c_disc')?.value) || 0,
+                    reconn: parseInt(document.getElementById('c_reconn')?.value) || 0,
+                    special: parseInt(document.getElementById('c_special')?.value) || 0,
+                    dist: parseInt(document.getElementById('c_dist')?.value) || 0,
+                    inaccess: parseInt(document.getElementById('c_inaccess')?.value) || 0,
+                    closed: parseInt(document.getElementById('c_closed')?.value) || 0,
+                    notfound: parseInt(document.getElementById('c_notfound')?.value) || 0,
+                    denied: parseInt(document.getElementById('c_denied')?.value) || 0
+                };
+            } else {
+                return {
+                    inst_meter: parseInt(document.getElementById('c_inst_meter')?.value) || 0,
+                    inst_encl: parseInt(document.getElementById('c_inst_encl')?.value) || 0,
+                    inst_3p: parseInt(document.getElementById('c_inst_3p')?.value) || 0,
+                    bim_team: parseInt(document.getElementById('c_bim_team')?.value) || 0,
+                    other_team: parseInt(document.getElementById('c_other_team')?.value) || 0
+                };
+            }
+        }
+
+        function getUniqueTeamKey(teamName, section) {
+            return `${section}_${teamName.replace(/[\.#$\/\[\]]/g, "_")}`;
+        }
+
+        function saveDraftStateLocally() {
+            let t = document.getElementById('teamSelect').value;
+            if (!t) return;
+            let details = getDetailsFromInputs();
+            let notes = document.getElementById('c_notes')?.value || '';
+            let offday = document.getElementById('c_offday')?.checked || false;
+            localStorage.setItem(`draft_${currentSection}_${t}`, JSON.stringify({ details, notes, offday }));
+        }
+
+        function loadTeamData() {
+            let t = document.getElementById('teamSelect').value;
+            localStorage.setItem('bim_selected_team', t);
+            let targetsBox = document.getElementById('teamTargetsBox');
+            
+            if (t) {
+                targetsBox.style.display = 'grid';
+                document.getElementById('targetDailyVal').innerText = DAILY_TARGET;
+                document.getElementById('targetWeeklyVal').innerText = WEEKLY_TARGET;
+                document.getElementById('targetMonthlyVal').innerText = MONTHLY_TARGET;
+
+                checkTeamFile(t);
+                let teamRecord = cloudStore[getUniqueTeamKey(t, currentSection)];
+                let draftSaved = localStorage.getItem(`draft_${currentSection}_${t}`);
+                
+                if (teamRecord && teamRecord.details) {
+                    fillInputsWithDetails(teamRecord.details, teamRecord.notes, teamRecord.offday);
+                } else if (draftSaved) {
+                    let parsedDraft = JSON.parse(draftSaved);
+                    fillInputsWithDetails(parsedDraft.details, parsedDraft.notes, parsedDraft.offday);
+                } else {
+                    resetInputsLocally();
+                }
+            } else {
+                targetsBox.style.display = 'none';
+                resetInputsLocally();
+            }
+        }
+
+        function fillInputsWithDetails(d, notes, offday) {
+            if (currentSection === 'lfd') {
+                if(document.getElementById('c_paid')) document.getElementById('c_paid').value = d.paid || 0;
+                if(document.getElementById('c_disc')) document.getElementById('c_disc').value = d.disc || 0;
+                if(document.getElementById('c_reconn')) document.getElementById('c_reconn').value = d.reconn || 0;
+                if(document.getElementById('c_special')) document.getElementById('c_special').value = d.special || 0;
+                if(document.getElementById('c_dist')) document.getElementById('c_dist').value = d.dist || 0;
+                if(document.getElementById('c_inaccess')) document.getElementById('c_inaccess').value = d.inaccess || 0;
+                if(document.getElementById('c_closed')) document.getElementById('c_closed').value = d.closed || 0;
+                if(document.getElementById('c_notfound')) document.getElementById('c_notfound').value = d.notfound || 0;
+                if(document.getElementById('c_denied')) document.getElementById('c_denied').value = d.denied || 0;
+            } else {
+                if(document.getElementById('c_inst_meter')) document.getElementById('c_inst_meter').value = d.inst_meter || 0;
+                if(document.getElementById('c_inst_encl')) document.getElementById('c_inst_encl').value = d.inst_encl || 0;
+                if(document.getElementById('c_inst_3p')) document.getElementById('c_inst_3p').value = d.inst_3p || 0;
+                if(document.getElementById('c_bim_team')) document.getElementById('c_bim_team').value = d.bim_team || 0;
+                if(document.getElementById('c_other_team')) document.getElementById('c_other_team').value = d.other_team || 0;
+            }
+            if(document.getElementById('c_notes')) document.getElementById('c_notes').value = notes || '';
+            if(document.getElementById('c_offday')) document.getElementById('c_offday').checked = offday || false;
+        }
+
+        function resetInputsLocally() {
+            document.querySelectorAll('.cases-grid input').forEach(inp => inp.value = 0);
+            if(document.getElementById('c_notes')) document.getElementById('c_notes').value = '';
+            if(document.getElementById('c_offday')) document.getElementById('c_offday').checked = false;
+            document.getElementById('teamFileDownloadBox').style.display = 'none';
+        }
+
+        async function promptPinAndSave() {
+            let lang = document.getElementById('langSelect').value;
+            let t = document.getElementById('teamSelect').value;
+            if (!t) return alert(translations[lang].selectTeamAlert);
+
+            let teamNumMatch = t.match(/\d+/);
+            if (!teamNumMatch) { saveDataFinal(); return; }
+            let expectedPin = teamNumMatch[0] + teamNumMatch[0];
+
+            let enteredPin = await showCustomModal("پین کۆدی تیم", `پین کۆدی تیم بۆ (${t}) بنووسە:`, true);
+            if (enteredPin === false || enteredPin === null) return;
+
+            if (enteredPin.trim() === expectedPin && /^\d+$/.test(enteredPin.trim())) {
+                saveDataFinal();
+            } else {
+                alert(translations[lang].wrongPin);
+            }
+        }
+
+        function saveDataFinal() {
+            let lang = document.getElementById('langSelect').value;
+            let t = document.getElementById('teamSelect').value;
+            let details = getDetailsFromInputs();
+            let total = Object.values(details).reduce((a, b) => a + b, 0);
+            let notes = document.getElementById('c_notes').value;
+            let offday = document.getElementById('c_offday').checked;
+            let uniqueKey = getUniqueTeamKey(t, currentSection);
+
+            let teamData = {
+                teamName: t, section: currentSection, total: total, submitted: true,
+                offday: offday, notes: notes, details: details
+            };
+
+            cloudStore[uniqueKey] = teamData;
+            db.ref(getStorageKeyPath() + '/' + uniqueKey).set(teamData).then(() => {
+                localStorage.removeItem(`draft_${currentSection}_${t}`);
+                render();
+                showToast(translations[lang].cloudSuccess);
+            });
+        }
+
+        function adminClearData() {
+            let lang = document.getElementById('langSelect').value;
+            if (confirm(translations[lang].clearConfirm)) {
+                db.ref(getStorageKeyPath()).remove().then(() => {
+                    cloudStore = {};
+                    render();
+                    resetInputsLocally();
+                    showToast(translations[lang].clearedToast);
+                });
+            }
+        }
+
+        function adminExportExcel(mode = 'daily') {
+            if (mode === 'daily') {
+                let csv = "Team,Section,Details,Total,OffDay,TargetAchieved(%),Reason\n";
+                Object.keys(cloudStore).forEach(key => {
+                    let item = cloudStore[key];
+                    if (item && item.details) {
+                        let cleanNotes = (item.notes || "").replace(/(\r\n|\n|\r)/gm, " ");
+                        let targetPct = item.offday ? "Off-Day" : Math.round((item.total / DAILY_TARGET) * 100) + "%";
+                        csv += `${item.teamName},${item.section},"${JSON.stringify(item.details).replace(/"/g, '""')}",${item.total},${item.offday ? 'Yes' : 'No'},${targetPct},"${cleanNotes}"\n`;
+                    }
+                });
+                let blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' });
+                let link = document.createElement("a");
+                link.href = URL.createObjectURL(blob);
+                link.download = `Bim_Report_${selectedAdminDate}.csv`;
+                link.click();
+            } else {
+                db.ref('daily_reports').once('value').then(snapshot => {
+                    let allData = snapshot.val() || {};
+                    let csv = "Date,Team,Section,Total,OffDay\n";
+                    Object.keys(allData).forEach(dateKey => {
+                        let dayObj = allData[dateKey];
+                        Object.keys(dayObj).forEach(tKey => {
+                            let item = dayObj[tKey];
+                            if (item) {
+                                csv += `${dateKey},${item.teamName},${item.section},${item.total},${item.offday ? 'Yes' : 'No'}\n`;
+                            }
+                        });
+                    });
+                    let blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' });
+                    let link = document.createElement("a");
+                    link.href = URL.createObjectURL(blob);
+                    link.download = `Bim_Monthly_Report_All.csv`;
+                    link.click();
+                });
+            }
+        }
+
+        function shareMyTeamToWhatsApp() {
+            let lang = document.getElementById('langSelect').value;
+            let selectedTeam = document.getElementById('teamSelect').value;
+            if (!selectedTeam) return alert(translations[lang].selectTeamAlert);
+
+            let details = getDetailsFromInputs();
+            let totalCases = Object.values(details).reduce((a, b) => a + b, 0);
+            let text = `📊 ڕاپۆرتی تیمی ${selectedTeam} (${currentSection.toUpperCase()})\n📅 بەروار: ${selectedAdminDate}\n`;
+            
+            if(document.getElementById('c_offday').checked) {
+                text += `📌 دۆخ: مۆڵەت / پشوو (Off-Day)\n`;
+            } else {
+                for (let [k, v] of Object.entries(details)) text += `🔹 ${k}: ${v}\n`;
+                text += `✅ کۆی گشتی (Total): *${totalCases}* (تاڕگێت: ${DAILY_TARGET})\n`;
+                let notes = document.getElementById('c_notes').value;
+                if (notes.trim()) text += `📝 هۆکار: ${notes}\n`;
+            }
+            window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+        }
+
+        function shareToWhatsApp() {
+            let grandTotal = 0;
+            let submittedTeamsCount = 0;
+            let summaryList = [];
+
+            Object.values(cloudStore).forEach(teamData => {
+                if (teamData && teamData.submitted) {
+                    submittedTeamsCount++;
+                    grandTotal += teamData.total || 0;
+                    let stLabel = teamData.offday ? "Off-Day" : `${teamData.total} کار`;
+                    summaryList.push(`- ${teamData.teamName} (${teamData.section.toUpperCase()}): ${stLabel}`);
+                }
+            });
+
+            let text = `📋 *تۆتەڵی گشتی ڕاپۆرتی BIM Operations*\n`;
+            text += `📅 بەروار: ${selectedAdminDate}\n`;
+            text += `👥 تیمە نێردراوەکان: ${submittedTeamsCount}\n`;
+            text += `🏆 *کۆی گشتی (Grand Total): ${grandTotal} کار*\n\n`;
+            if (summaryList.length > 0) {
+                text += `وردەکاری تیمەکان:\n` + summaryList.join('\n');
+            } else {
+                text += `هیچ داتایەک لەم بەروارەدا تۆمار نەکراوە.`;
+            }
+
+            window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+        }
+
+        function toggleTheme() {
+            document.body.classList.toggle('dark-mode');
+            localStorage.setItem('bim_dark', document.body.classList.contains('dark-mode'));
+            updateChartTheme();
+        }
+
+        function renderList(teamsArray, sectionName) {
+            let list = [], sectionTotal = 0;
+            teamsArray.forEach(t => {
+                let teamData = cloudStore[getUniqueTeamKey(t, sectionName)];
+                let isSubmitted = teamData?.submitted || false;
+                let isOffday = teamData?.offday || false;
+                let val = teamData?.total || 0;
+                if (isSubmitted && !isOffday) sectionTotal += val;
+                list.push({ name: t, total: val, submitted: isSubmitted, offday: isOffday, notes: teamData?.notes || "" });
+            });
+
+            list.sort((a, b) => b.total - a.total);
+            let filtered = list.filter(item => {
+                if (currentFilter === 'achieved') return item.submitted && !item.offday && item.total >= DAILY_TARGET;
+                if (currentFilter === 'missed') return item.submitted && !item.offday && item.total < DAILY_TARGET;
+                if (currentFilter === 'offday') return item.offday;
+                return true;
+            });
+
+            return { html: filtered.map((item, index) => {
+                let rankClass = index === 0 && item.total > 0 ? "rank-1" : index === 1 && item.total > 0 ? "rank-2" : index === 2 && item.total > 0 ? "rank-3" : "rank-other";
+                let statusText = item.offday ? `<span style="color:#d97706; font-weight:600;">Off-Day</span>` :
+                                 item.submitted ? `<b>${item.total}</b> <span style="${item.total >= DAILY_TARGET ? "color:#10b981;" : "color:#ef4444;"}">(${Math.round((item.total / DAILY_TARGET) * 100)}%)</span>` :
+                                 `<span style="opacity:0.5;">Pending</span>`;
+                let reasonHTML = item.submitted && item.notes?.trim() ? `<div class="leaderboard-reason">Reason: ${item.notes}</div>` : "";
+                return `<div class="leaderboard-item"><div class="leaderboard-row-top"><div style="display:flex; align-items:center;"><span class="rank-badge ${rankClass}">${index + 1}</span><span>${item.name}</span></div><div>${statusText}</div></div>${reasonHTML}</div>`;
+            }).join('') || `<div style="text-align:center; padding:6px; opacity:0.6; font-size:10px;">هیچ تیمێک نییە</div>`, total: sectionTotal };
+        }
+
+        function updateChart(achievedCount, missedCount, offdayCount) {
+            let ctx = document.getElementById('statsChart').getContext('2d');
+            let isDark = document.body.classList.contains('dark-mode');
+            let textColor = isDark ? '#f8fafc' : '#0f172a';
+
+            if (myChart) myChart.destroy();
+            myChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Target Met', 'Target Missed', 'Off-Day'],
+                    datasets: [{
+                        data: [achievedCount, missedCount, offdayCount],
+                        backgroundColor: ['#10b981', '#ef4444', '#f59e0b'],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'left', labels: { color: textColor, font: { size: 10, family: 'Vazirmatn' } } }
+                    }
+                }
+            });
+        }
+
+        function updateChartTheme() {
+            let achieved = 0, missed = 0, offday = 0;
+            Object.values(cloudStore).forEach(item => {
+                if (item?.submitted) {
+                    if (item.offday) offday++;
+                    else if (item.total >= DAILY_TARGET) achieved++;
+                    else missed++;
+                }
+            });
+            updateChart(achieved, missed, offday);
+        }
+
+        function render() {
+            let lang = document.getElementById('langSelect').value;
+            let submittedCount = 0;
+            let achieved = 0, missed = 0, offday = 0;
+            let grandTotalPoints = 0;
+            let allTeamsCombined = [...lfdTeams, ...moveInTeams];
+
+            Object.values(cloudStore).forEach(teamData => {
+                if (teamData) {
+                    if (teamData.submitted) {
+                        submittedCount++;
+                        if (teamData.offday) {
+                            offday++;
+                        } else {
+                            if (teamData.total >= DAILY_TARGET) achieved++;
+                            else missed++;
+                            grandTotalPoints += Number(teamData.total || 0);
+                        }
+                    }
+                }
+            });
+
+            // نیشاندانی تۆتەڵی گشتی پۆینتەکان لە کارتی سەرەکی
+            document.getElementById('grandTotalPoints').innerText = grandTotalPoints.toLocaleString();
+
+            updateChart(achieved, missed, offday);
+
+            let lfdRes = renderList(lfdTeams, 'lfd');
+            let moveInRes = renderList(moveInTeams, 'movein');
+
+            document.getElementById('leaderboardLFDContainer').innerHTML = lfdRes.html;
+            document.getElementById('adminTotalLFD').innerText = `Total: ${lfdRes.total}`;
+            document.getElementById('leaderboardMoveInContainer').innerHTML = moveInRes.html;
+            document.getElementById('adminTotalMoveIn').innerText = `Total: ${moveInRes.total}`;
+
+            let percentage = Math.round((submittedCount / allTeamsCombined.length) * 100) || 0;
+            document.getElementById('progressBar').style.width = percentage + '%';
+            document.getElementById('progressText').innerText = `${translations[lang].progressText} ${percentage}% (${submittedCount}/${allTeamsCombined.length})`;
+        }
+
+        window.onload = function() {
+            setupPwaManifest();
+            if (window.Notification && Notification.permission !== "granted") {
+                Notification.requestPermission();
+            }
+            if (localStorage.getItem('bim_dark') === 'true') document.body.classList.add('dark-mode');
+            let savedLang = localStorage.getItem('bim_lang') || 'ku';
+            document.getElementById('langSelect').value = savedLang;
+            applyLanguage(savedLang);
+
+            renderCasesGrid();
+            populateTeamDropdown();
+            document.getElementById('adminDateSelector').value = todayFormatted;
+            initRealtimeSync();
+
+            let savedTeam = localStorage.getItem('bim_selected_team');
+            if (savedTeam) {
+                if (moveInTeams.includes(savedTeam)) switchSection('movein');
+                else switchSection('lfd');
+                document.getElementById('teamSelect').value = savedTeam;
+                loadTeamData();
+            }
+        };
+    </script>
+</body>
+</html>
