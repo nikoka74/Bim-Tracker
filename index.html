@@ -65,6 +65,10 @@
             box-shadow: 0 8px 20px -4px rgba(99, 102, 241, 0.35);
             margin-bottom: 14px;
         }
+        .total-points-card.movein-theme {
+            background: linear-gradient(135deg, #059669, #10b981);
+            box-shadow: 0 8px 20px -4px rgba(16, 185, 129, 0.35);
+        }
         .total-points-card .icon-container {
             background: rgba(255, 255, 255, 0.2);
             padding: 10px;
@@ -85,7 +89,6 @@
             line-height: 1;
         }
 
-        /* سەرەتای ڕەنگی ئاگاداری و گۆڕینی بۆ سەوز کاتی هاتنی نوێ */
         .broadcast-ticker { background: #dc2626; color: white; padding: 8px 12px; border-radius: 8px; font-size: 11px; margin-bottom: 12px; font-weight: 500; display: flex; align-items: center; gap: 8px; box-shadow: 0 2px 4px rgba(220,38,38,0.2); transition: background 0.3s ease; }
         .broadcast-ticker.active-new { background: #10b981 !important; box-shadow: 0 2px 4px rgba(16,185,129,0.3); }
 
@@ -116,6 +119,10 @@
             display: flex; align-items: center; justify-content: center; gap: 8px; 
             box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3); transition: transform 0.1s;
         }
+        .btn-submit-main.movein-theme {
+            background: linear-gradient(135deg, #059669, #047857);
+            box-shadow: 0 4px 12px rgba(5, 150, 105, 0.3);
+        }
         .btn-submit-main:active { transform: scale(0.98); }
 
         .btn-toolbar { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; margin-bottom: 8px; }
@@ -138,8 +145,7 @@
 
         .leaderboard-box { margin-top: 8px; background: var(--card-bg); border-radius: 8px; padding: 8px; border: 1px solid var(--border-color); }
         .leaderboard-title { font-size: 11px; font-weight: bold; color: var(--primary); margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 4px; }
-        .leaderboard-item { display: flex; flex-direction: column; padding: 6px; border-bottom: 1px solid var(--border-color); font-size: 10px; gap: 3px; cursor: grab; }
-        .leaderboard-item:active { cursor: grabbing; }
+        .leaderboard-item { display: flex; flex-direction: column; padding: 6px; border-bottom: 1px solid var(--border-color); font-size: 10px; gap: 3px; }
         .leaderboard-item:last-child { border-bottom: none; }
         .leaderboard-row-top { display: flex; justify-content: space-between; align-items: center; width: 100%; }
         .leaderboard-reason { background: rgba(239, 68, 68, 0.08); color: #dc2626; padding: 3px 6px; border-radius: 6px; font-size: 9px; width: 100%; margin-top: 3px; }
@@ -180,7 +186,6 @@
         .modal-btn-confirm { background: var(--primary); color: white; }
         .modal-btn-cancel { background: var(--bg-color); color: var(--text-color); border: 1px solid var(--border-color); }
 
-        /* ستايلي مافی پاراستن لە خوارەوە */
         .site-footer-copy {
             text-align: center;
             font-size: 9px;
@@ -230,7 +235,13 @@
             </div>
         </div>
 
-        <div class="total-points-card">
+        <!-- تابە سەرەکییەکانی بەشەکان بۆ گۆڕینی کامل سایتەکە -->
+        <div class="section-tabs">
+            <button class="section-tab-btn active" id="tabLFD" onclick="switchSection('lfd')">بەشی LFD</button>
+            <button class="section-tab-btn" id="tabMoveIn" onclick="switchSection('movein')">بەشی Move-In</button>
+        </div>
+
+        <div class="total-points-card" id="totalPointsCard">
             <div class="icon-container">
                 <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
             </div>
@@ -323,20 +334,13 @@
                 <canvas id="statsChart"></canvas>
             </div>
 
+            <!-- خشتەی ڕیزبەندی کە بەپێی بەشی هەڵبژێردراو دەگۆڕێت -->
             <div class="leaderboard-box">
-                <div class="leaderboard-title">
-                    <span id="lblLeaderboardLFD">ڕیزبەندی تیمەکانی LFD (دەتوانیت ڕایکێشیت بۆ گۆڕینی شوێن)</span>
-                    <span id="adminTotalLFD" style="font-size: 9px; background: var(--primary); color: white; padding: 2px 4px; border-radius: 4px;">Total: 0</span>
+                <div class="leaderboard-title" id="leaderboardBoxTitle">
+                    <span id="lblLeaderboardTitle">ڕیزبەندی تیمەکان</span>
+                    <span id="adminSectionTotal" style="font-size: 9px; background: var(--primary); color: white; padding: 2px 4px; border-radius: 4px;">Total: 0</span>
                 </div>
-                <div id="leaderboardLFDContainer"></div>
-            </div>
-
-            <div class="leaderboard-box" style="margin-top: 6px;">
-                <div class="leaderboard-title" style="color: #10b981; border-color: #10b981;">
-                    <span id="lblLeaderboardMoveIn">ڕیزبەندی تیمەکانی Move-In</span>
-                    <span id="adminTotalMoveIn" style="font-size: 9px; background: #10b981; color: white; padding: 2px 4px; border-radius: 4px;">Total: 0</span>
-                </div>
-                <div id="leaderboardMoveInContainer"></div>
+                <div id="leaderboardContainer"></div>
             </div>
         </div>
 
@@ -346,11 +350,6 @@
         </div>
 
         <div class="control-group">
-            <div class="section-tabs">
-                <button class="section-tab-btn active" id="tabLFD" onclick="switchSection('lfd')">بەشی LFD</button>
-                <button class="section-tab-btn" id="tabMoveIn" onclick="switchSection('movein')">بەشی Move-In</button>
-            </div>
-
             <label for="teamSelect" id="lblSelectTeam">تیمەکەت هەڵبژێرە:</label>
             <select id="teamSelect" onchange="loadTeamData()">
                 <option value="" id="optChooseTeam">-- تیم هەڵبژێرە --</option>
@@ -392,7 +391,6 @@
             <button class="btn btn-excel" onclick="adminExportExcel('daily')" id="btnExcel">Excel</button>
         </div>
 
-        <!-- نوسینی مافی پاراستن لە خوارەوە -->
         <div class="site-footer-copy">
             All rights reserved by Nihad Salih Hussain
         </div>
@@ -485,7 +483,7 @@
         lfdTeams = [...new Set(lfdTeams)];
         localStorage.setItem('bim_lfd_teams', JSON.stringify(lfdTeams));
 
-        let moveInTeams = JSON.parse(localStorage.getItem('bim_movein_teams')) || ["Team 28"];
+        let moveInTeams = JSON.parse(localStorage.getItem('bim_movein_teams')) || ["Team 28", "Team 29", "Team 31"];
 
         let currentSection = 'lfd';
         const DAILY_TARGET = 7;
@@ -644,11 +642,23 @@
             currentSection = sec;
             document.getElementById('tabLFD').classList.remove('active');
             document.getElementById('tabMoveIn').classList.remove('active');
-            if (sec === 'lfd') document.getElementById('tabLFD').classList.add('active');
-            else document.getElementById('tabMoveIn').classList.add('active');
+            
+            let card = document.getElementById('totalPointsCard');
+            let btnSubmit = document.getElementById('btnSave');
+
+            if (sec === 'lfd') {
+                document.getElementById('tabLFD').classList.add('active');
+                card.classList.remove('movein-theme');
+                btnSubmit.classList.remove('movein-theme');
+            } else {
+                document.getElementById('tabMoveIn').classList.add('active');
+                card.classList.add('movein-theme');
+                btnSubmit.classList.add('movein-theme');
+            }
             renderCasesGrid();
             populateTeamDropdown();
             loadTeamData();
+            render();
         }
 
         function renderCasesGrid() {
@@ -771,20 +781,14 @@
 
             if (section === 'lfd') {
                 if (!lfdTeams.includes(teamName)) {
-                    if (positionChoice === 'start') {
-                        lfdTeams.unshift(teamName);
-                    } else {
-                        lfdTeams.push(teamName);
-                    }
+                    if (positionChoice === 'start') lfdTeams.unshift(teamName);
+                    else lfdTeams.push(teamName);
                     db.ref('settings/lfd_teams').set(lfdTeams);
                 }
             } else {
                 if (!moveInTeams.includes(teamName)) {
-                    if (positionChoice === 'start') {
-                        moveInTeams.unshift(teamName);
-                    } else {
-                        moveInTeams.push(teamName);
-                    }
+                    if (positionChoice === 'start') moveInTeams.unshift(teamName);
+                    else moveInTeams.push(teamName);
                     db.ref('settings/movein_teams').set(moveInTeams);
                 }
             }
@@ -839,12 +843,8 @@
 
                         if (previousBroadcast !== null && previousBroadcast !== broadcastMsg) {
                             playAlertSound();
-
-                            // گۆڕینی ڕەنگ بۆ سەوز کاتی هاتنی ئاگاداری نوێ
                             ticker.classList.add('active-new');
-                            setTimeout(() => {
-                                ticker.classList.remove('active-new');
-                            }, 5000);
+                            setTimeout(() => { ticker.classList.remove('active-new'); }, 5000);
 
                             let banner = document.getElementById('liveAlertBanner');
                             banner.style.display = 'flex';
@@ -1008,8 +1008,6 @@
             document.getElementById('btnExcelMonthly').innerText = t.excelMonthly;
             document.getElementById('btnPdfAdmin').innerText = t.pdfAdmin;
             document.getElementById('btnClearCloud').innerText = t.clearCloud;
-            document.getElementById('lblLeaderboardLFD').innerText = t.leaderboardLFD;
-            document.getElementById('lblLeaderboardMoveIn').innerText = t.leaderboardMoveIn;
             document.getElementById('lblSelectTeam').innerText = t.selectTeam;
             document.getElementById('tabLFD').innerText = t.tabLFD;
             document.getElementById('tabMoveIn').innerText = t.tabMoveIn;
@@ -1231,7 +1229,9 @@
             if(document.getElementById('c_offday').checked) {
                 text += `📌 دۆخ: مۆڵەت / پشوو (Off-Day)\n`;
             } else {
-                for (let [k, v] of Object.entries(details)) text += `🔹 ${k}: ${v}\n`;
+                for (let [k, v] of Object.entries(details)) {
+                    if (v > 0) text += `🔹 ${k}: ${v}\n`;
+                }
                 text += `✅ کۆی گشتی (Total): *${totalCases}* (تاڕگێت: ${DAILY_TARGET})\n`;
                 let notes = document.getElementById('c_notes').value;
                 if (notes.trim()) text += `📝 هۆکار: ${notes}\n`;
@@ -1240,25 +1240,43 @@
         }
 
         function shareToWhatsApp() {
-            let grandTotal = 0;
+            let activeTeams = currentSection === 'lfd' ? lfdTeams : moveInTeams;
+            let sectionGrandTotal = 0;
             let submittedTeamsCount = 0;
             let summaryList = [];
 
-            Object.values(cloudStore).forEach(teamData => {
+            activeTeams.forEach(teamName => {
+                let uniqueKey = getUniqueTeamKey(teamName, currentSection);
+                let teamData = cloudStore[uniqueKey];
+
                 if (teamData && teamData.submitted) {
                     submittedTeamsCount++;
-                    grandTotal += teamData.total || 0;
-                    let stLabel = teamData.offday ? "Off-Day" : `${teamData.total} کار`;
-                    summaryList.push(`- ${teamData.teamName} (${teamData.section.toUpperCase()}): ${stLabel}`);
+                    if (!teamData.offday) sectionGrandTotal += teamData.total || 0;
+                    
+                    if (teamData.offday) {
+                        summaryList.push(`- ${teamName}: پشوو (Off-Day)`);
+                    } else {
+                        let detailsText = [];
+                        if (teamData.details) {
+                            for (let [k, v] of Object.entries(teamData.details)) {
+                                if (v > 0) detailsText.push(`${k}: ${v}`);
+                            }
+                        }
+                        let detailsFormatted = detailsText.length > 0 ? ` [${detailsText.join(', ')}]` : '';
+                        summaryList.push(`- ${teamName}: ${teamData.total} کار${detailsFormatted}`);
+                    }
+                } else {
+                    summaryList.push(`- ${teamName}: نەنێردراوە`);
                 }
             });
 
-            let text = `📋 *تۆتەڵی گشتی ڕاپۆرتی BIM Operations*\n`;
+            let text = `📋 *تۆتەڵی گشتی ڕاپۆرتی BIM Operations (${currentSection.toUpperCase()})*\n`;
             text += `📅 بەروار: ${selectedAdminDate}\n`;
-            text += `👥 تیمە نێردراوەکان: ${submittedTeamsCount}\n`;
-            text += `🏆 *کۆی گشتی (Grand Total): ${grandTotal} کار*\n\n`;
+            text += `👥 تیمە نێردراوەکان: ${submittedTeamsCount} لە ${activeTeams.length}\n`;
+            text += `🏆 *کۆی گشتی بەش: ${sectionGrandTotal} کار*\n\n`;
+            
             if (summaryList.length > 0) {
-                text += `وردەکاری تیمەکان:\n` + summaryList.join('\n');
+                text += `📌 *وردەکاری تیمەکان و جۆری پۆینتەکان:*\n` + summaryList.join('\n');
             } else {
                 text += `هیچ داتایەک لەم بەروارەدا تۆمار نەکراوە.`;
             }
@@ -1280,11 +1298,9 @@
             let item = arr.splice(index, 1)[0];
             arr.splice(targetIndex, 0, item);
 
-            if (sectionName === 'lfd') {
-                db.ref('settings/lfd_teams').set(lfdTeams);
-            } else {
-                db.ref('settings/movein_teams').set(moveInTeams);
-            }
+            if (sectionName === 'lfd') db.ref('settings/lfd_teams').set(lfdTeams);
+            else db.ref('settings/movein_teams').set(moveInTeams);
+            
             populateTeamDropdown();
             render();
         }
@@ -1370,8 +1386,11 @@
         }
 
         function updateChartTheme() {
+            let activeTeams = currentSection === 'lfd' ? lfdTeams : moveInTeams;
             let achieved = 0, missed = 0, offday = 0;
-            Object.values(cloudStore).forEach(item => {
+            
+            activeTeams.forEach(t => {
+                let item = cloudStore[getUniqueTeamKey(t, currentSection)];
                 if (item?.submitted) {
                     if (item.offday) offday++;
                     else if (item.total >= DAILY_TARGET) achieved++;
@@ -1383,42 +1402,37 @@
 
         function render() {
             let lang = document.getElementById('langSelect').value;
+            let activeTeams = currentSection === 'lfd' ? lfdTeams : moveInTeams;
             let submittedCount = 0;
             let achieved = 0, missed = 0, offday = 0;
-            let grandTotalPoints = 0;
-            let allTeamsCombined = [...lfdTeams, ...moveInTeams];
+            let sectionGrandTotal = 0;
 
-            Object.values(cloudStore).forEach(teamData => {
-                if (teamData) {
-                    if (teamData.submitted) {
-                        submittedCount++;
-                        if (teamData.offday) {
-                            offday++;
-                        } else {
-                            if (teamData.total >= DAILY_TARGET) achieved++;
-                            else missed++;
-                            grandTotalPoints += Number(teamData.total || 0);
-                        }
+            activeTeams.forEach(t => {
+                let teamData = cloudStore[getUniqueTeamKey(t, currentSection)];
+                if (teamData && teamData.submitted) {
+                    submittedCount++;
+                    if (teamData.offday) {
+                        offday++;
+                    } else {
+                        if (teamData.total >= DAILY_TARGET) achieved++;
+                        else missed++;
+                        sectionGrandTotal += Number(teamData.total || 0);
                     }
                 }
             });
 
-            document.getElementById('grandTotalPoints').innerText = grandTotalPoints.toLocaleString();
-
+            document.getElementById('grandTotalPoints').innerText = sectionGrandTotal.toLocaleString();
             updateChart(achieved, missed, offday);
 
-            let lfdRes = renderList(lfdTeams, 'lfd');
-            let moveInRes = renderList(moveInTeams, 'movein');
+            let sectionRes = renderList(activeTeams, currentSection);
+            document.getElementById('leaderboardContainer').innerHTML = sectionRes.html;
+            document.getElementById('adminSectionTotal').innerText = `Total: ${sectionRes.total}`;
+            document.getElementById('lblLeaderboardTitle').innerText = currentSection === 'lfd' ? "ڕیزبەندی تیمەکانی LFD" : "ڕیزبەندی تیمەکانی Move-In";
 
-            document.getElementById('leaderboardLFDContainer').innerHTML = lfdRes.html;
-            document.getElementById('adminTotalLFD').innerText = `Total: ${lfdRes.total}`;
-            document.getElementById('leaderboardMoveInContainer').innerHTML = moveInRes.html;
-            document.getElementById('adminTotalMoveIn').innerText = `Total: ${moveInRes.total}`;
-
-            let totalTeamsCount = allTeamsCombined.length > 0 ? allTeamsCombined.length : 1;
+            let totalTeamsCount = activeTeams.length > 0 ? activeTeams.length : 1;
             let percentage = Math.round((submittedCount / totalTeamsCount) * 100) || 0;
             document.getElementById('progressBar').style.width = percentage + '%';
-            document.getElementById('progressText').innerText = `${translations[lang].progressText} ${percentage}% (${submittedCount}/${allTeamsCombined.length})`;
+            document.getElementById('progressText').innerText = `${translations[lang].progressText} ${percentage}% (${submittedCount}/${activeTeams.length})`;
         }
 
         window.onload = function() {
