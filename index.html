@@ -200,6 +200,9 @@
 <body>
     <div id="toast" class="toast">Saved!</div>
 
+    <!-- کانتێنەری ئاگادارکردنەوەی تایبەت (Toast Notifications) -->
+    <div id="toast-container" style="position: fixed; bottom: 20px; left: 20px; z-index: 9999;"></div>
+
     <div id="customModalOverlay" class="custom-modal-overlay">
         <div class="custom-modal-box">
             <h3 id="modalTitle">تەماشاكردنی پاراستن</h3>
@@ -395,6 +398,14 @@
 
             <div class="cases-grid" id="casesGridContainer"></div>
 
+            <!-- بەشی زیادکراوی GPS و وەرگرتنی شوێن -->
+            <div class="field-actions" style="margin: 10px 0;">
+                <button type="button" onclick="saveTaskWithLocationAndNotify()" style="background: #2563eb; color: white; padding: 8px 12px; border: none; border-radius: 8px; cursor: pointer; font-family: inherit; font-size: 11px; width: 100%;">
+                    📍 تۆمارکردنی شوێنی ئێستا (GPS Map)
+                </button>
+                <span id="location-status" style="font-size: 10px; color: #555; display: block; margin-top: 4px; text-align: center;"></span>
+            </div>
+
             <div class="offday-container">
                 <input type="checkbox" id="c_offday" onchange="saveDraftStateLocally()">
                 <label for="c_offday" id="lblOffdayText" style="margin-bottom:0; cursor:pointer; font-weight:600; font-size:11px; color:#d97706;">مۆڵەت / پشوو (Off-Day)</label>
@@ -424,6 +435,83 @@
     </div>
 
     <script>
+        // ۱. سیستەمی ئاگادارکردنەوەی ناوخۆی داشبۆرد (Toast Notification)
+        function showNotification(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            
+            toast.style.cssText = `
+                background: ${type === 'success' ? '#10b981' : '#ef4444'};
+                color: white;
+                padding: 10px 16px;
+                margin-top: 8px;
+                border-radius: 8px;
+                box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+                font-family: inherit;
+                font-size: 12px;
+                transition: opacity 0.3s ease;
+                opacity: 1;
+                z-index: 99999;
+            `;
+            toast.innerText = message;
+            container.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                setTimeout(() => toast.remove(), 300);
+            }, 4000);
+        }
+
+        // ۲. وەرگرتنی شوێن و پاشەکەوتکردن لەسەر Firebase لەگەڵ ناردنی ئاگادارکردنەوە
+        function saveTaskWithLocationAndNotify() {
+            let lang = document.getElementById('langSelect').value;
+            let t = document.getElementById('teamSelect').value;
+            if (!t) return alert(translations[lang].selectTeamAlert);
+
+            const statusSpan = document.getElementById('location-status');
+            
+            if (!navigator.geolocation) {
+                showNotification("وێبگەڕەکەت پشتگیری GPS ناکات.", "error");
+                return;
+            }
+
+            statusSpan.innerText = "⏳ خەریکی دەستنیشانکردنی شوێنە...";
+
+            navigator.geolocation.getCurrentPosition(async (position) => {
+                const lat = position.coords.latitude;
+                const lng = position.coords.longitude;
+                const mapUrl = `https://www.google.com/maps?q=${lat},${lng}`;
+                
+                try {
+                    let uniqueKey = getUniqueTeamKey(t, currentSection);
+                    
+                    // پاشەکەوتکردنی لینک و شوێنی نەخشە لەگەڵ زانیارییەکانی تیمی ئێستا
+                    db.ref(getStorageKeyPath() + '/' + uniqueKey + '/location').set({
+                        latitude: lat,
+                        longitude: lng,
+                        mapUrl: mapUrl,
+                        timestamp: firebase.database.ServerValue.TIMESTAMP
+                    });
+
+                    statusSpan.innerText = "✅ شوێنەکە تۆمارکرا: " + mapUrl;
+                    showNotification("شوێنی کارەکە بە سەرکەوتوویی پاشەکەوت کرا!", "success");
+                    
+                } catch (error) {
+                    console.error("هەڵە لە ناردنی داتا: ", error);
+                    statusSpan.innerText = "❌ هەڵە ڕوویدا لە پاشەکەوتکردن";
+                    showNotification("شکست لە پاشەکەوتکردنی شوێن!", "error");
+                }
+
+            }, (error) => {
+                statusSpan.innerText = "❌ نەتوانرا شوێن بدۆزرێتەوە";
+                showNotification("تکایە دڵنیابە لە کارکردنی GPS لە مۆبایل یان وێبگەڕەکەت.", "error");
+            }, {
+                enableHighAccuracy: true,
+                timeout: 10000,
+                maximumAge: 0
+            });
+        }
+
         function playAlertSound() {
             try {
                 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -1274,7 +1362,9 @@
             let offday = document.getElementById('c_offday').checked;
             let uniqueKey = getUniqueTeamKey(t, currentSection);
 
+            let existingRecord = cloudStore[uniqueKey] || {};
             let teamData = {
+                ...existingRecord,
                 teamName: t, section: currentSection, total: total, submitted: true,
                 offday: offday, notes: notes, details: details
             };
@@ -1434,7 +1524,7 @@
                 let isOffday = teamData?.offday || false;
                 let val = teamData?.total || 0;
                 if (isSubmitted && !isOffday) sectionTotal += val;
-                list.push({ name: t, total: val, submitted: isSubmitted, offday: isOffday, notes: teamData?.notes || "", originalIndex: originalIndex });
+                list.push({ name: t, total: val, submitted: isSubmitted, offday: isOffday, notes: teamData?.notes || "", originalIndex: originalIndex, location: teamData?.location });
             });
 
             let displayList = [...list];
@@ -1456,6 +1546,11 @@
                                  `<span style="opacity:0.5;">Pending</span>`;
                 let reasonHTML = item.submitted && item.notes?.trim() ? `<div class="leaderboard-reason">Reason: ${item.notes}</div>` : "";
                 
+                let mapLinkHTML = "";
+                if (item.location && item.location.mapUrl) {
+                    mapLinkHTML = `<a href="${item.location.mapUrl}" target="_blank" style="font-size:9px; background:var(--primary); color:white; padding:2px 6px; border-radius:4px; text-decoration:none; margin-right:4px;">📍 نەخشە</a>`;
+                }
+                
                 let adminControlsHTML = "";
                 if (isAdmin) {
                     adminControlsHTML = `
@@ -1472,7 +1567,7 @@
                             <span class="rank-badge ${rankClass}">${index + 1}</span>
                             <span>${item.name}</span>
                         </div>
-                        <div>${statusText}</div>
+                        <div>${mapLinkHTML} ${statusText}</div>
                     </div>
                     ${adminControlsHTML}
                     ${reasonHTML}
