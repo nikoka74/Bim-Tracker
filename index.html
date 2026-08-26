@@ -267,6 +267,12 @@
                 <button class="tool-btn" onclick="manualRefreshData()" style="padding: 3px 6px; font-size: 10px;">نوێکردنەوە</button>
             </div>
 
+            <!-- لێرەدا باڕی چات لابراوە و ڕاپۆرتی گشتی واتساپ جێگیر کراوە -->
+            <div class="admin-sub-box" style="border: 1px dashed #25d366;">
+                <label style="font-size: 10px; color: #25d366; font-weight: bold;">ناردنی ڕاپۆرتی گشتی بۆ واتساپ:</label>
+                <button class="btn btn-whatsapp" style="width: 100%; margin-top: 6px; padding: 6px; font-size: 10px;" onclick="shareToWhatsApp()" id="btnWhatsappAdmin">ناردنی تۆتەڵی گشتی بۆ واتساپ</button>
+            </div>
+
             <div class="admin-sub-box">
                 <label style="font-size: 10px; color: var(--primary); font-weight: bold;">ناردنی ئاگاداری گشتی بۆ هەمووان:</label>
                 <div style="display: flex; gap: 6px; margin-top: 4px;">
@@ -385,7 +391,7 @@
 
         <div class="btn-toolbar">
             <button class="btn btn-myteam" onclick="shareMyTeamToWhatsApp()" id="btnMyTeamWA">ناردنی تیمی خۆم بۆ واتساپ</button>
-            <button class="btn btn-whatsapp" id="btnWhatsapp" onclick="shareToWhatsApp()">ڕاپۆرتی گشتی واتساپ</button>
+            <button class="btn btn-whatsapp" id="btnWhatsapp" onclick="shareToWhatsApp()" style="display:none;">ڕاپۆرتی گشتی واتساپ</button>
             <button class="btn btn-image" onclick="exportAsImage()" id="btnImg">وێنە</button>
             <button class="btn btn-pdf" onclick="window.print()" id="btnPdf">PDF</button>
             <button class="btn btn-excel" onclick="adminExportExcel('daily')" id="btnExcel">Excel</button>
@@ -561,8 +567,8 @@
                 notesTitle: "هۆکاری نەگەیشتن بە تاڕگێت (تاڕگێت: 7):",
                 notesPlaceholder: "هۆکار...",
                 submitText: "ناردن یان نوێکردنەوەی ڕاپۆرت",
-                btnMyTeamWA: "تۆتەڵی تیمی خۆم بۆ واتساپ",
-                btnWhatsapp: "تۆتەڵی گشتی واتساپ",
+                btnMyTeamWA: "ناردنی تیمی خۆم بۆ واتساپ",
+                btnWhatsapp: "ڕاپۆرتی گشتی واتساپ",
                 toastSaved: "تۆمارکرا!", refreshToast: "داتاکان نوێکرانەوە!",
                 adminPassPrompt: "وشەی تێپەڕی بەڕێوەبەر بنووسە:", wrongPass: "وشەی تێپەڕ هەڵەیە!",
                 adminOpen: "بەشی بەڕێوەبەر کرایەوە", adminClosed: "بەشی بەڕێوەبەر داخرا",
@@ -1242,7 +1248,6 @@
             window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
         }
 
-        // لێرەدا فەنکشنی ڕاپۆرتی گشتی واتساپ بەو شێوازەی داوات کردووە جێگیر کراوە
         function shareToWhatsApp() {
             let activeTeams = currentSection === 'lfd' ? lfdTeams : moveInTeams;
             let sortedTeams = [...activeTeams].sort((a, b) => {
@@ -1255,7 +1260,6 @@
             let summaryData = {};
             let grandTotalCases = 0;
 
-            // کۆکردنەوەی گشتی جۆرەکان بۆ هەموو تیمە چالاکەکان
             sortedTeams.forEach(teamName => {
                 let uniqueKey = getUniqueTeamKey(teamName, currentSection);
                 let teamData = cloudStore[uniqueKey];
