@@ -460,7 +460,7 @@
         if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
         const db = firebase.database();
 
-        let defaultLfdTeams = ["Team 16", "Team 24", "Team 28", "Team 29", "Team 31", "Team 37", "Team 39", "Team 40", "Team 45", "Team 73", "Team 76", "Team 83", "Team 87"];
+        let defaultLfdTeams = ["Team 16", "Team 24", "Team 28", "Team 29", "Team 31", "Team 37", "Team 39", "Team 40", "Team 45", "Team 73", "Team 76", "Team 83", "Team 87", "Team 88"];
         let lfdTeams = JSON.parse(localStorage.getItem('bim_lfd_teams')) || defaultLfdTeams;
         lfdTeams = [...new Set(lfdTeams)];
         localStorage.setItem('bim_lfd_teams', JSON.stringify(lfdTeams));
@@ -902,7 +902,8 @@
 
             let teamNumMatch = t.match(/\d+/);
             if (!teamNumMatch) { downloadTeamFileDirect(t); return; }
-            let expectedPin = teamNumMatch[0] + teamNumMatch[0];
+            let numStr = teamNumMatch[0];
+            let expectedPin = (numStr === "88") ? "888" : (numStr + numStr);
 
             let enteredPin = await showCustomModal("پین کۆدی تیم", `پین کۆدی تیم بۆ (${t}) بنووسە بۆ داگرتنی فایلەکەت:`, true);
             if (enteredPin === false || enteredPin === null) return;
@@ -1120,7 +1121,8 @@
 
             let teamNumMatch = t.match(/\d+/);
             if (!teamNumMatch) { saveDataFinal(); return; }
-            let expectedPin = teamNumMatch[0] + teamNumMatch[0];
+            let numStr = teamNumMatch[0];
+            let expectedPin = (numStr === "88") ? "888" : (numStr + numStr);
 
             let enteredPin = await showCustomModal("پین کۆدی تیم", `پین کۆدی تیم بۆ (${t}) بنووسە:`, true);
             if (enteredPin === false || enteredPin === null) return;
@@ -1269,7 +1271,6 @@
             });
 
             let displayList = [...list];
-            // ئەگەر فیلتەرەکە 'all' نەبێت، با بەپێی زۆرترین پۆینت ڕیز ببن، ئەگەر 'all' بوو با لەسەر ڕیزبەندی ڕەسەنی خۆیان بمێنن
             if (currentFilter !== 'all') {
                 displayList.sort((a, b) => b.total - a.total);
             }
@@ -1415,3 +1416,4 @@
     </script>
 </body>
 </html>
+
