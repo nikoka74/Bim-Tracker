@@ -149,6 +149,7 @@
         .leaderboard-item:last-child { border-bottom: none; }
         .leaderboard-row-top { display: flex; justify-content: space-between; align-items: center; width: 100%; }
         .leaderboard-reason { background: rgba(239, 68, 68, 0.08); color: #dc2626; padding: 3px 6px; border-radius: 6px; font-size: 9px; width: 100%; margin-top: 3px; }
+        .leaderboard-meta { font-size: 9px; opacity: 0.6; display: flex; gap: 6px; margin-top: 2px; }
 
         .rank-badge { width: 18px; height: 18px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-weight: bold; font-size: 9px; margin-left: 6px; }
         html[dir="ltr"] .rank-badge { margin-left: 0; margin-right: 6px; }
@@ -332,6 +333,18 @@
                 <canvas id="statsChart"></canvas>
             </div>
 
+            <!-- مێژووی ئاگادارییەکان -->
+            <div class="admin-sub-box">
+                <label style="font-size: 10px; color: var(--primary); font-weight: bold;">مێژووی پەیامە گشتییەکان:</label>
+                <div id="broadcastHistoryContainer" style="max-height: 80px; overflow-y: auto; font-size: 10px; margin-top: 4px; opacity: 0.8;"></div>
+            </div>
+
+            <!-- ئاماری کۆی گشتی کێشەکان (Issue Breakdown Summary) -->
+            <div class="admin-sub-box">
+                <label style="font-size: 10px; color: var(--primary); font-weight: bold;">کۆی گشتی کێشەکان و حاڵەتەکان:</label>
+                <div id="issueBreakdownBox" style="font-size: 10px; margin-top: 4px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 4px;"></div>
+            </div>
+
             <div class="leaderboard-box">
                 <div class="leaderboard-title" id="leaderboardBoxTitle">
                     <span id="lblLeaderboardTitle">ڕیزبەندی تیمەکان</span>
@@ -494,6 +507,7 @@
         let yesterdayStore = {};
         let teamFilesStore = {};
         let broadcastMsg = "";
+        let broadcastHistory = JSON.parse(localStorage.getItem('bim_broadcast_history')) || [];
         let currentFilter = 'all';
         let currentSyncRef = null;
         let broadcastSyncRef = null;
@@ -814,10 +828,28 @@
 
         function saveBroadcastMessage() {
             let msg = document.getElementById('adminBroadcastInput').value.trim();
+            if (!msg) return;
             db.ref('settings/broadcast').set(msg).then(() => {
+                // پاشەکەوتکردن بۆ مێژوو
+                if (!broadcastHistory.includes(msg)) {
+                    broadcastHistory.unshift(msg);
+                    if (broadcastHistory.length > 10) broadcastHistory.pop();
+                    localStorage.setItem('bim_broadcast_history', JSON.stringify(broadcastHistory));
+                }
                 showToast("پەیامی گشتی بڵاوکرایەوە!");
                 document.getElementById('adminBroadcastInput').value = '';
+                renderBroadcastHistory();
             });
+        }
+
+        function renderBroadcastHistory() {
+            let container = document.getElementById('broadcastHistoryContainer');
+            if (!container) return;
+            if (broadcastHistory.length === 0) {
+                container.innerHTML = `<span style="opacity:0.5;">هیچ مێژوویەک نییە</span>`;
+                return;
+            }
+            container.innerHTML = broadcastHistory.map(m => `<div style="padding: 3px 0; border-bottom: 1px dashed var(--border-color);">• ${m}</div>`).join('');
         }
 
         function initRealtimeSync() {
@@ -825,9 +857,19 @@
             currentSyncRef = db.ref(getStorageKeyPath());
             currentSyncRef.on('value', (snapshot) => {
                 cloudStore = snapshot.val() || {};
+                // پاشەکەوتکردن لە LocalStorage بۆ حالەتی ئۆفلاین
+                localStorage.setItem(`offline_cache_${selectedAdminDate}`, JSON.stringify(cloudStore));
                 render();
                 let t = document.getElementById('teamSelect').value;
                 if(t) loadTeamData();
+            }, (error) => {
+                // ئەگەر ئینتەرنێت نەبوو، داتای پاشەکەوتکراوی لۆکاڵی بهێنە
+                let cached = localStorage.getItem(`offline_cache_${selectedAdminDate}`);
+                if (cached) {
+                    cloudStore = JSON.parse(cached);
+                    render();
+                    showToast("⚠️ کارکردن لە دۆخی ئۆفلاین (داتای پاشەکەوتکراو)");
+                }
             });
 
             if (!broadcastSyncRef) {
@@ -840,6 +882,12 @@
                     if (broadcastMsg.trim() !== "") {
                         ticker.style.display = 'flex';
                         textSpan.innerText = broadcastMsg;
+
+                        if (!broadcastHistory.includes(broadcastMsg)) {
+                            broadcastHistory.unshift(broadcastMsg);
+                            localStorage.setItem('bim_broadcast_history', JSON.stringify(broadcastHistory));
+                            renderBroadcastHistory();
+                        }
 
                         if (previousBroadcast !== null && previousBroadcast !== broadcastMsg) {
                             playAlertSound();
@@ -950,6 +998,8 @@
                 let t = document.getElementById('teamSelect').value;
                 if(t) loadTeamData();
                 showToast(translations[lang].refreshToast);
+            }).catch(() => {
+                showToast("⚠️ پەیوەندی هێڵ نییە، داتای لۆکاڵی بەکاردێت");
             });
         }
 
@@ -973,6 +1023,7 @@
                     isAdmin = true;
                     document.getElementById('adminPanel').classList.add('active');
                     document.getElementById('adminDateSelector').value = selectedAdminDate;
+                    renderBroadcastHistory();
                     showToast(t.adminOpen);
                     render();
                 } else if(pass !== false && pass !== null) alert(t.wrongPass);
@@ -1152,11 +1203,12 @@
             let total = Object.values(details).reduce((a, b) => a + b, 0);
             let notes = document.getElementById('c_notes').value;
             let offday = document.getElementById('c_offday').checked;
+            let timestamp = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
             let uniqueKey = getUniqueTeamKey(t, currentSection);
 
             let teamData = {
                 teamName: t, section: currentSection, total: total, submitted: true,
-                offday: offday, notes: notes, details: details
+                offday: offday, notes: notes, details: details, timestamp: timestamp
             };
 
             cloudStore[uniqueKey] = teamData;
@@ -1164,6 +1216,11 @@
                 localStorage.removeItem(`draft_${currentSection}_${t}`);
                 render();
                 showToast(translations[lang].cloudSuccess);
+            }).catch(() => {
+                // ئەگەر پەیوەندی سەر هێڵ نەبوو، لۆکاڵیانە پاشەکەوتی دەکات بۆ ئەوەی نەفەوتێت
+                localStorage.setItem(`offline_cache_${selectedAdminDate}`, JSON.stringify(cloudStore));
+                render();
+                showToast("⚠️ ناتوانرێت بنێردرێت بۆ ئینتەرنێت، بەڵام لەسەر ئامێرەکە پاشەکەوت کرا!");
             });
         }
 
@@ -1181,13 +1238,13 @@
 
         function adminExportExcel(mode = 'daily') {
             if (mode === 'daily') {
-                let csv = "Team,Section,Details,Total,OffDay,TargetAchieved(%),Reason\n";
+                let csv = "Team,Section,Details,Total,OffDay,TargetAchieved(%),Timestamp,Reason\n";
                 Object.keys(cloudStore).forEach(key => {
                     let item = cloudStore[key];
                     if (item && item.details) {
                         let cleanNotes = (item.notes || "").replace(/(\r\n|\n|\r)/gm, " ");
                         let targetPct = item.offday ? "Off-Day" : Math.round((item.total / DAILY_TARGET) * 100) + "%";
-                        csv += `${item.teamName},${item.section},"${JSON.stringify(item.details).replace(/"/g, '""')}",${item.total},${item.offday ? 'Yes' : 'No'},${targetPct},"${cleanNotes}"\n`;
+                        csv += `${item.teamName},${item.section},"${JSON.stringify(item.details).replace(/"/g, '""')}",${item.total},${item.offday ? 'Yes' : 'No'},${targetPct},${item.timestamp || ''},"${cleanNotes}"\n`;
                     }
                 });
                 let blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' });
@@ -1198,13 +1255,13 @@
             } else {
                 db.ref('daily_reports').once('value').then(snapshot => {
                     let allData = snapshot.val() || {};
-                    let csv = "Date,Team,Section,Total,OffDay\n";
+                    let csv = "Date,Team,Section,Total,OffDay,Timestamp\n";
                     Object.keys(allData).forEach(dateKey => {
                         let dayObj = allData[dateKey];
                         Object.keys(dayObj).forEach(tKey => {
                             let item = dayObj[tKey];
                             if (item) {
-                                csv += `${dateKey},${item.teamName},${item.section},${item.total},${item.offday ? 'Yes' : 'No'}\n`;
+                                csv += `${dateKey},${item.teamName},${item.section},${item.total},${item.offday ? 'Yes' : 'No'},${item.timestamp || ''}\n`;
                             }
                         });
                     });
@@ -1306,6 +1363,36 @@
             render();
         }
 
+        function renderIssueBreakdown() {
+            let box = document.getElementById('issueBreakdownBox');
+            if (!box) return;
+            let summary = {};
+            
+            Object.keys(cloudStore).forEach(key => {
+                let item = cloudStore[key];
+                if (item && item.submitted && !item.offday && item.details) {
+                    for (let [k, v] of Object.entries(item.details)) {
+                        let val = Number(v) || 0;
+                        if (val > 0) {
+                            summary[k] = (summary[k] || 0) + val;
+                        }
+                    }
+                }
+            });
+
+            if (Object.keys(summary).length === 0) {
+                box.innerHTML = `<span style="opacity:0.5; grid-column: span 2;">هیچ ئامارێک نییە</span>`;
+                return;
+            }
+
+            box.innerHTML = Object.entries(summary).map(([k, v]) => `
+                <div style="background:var(--card-bg); border:1px solid var(--border-color); padding:4px 6px; border-radius:6px; display:flex; justify-content:space-between;">
+                    <span>${k}:</span>
+                    <b>${v}</b>
+                </div>
+            `).join('');
+        }
+
         function renderList(teamsArray, sectionName) {
             let list = [], sectionTotal = 0;
             teamsArray.forEach((t, originalIndex) => {
@@ -1313,8 +1400,9 @@
                 let isSubmitted = teamData?.submitted || false;
                 let isOffday = teamData?.offday || false;
                 let val = teamData?.total || 0;
+                let timestamp = teamData?.timestamp || "";
                 if (isSubmitted && !isOffday) sectionTotal += val;
-                list.push({ name: t, total: val, submitted: isSubmitted, offday: isOffday, notes: teamData?.notes || "", originalIndex: originalIndex });
+                list.push({ name: t, total: val, submitted: isSubmitted, offday: isOffday, notes: teamData?.notes || "", timestamp: timestamp, originalIndex: originalIndex });
             });
 
             let displayList = [...list];
@@ -1334,6 +1422,8 @@
                 let statusText = item.offday ? `<span style="color:#d97706; font-weight:600;">Off-Day</span>` :
                                  item.submitted ? `<b>${item.total}</b> <span style="${item.total >= DAILY_TARGET ? "color:#10b981;" : "color:#ef4444;"}">(${Math.round((item.total / DAILY_TARGET) * 100)}%)</span>` :
                                  `<span style="opacity:0.5;">Pending</span>`;
+                
+                let timestampHTML = item.submitted && item.timestamp ? `<span style="color:var(--primary);">🕒 ${item.timestamp}</span>` : "";
                 let reasonHTML = item.submitted && item.notes?.trim() ? `<div class="leaderboard-reason">Reason: ${item.notes}</div>` : "";
                 
                 let adminControlsHTML = "";
@@ -1354,6 +1444,7 @@
                         </div>
                         <div>${statusText}</div>
                     </div>
+                    <div class="leaderboard-meta">${timestampHTML}</div>
                     ${adminControlsHTML}
                     ${reasonHTML}
                 </div>`;
@@ -1424,6 +1515,7 @@
 
             document.getElementById('grandTotalPoints').innerText = sectionGrandTotal.toLocaleString();
             updateChart(achieved, missed, offday);
+            renderIssueBreakdown();
 
             let sectionRes = renderList(activeTeams, currentSection);
             document.getElementById('leaderboardContainer').innerHTML = sectionRes.html;
@@ -1448,6 +1540,7 @@
 
             renderCasesGrid();
             populateTeamDropdown();
+            renderBroadcastHistory();
             document.getElementById('adminDateSelector').value = todayFormatted;
             initRealtimeSync();
 
