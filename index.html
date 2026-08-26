@@ -85,7 +85,9 @@
             line-height: 1;
         }
 
-        .broadcast-ticker { background: var(--primary); color: white; padding: 8px 12px; border-radius: 8px; font-size: 11px; margin-bottom: 12px; font-weight: 500; display: flex; align-items: center; gap: 8px; box-shadow: 0 2px 4px rgba(2,132,199,0.2); }
+        /* سەرەتای ڕەنگی ئاگاداری و گۆڕینی بۆ سەوز کاتی هاتنی نوێ */
+        .broadcast-ticker { background: #dc2626; color: white; padding: 8px 12px; border-radius: 8px; font-size: 11px; margin-bottom: 12px; font-weight: 500; display: flex; align-items: center; gap: 8px; box-shadow: 0 2px 4px rgba(220,38,38,0.2); transition: background 0.3s ease; }
+        .broadcast-ticker.active-new { background: #10b981 !important; box-shadow: 0 2px 4px rgba(16,185,129,0.3); }
 
         .progress-container { margin-bottom: 14px; background: var(--border-color); border-radius: 8px; height: 14px; overflow: hidden; position: relative; }
         .progress-bar { background: linear-gradient(90deg, #10b981, #059669); height: 100%; width: 0%; transition: width 0.4s ease-in-out; }
@@ -177,6 +179,17 @@
         .modal-btn { padding: 8px; border-radius: 8px; font-weight: 600; font-size: 11px; cursor: pointer; border: none; }
         .modal-btn-confirm { background: var(--primary); color: white; }
         .modal-btn-cancel { background: var(--bg-color); color: var(--text-color); border: 1px solid var(--border-color); }
+
+        /* ستايلي مافی پاراستن لە خوارەوە */
+        .site-footer-copy {
+            text-align: center;
+            font-size: 9px;
+            opacity: 0.6;
+            margin-top: 14px;
+            border-top: 1px dashed var(--border-color);
+            padding-top: 8px;
+            font-weight: 500;
+        }
     </style>
 </head>
 <body>
@@ -377,6 +390,11 @@
             <button class="btn btn-image" onclick="exportAsImage()" id="btnImg">وێنە</button>
             <button class="btn btn-pdf" onclick="window.print()" id="btnPdf">PDF</button>
             <button class="btn btn-excel" onclick="adminExportExcel('daily')" id="btnExcel">Excel</button>
+        </div>
+
+        <!-- نوسینی مافی پاراستن لە خوارەوە -->
+        <div class="site-footer-copy">
+            All rights reserved by Nihad Salih Hussain
         </div>
     </div>
 
@@ -822,6 +840,12 @@
                         if (previousBroadcast !== null && previousBroadcast !== broadcastMsg) {
                             playAlertSound();
 
+                            // گۆڕینی ڕەنگ بۆ سەوز کاتی هاتنی ئاگاداری نوێ
+                            ticker.classList.add('active-new');
+                            setTimeout(() => {
+                                ticker.classList.remove('active-new');
+                            }, 5000);
+
                             let banner = document.getElementById('liveAlertBanner');
                             banner.style.display = 'flex';
                             document.getElementById('liveAlertText').innerText = `ئاگاداری نوێ: ${broadcastMsg}`;
@@ -832,6 +856,7 @@
                         previousBroadcast = broadcastMsg;
                     } else {
                         ticker.style.display = 'none';
+                        ticker.classList.remove('active-new');
                     }
                 });
             }
