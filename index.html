@@ -184,7 +184,7 @@
         }
         .trend-chart-container {
             position: relative;
-            height: 90px;
+            height: 140px;
             width: 100%;
         }
 
@@ -1596,6 +1596,7 @@
             let total = Object.values(details).reduce((a,b)=>a+b, 0);
             let draft = { teamName: t, section: currentSection, details, total, offday, notes };
             localStorage.setItem(`bim_draft_${currentSection}_${t}`, JSON.stringify(draft));
+            updateTrendChart(details);
         }
 
         function loadTeamData() {
@@ -1610,13 +1611,16 @@
             let record = cloudStore[uniqueKey];
             if (record) {
                 fillInputsWithDetails(record.details, record.notes, record.offday);
+                updateTrendChart(record.details);
             } else {
                 let localDraft = localStorage.getItem(`bim_draft_${currentSection}_${t}`);
                 if (localDraft) {
                     let d = JSON.parse(localDraft);
                     fillInputsWithDetails(d.details, d.notes, d.offday);
+                    updateTrendChart(d.details);
                 } else {
                     resetInputsToZero();
+                    updateTrendChart({});
                 }
             }
         }
@@ -1659,101 +1663,271 @@
             let offday = document.getElementById('c_offday').checked;
             let notes = document.getElementById('c_notes').value;
 
-            let record = {
+            let uniqueKey = getUniqueTeamKey(t, currentSection);
+            let recordObj = {
                 teamName: t,
                 section: currentSection,
                 details: details,
                 total: total,
                 offday: offday,
                 notes: notes,
-                timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                timestamp: new Date().toLocaleTimeString()
             };
 
-            let uniqueKey = getUniqueTeamKey(t, currentSection);
-            db.ref(`${getStorageKeyPath()}/${uniqueKey}`).set(record).then(() => {
+            db.ref(`${getStorageKeyPath()}/${uniqueKey}`).set(recordObj).then(() => {
+                showToast(translations[lang].toastSaved);
+                localStorage.removeItem(`bim_draft_${currentSection}_${t}`);
+                
                 let logObj = {
-                    username: currentUserAccount ? currentUserAccount.name : 'نەناسراو',
+                    username: currentUserAccount ? currentUserAccount.name : "نەناسراو",
                     teamName: t,
                     section: currentSection,
-                    action: `ناردنی ڕاپۆرت (کۆی گشتی: ${total})`,
+                    action: "ناردنی ڕاپۆرت",
                     timestamp: new Date().toLocaleString()
                 };
                 db.ref('audit_logs').push(logObj);
-
-                showNotification(translations[lang].toastSaved, 'success');
-                localStorage.removeItem(`bim_draft_${currentSection}_${t}`);
-            }).catch((error) => {
-                showNotification("کێشە لە پاشەکەوتکردن: " + error.message, 'error');
+            }).catch(err => {
+                alert("هەڵە لە پاشەکەوتکردن: " + err.message);
             });
+        }
+
+        function updateTrendChart(details) {
+            let labels = Object.keys(details);
+            let dataVals = Object.values(details);
+            let totalSum = dataVals.reduce((a, b) => a + b, 0);
+
+            document.getElementById('grandTotalPoints').innerText = totalSum;
+
+            let ctx = document.getElementById('trendChartCanvas').getContext('2d');
+            if (trendChartInstance) {
+                trendChartInstance.data.labels = labels;
+                trendChartInstance.data.datasets[0].data = dataVals;
+                trendChartInstance.update();
+            } else {
+                trendChartInstance = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'ئاماری ئەمڕۆ',
+                            data: dataVals,
+                            backgroundColor: '#38bdf8',
+                            borderRadius: 6
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { display: false } },
+                        scales: {
+                            x: { ticks: { color: '#f8fafc', font: { size: 9 } }, grid: { display: false } },
+                            y: { ticks: { color: '#f8fafc', font: { size: 9 } }, grid: { color: 'rgba(255,255,255,0.05)' } }
+                        }
+                    }
+                });
+            }
+        }
+
+        function updateStatsChart(teamsList, totalsList) {
+            let ctx = document.getElementById('statsChart');
+            if (!ctx) return;
+            ctx = ctx.getContext('2d');
+            if (myChart) {
+                myChart.data.labels = teamsList;
+                myChart.data.datasets[0].data = totalsList;
+                myChart.update();
+            } else {
+                myChart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: teamsList,
+                        datasets: [{
+                            label: 'کۆی گشتی تیمەکان',
+                            data: totalsList,
+                            borderColor: '#38bdf8',
+                            backgroundColor: 'rgba(56,189,248,0.1)',
+                            fill: true,
+                            tension: 0.3
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { display: false } },
+                        scales: {
+                            x: { ticks: { color: '#f8fafc', font: { size: 9 } }, grid: { display: false } },
+                            y: { ticks: { color: '#f8fafc', font: { size: 9 } }, grid: { color: 'rgba(255,255,255,0.05)' } }
+                        }
+                    }
+                });
+            }
         }
 
         function render() {
             let teamsList = currentSection === 'lfd' ? lfdTeams : moveInTeams;
-            let totalAchievedCount = 0;
-            let totalSubmittedTeams = 0;
-            let grandTotalSum = 0;
-            let leaderboardHTML = "";
-            let filteredTeams = [];
+            let container = document.getElementById('leaderboardContainer');
+            let totalSubmittedCount = 0;
+            let grandSectionTotal = 0;
+            let chartLabels = [];
+            let chartDataVals = [];
 
-            teamsList.forEach(t => {
+            let itemsHtml = "";
+            let sortedTeams = [...teamsList].map(t => {
                 let uniqueKey = getUniqueTeamKey(t, currentSection);
                 let rec = cloudStore[uniqueKey];
-                let isOff = rec ? rec.offday : false;
-                let tot = rec ? rec.total : 0;
-                let isAchieved = tot >= DAILY_TARGET;
+                return { team: t, record: rec };
+            }).sort((a, b) => (b.record?.total || 0) - (a.record?.total || 0));
 
-                if (isAchieved) totalAchievedCount++;
-                if (rec) totalSubmittedTeams++;
-                grandTotalSum += tot;
-
-                let matchFilter = true;
-                if (currentFilter === 'achieved') matchFilter = isAchieved && !isOff;
-                else if (currentFilter === 'missed') matchFilter = !isAchieved && !isOff;
-                else if (currentFilter === 'offday') matchFilter = isOff;
-
-                if (matchFilter) {
-                    filteredTeams.push({ name: t, rec, tot, isOff, isAchieved });
-                }
+            let filteredTeams = sortedTeams.filter(item => {
+                let rec = item.record;
+                if (currentFilter === 'achieved') return rec && !rec.offday && rec.total >= DAILY_TARGET;
+                if (currentFilter === 'missed') return (!rec || (!rec.offday && rec.total < DAILY_TARGET));
+                if (currentFilter === 'offday') return rec && rec.offday;
+                return true;
             });
 
-            filteredTeams.sort((a, b) => b.tot - a.tot);
-
             filteredTeams.forEach((item, index) => {
-                let badgeClass = index === 0 ? 'rank-1' : index === 1 ? 'rank-2' : index === 2 ? 'rank-3' : 'rank-other';
-                let statusText = item.isOff ? '🌴 پشوو' : item.isAchieved ? '✅ گەیشتوو' : '⏳ نەگەیشتوو';
-                let notesHtml = (item.rec && item.rec.notes) ? `<div class="leaderboard-reason">📝 ${item.rec.notes}</div>` : '';
-                
-                leaderboardHTML += `
+                let t = item.team;
+                let rec = item.record;
+                let total = rec ? rec.total : 0;
+                let offday = rec ? rec.offday : false;
+                let notes = rec ? rec.notes : "";
+
+                if (rec) grandSectionTotal += total;
+                if (rec) totalSubmittedCount++;
+
+                chartLabels.push(t);
+                chartDataVals.push(total);
+
+                let badgeClass = index === 0 ? 'rank-1' : (index === 1 ? 'rank-2' : (index === 2 ? 'rank-3' : 'rank-other'));
+                let statusText = offday ? '🏖️ پشوو' : (total >= DAILY_TARGET ? '✅ گەیشتوو' : '⏳ نەگەیشتوو');
+
+                itemsHtml += `
                     <div class="leaderboard-item">
                         <div class="leaderboard-row-top">
-                            <span style="font-weight: 700; display: flex; align-items: center;">
+                            <div style="display: flex; align-items: center; gap: 6px;">
                                 <span class="rank-badge ${badgeClass}">${index + 1}</span>
-                                ${item.name}
-                            </span>
-                            <span><b>${item.tot}</b> خاڵ (${statusText})</span>
+                                <b>${t}</b>
+                            </div>
+                            <div style="display: flex; gap: 8px; align-items: center;">
+                                <span style="font-size: 10px; opacity: 0.8;">${statusText}</span>
+                                <span style="color: #34d399; font-weight: bold;">${total}</span>
+                            </div>
                         </div>
-                        ${notesHtml}
+                        ${notes ? `<div class="leaderboard-reason"><b>تێبینی:</b> ${notes}</div>` : ''}
                     </div>
                 `;
             });
 
-            document.getElementById('leaderboardContainer').innerHTML = leaderboardHTML || `<p style="text-align:center; opacity:0.6; padding: 10px;">هیچ تیمێک نییە</p>`;
-            document.getElementById('grandTotalPoints').innerText = grandTotalSum;
-            document.getElementById('adminSectionTotal').innerText = `Total: ${grandTotalSum}`;
+            container.innerHTML = itemsHtml || `<p style="text-align:center; opacity:0.6; padding:10px;">هیچ تیمێک نەدۆزرایەوە</p>`;
+            document.getElementById('adminSectionTotal').innerText = `Total: ${grandSectionTotal}`;
 
-            let percent = teamsList.length > 0 ? Math.round((totalAchievedCount / teamsList.length) * 100) : 0;
-            document.getElementById('progressBar').style.width = percent + '%';
-            document.getElementById('progressText').innerText = `گەیشتووەکان: ${totalAchievedCount} / ${teamsList.length} (${percent}%)`;
+            let progressPercent = Math.round((totalSubmittedCount / teamsList.length) * 100) || 0;
+            document.getElementById('progressBar').style.width = progressPercent + '%';
+            document.getElementById('progressText').innerText = `Submitted: ${progressPercent}% (${totalSubmittedCount}/${teamsList.length})`;
+
+            updateStatsChart(chartLabels, chartDataVals);
+        }
+
+        function shareToWhatsApp() {
+            let teamsList = currentSection === 'lfd' ? lfdTeams : moveInTeams;
+            let text = `📊 ڕاپۆرتی گشتی BIM Operations (${currentSection.toUpperCase()})\n📅 بەروار: ${selectedAdminDate}\n\n`;
+            let grand = 0;
+            teamsList.forEach(t => {
+                let rec = cloudStore[getUniqueTeamKey(t, currentSection)];
+                let tot = rec ? rec.total : 0;
+                grand += tot;
+                let status = rec?.offday ? ' (پشوو)' : '';
+                text += `• ${t}: ${tot}${status}\n`;
+            });
+            text += `\n📌 کۆی گشتی: ${grand}`;
+            window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, '_blank');
+        }
+
+        function shareMyTeamToWhatsApp() {
+            let t = document.getElementById('teamSelect').value;
+            if (!t) return alert("تکایە سەرەتا تیمێک هەڵبژێرە!");
+            let details = getDetailsFromInputs();
+            let total = Object.values(details).reduce((a, b) => a + b, 0);
+            let offday = document.getElementById('c_offday').checked;
+            let notes = document.getElementById('c_notes').value;
+
+            let text = `👥 ڕاپۆرتی تیمی (${t}) - ${currentSection.toUpperCase()}\n📅 بەروار: ${todayFormatted}\n\n`;
+            Object.keys(details).forEach(k => {
+                text += `• ${k}: ${details[k]}\n`;
+            });
+            text += `\n📌 کۆی گشتی: ${total}`;
+            if (offday) text += `\n🏖️ مۆڵەت / پشوو`;
+            if (notes) text += `\n⚠️ تێبینی: ${notes}`;
+
+            window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, '_blank');
+        }
+
+        function adminExportExcel(type) {
+            let teamsList = currentSection === 'lfd' ? lfdTeams : moveInTeams;
+            let csv = "Team,Section,Total,OffDay,Notes\n";
+            teamsList.forEach(t => {
+                let rec = cloudStore[getUniqueTeamKey(t, currentSection)];
+                if (rec) {
+                    csv += `${t},${currentSection},${rec.total},${rec.offday ? 'Yes' : 'No'},"${rec.notes || ''}"\n`;
+                } else {
+                    csv += `${t},${currentSection},0,No,""\n`;
+                }
+            });
+            let blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' });
+            let link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.download = `BIM_Report_${currentSection}_${selectedAdminDate}.csv`;
+            link.click();
+        }
+
+        function adminClearData() {
+            if (confirm("دڵنیای لە سڕینەوەی سەرجەم داتاکانی ئەم ڕۆژە؟")) {
+                db.ref(getStorageKeyPath()).remove().then(() => {
+                    showToast("داتاکان سڕانەوە");
+                });
+            }
+        }
+
+        function exportAsImage() {
+            window.print();
+        }
+
+        function openTeamHistoryModal() {
+            let t = document.getElementById('teamSelect').value;
+            if (!t) return alert("تکایە تیمێک هەڵبژێرە!");
+            let container = document.getElementById('historyContentList');
+            let html = '';
+            
+            let days = Object.keys(allDaysStore).sort().reverse().slice(0, 7);
+            if (days.length === 0) {
+                container.innerHTML = `<p style="text-align:center; opacity:0.7;">هیچ مێژوویەک نەدۆزرایەوە.</p>`;
+            } else {
+                days.forEach(dKey => {
+                    let dayObj = allDaysStore[dKey] || {};
+                    let rec = dayObj[getUniqueTeamKey(t, currentSection)];
+                    let tot = rec ? rec.total : 0;
+                    html += `
+                        <div style="display: flex; justify-content: space-between; padding: 6px 10px; border-bottom: 1px solid var(--border-color);">
+                            <span>📅 ${dKey}</span>
+                            <span style="color: #34d399; font-weight: bold;">${tot} خال</span>
+                        </div>
+                    `;
+                });
+                container.innerHTML = html;
+            }
+            document.getElementById('historyModalOverlay').style.display = 'flex';
         }
 
         window.onload = function() {
             setupPwaManifest();
+            checkUserAccountOnStartup();
             let savedLang = localStorage.getItem('bim_lang') || 'ku';
             document.getElementById('langSelect').value = savedLang;
             applyLanguage(savedLang);
-            checkUserAccountOnStartup();
-            initRealtimeSync();
             renderCasesGrid();
+            populateTeamDropdown();
+            initRealtimeSync();
         };
     </script>
 </body>
