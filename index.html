@@ -297,7 +297,7 @@
     <div class="app-container" id="reportArea">
         <div class="app-header-bar">
             <div class="brand-box" onclick="handleHeaderClick()" title="دەکرێت کرتەی سێ قۆڵی بکەیت بۆ ئەدمین">
-                <img src="https://images.seeklogo.com/logo-png/43/2/bim-logo-png_seeklogo-437596.png" alt="BIM Logo" class="brand-logo">
+                <img src="https://cdn-icons-png.flaticon.com/512/1006/1006771.png" alt="BIM Logo" class="brand-logo">
                 <div>
                     <h1>Bim Company</h1>
                     <p id="lblSubHeader">سیستمی بەڕێوەبردنی ئامار</p>
@@ -584,8 +584,8 @@
                 "background_color": "#090d16",
                 "theme_color": "#090d16",
                 "icons": [
-                    { "src": "https://images.seeklogo.com/logo-png/43/2/bim-logo-png_seeklogo-437596.png", "sizes": "192x192", "type": "image/png" },
-                    { "src": "https://images.seeklogo.com/logo-png/43/2/bim-logo-png_seeklogo-437596.png", "sizes": "512x512", "type": "image/png" }
+                    { "src": "https://cdn-icons-png.flaticon.com/512/1006/1006771.png", "sizes": "192x192", "type": "image/png" },
+                    { "src": "https://cdn-icons-png.flaticon.com/512/1006/1006771.png", "sizes": "512x512", "type": "image/png" }
                 ]
             };
             let stringManifest = JSON.stringify(manifestData);
@@ -1759,7 +1759,9 @@
             initRealtimeSync();
 
             let savedTeam = localStorage.getItem('bim_selected_team');
-            if (savedTeam && lfdTeams.includes(savedTeam)) {
+            if (savedTeam) {
+                if (moveInTeams.includes(savedTeam)) switchSection('movein');
+                else switchSection('lfd');
                 document.getElementById('teamSelect').value = savedTeam;
                 loadTeamData();
             }
