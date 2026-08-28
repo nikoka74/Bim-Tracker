@@ -1658,53 +1658,75 @@
                         <div style="display:flex; align-items:center;"><span class="rank-badge ${rankClass}">${index + 1}</span><span>${item.name}</span></div>
                         <div>${statusText}</div>
                     </div>
-                    ${adminControlsHTML} ${reasonHTML}
+                    ${reasonHTML}
+                    ${adminControlsHTML}
                 </div>`;
-            }).join(''), sectionTotal, list };
+            }).join(''), total: sectionTotal };
         }
 
         function render() {
             let activeTeams = currentSection === 'lfd' ? lfdTeams : moveInTeams;
-            let res = renderList(activeTeams, currentSection);
-            document.getElementById('leaderboardContainer').innerHTML = res.html;
-            document.getElementById('adminSectionTotal').innerText = `Total: ${res.sectionTotal}`;
-            document.getElementById('grandTotalPoints').innerText = res.sectionTotal;
+            let renderedObj = renderList(activeTeams, currentSection);
+            document.getElementById('leaderboardContainer').innerHTML = renderedObj.html;
+            document.getElementById('adminSectionTotal').innerText = `Total: ${renderedObj.total}`;
+            document.getElementById('grandTotalPoints').innerText = renderedObj.total;
 
-            let submittedCount = res.list.filter(item => item.submitted || item.offday).length;
             let totalTeamsCount = activeTeams.length;
+            let submittedCount = activeTeams.filter(t => {
+                let d = cloudStore[getUniqueTeamKey(t, currentSection)];
+                return d && (d.submitted || d.offday);
+            }).length;
             let percent = totalTeamsCount > 0 ? Math.round((submittedCount / totalTeamsCount) * 100) : 0;
             document.getElementById('progressBar').style.width = percent + '%';
             let lang = document.getElementById('langSelect').value;
             document.getElementById('progressText').innerText = translations[lang].progressText + percent + '% (' + submittedCount + '/' + totalTeamsCount + ')';
-            updateChart(res.list);
+
+            updateChart(activeTeams, currentSection);
         }
 
-        function updateChart(list) {
+        function updateChart(teamsArray, sectionName) {
+            let labels = [];
+            let dataVals = [];
+            teamsArray.forEach(t => {
+                let teamData = cloudStore[getUniqueTeamKey(t, sectionName)];
+                labels.push(t);
+                dataVals.push(teamData && teamData.submitted && !teamData.offday ? teamData.total : 0);
+            });
+
             let ctx = document.getElementById('statsChart').getContext('2d');
-            let labels = list.map(item => item.name);
-            let dataVals = list.map(item => item.total);
-            if (myChart) {
-                myChart.data.labels = labels;
-                myChart.data.datasets[0].data = dataVals;
-                myChart.update();
-            } else {
-                myChart = new Chart(ctx, {
-                    type: 'bar',
-                    data: {
-                        labels: labels,
-                        datasets: [{ label: 'Points', data: dataVals, backgroundColor: '#38bdf8', borderRadius: 4 }]
-                    },
-                    options: {
-                        responsive: true, maintainAspectRatio: false,
-                        plugins: { legend: { display: false } },
-                        scales: { x: { ticks: { font: { size: 9 }, color: '#fff' } }, y: { ticks: { font: { size: 9 }, color: '#fff' } } }
+            if (myChart) myChart.destroy();
+            myChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Points',
+                        data: dataVals,
+                        backgroundColor: '#38bdf8',
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { ticks: { color: '#94a3b8', font: { size: 9 } }, grid: { display: false } },
+                        y: { ticks: { color: '#94a3b8', font: { size: 9 } }, grid: { color: 'rgba(255,255,255,0.05)' } }
                     }
-                });
-            }
+                }
+            });
         }
 
         function exportAsImage() {
-            alert("بۆ وەرگرتنی وێنە دەتوانیت سکرینشۆت (Screenshot) بگریت یان لە ڕێگەی PDF ـەوە پاشەکەوتی بکەیت!");
+            import('https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js').then(() => {
+                html2canvas(document.getElementById('reportArea')).then(canvas => {
+                    let link = document.createElement('a');
+                    link.download = `BIM_Report_${selectedAdminDate}.png`;
+                    link.href = canvas.toDataURL();
+                    link.click();
+                });
+            }).catch(() => { alert("هەڵە لە دروستکردنی وێنە."); });
         }
 
         window.onload = function() {
@@ -1714,14 +1736,9 @@
             applyLanguage(savedLang);
             initRealtimeSync();
             let savedTeam = localStorage.getItem('bim_selected_team');
-            if (savedTeam) {
-                setTimeout(() => {
-                    let teamSelect = document.getElementById('teamSelect');
-                    if ([...teamSelect.options].some(o => o.value === savedTeam)) {
-                        teamSelect.value = savedTeam;
-                        loadTeamData();
-                    }
-                }, 500);
+            if (savedTeam && document.getElementById('teamSelect')) {
+                document.getElementById('teamSelect').value = savedTeam;
+                loadTeamData();
             }
         };
     </script>
