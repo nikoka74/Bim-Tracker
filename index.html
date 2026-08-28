@@ -14,6 +14,10 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Leaflet.js for Live Map Feature -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800&display=swap');
 
@@ -52,7 +56,6 @@
             border: 1px solid var(--border-color); 
         }
         
-        /* Structural Header Redesign */
         .app-header-bar { 
             display: flex; 
             flex-direction: column; 
@@ -356,6 +359,30 @@
         </div>
     </div>
 
+    <!-- NEW: Live Map Modal -->
+    <div id="liveMapModalOverlay" class="custom-modal-overlay">
+        <div class="custom-modal-box" style="max-width: 500px; width: 95%; text-align: right;">
+            <h3 style="text-align: center; color: var(--primary); margin-bottom: 10px;">🗺️ نەخشەی ڕاستەوخۆی خاڵەکان</h3>
+            <div id="mapContainer" style="width: 100%; height: 300px; border-radius: 12px; margin-bottom: 14px; border: 1px solid var(--border-color);"></div>
+            <button class="modal-btn modal-btn-cancel" style="width: 100%;" onclick="document.getElementById('liveMapModalOverlay').style.display='none'">داخستن</button>
+        </div>
+    </div>
+
+    <!-- NEW: Advanced Range Export Modal -->
+    <div id="rangeExportModalOverlay" class="custom-modal-overlay">
+        <div class="custom-modal-box" style="max-width: 380px; text-align: right;">
+            <h3 style="text-align: center; color: var(--primary); margin-bottom: 12px;">📈 دەرکردنی ڕاپۆرت بە مەودای بەروار</h3>
+            <label style="font-size:10px;">لە بەرواری:</label>
+            <input type="date" id="rangeStart" style="margin-bottom:8px; font-size:11px;">
+            <label style="font-size:10px;">تا بەرواری:</label>
+            <input type="date" id="rangeEnd" style="margin-bottom:14px; font-size:11px;">
+            <div class="modal-btn-row">
+                <button class="modal-btn modal-btn-cancel" onclick="document.getElementById('rangeExportModalOverlay').style.display='none'">پەشیمانبوونەوە</button>
+                <button class="modal-btn modal-btn-confirm" onclick="exportRangeExcel()">داگرتنی Excel</button>
+            </div>
+        </div>
+    </div>
+
     <div class="app-container" id="reportArea">
         <div class="app-header-bar">
             <div class="brand-box" onclick="handleHeaderClick()" title="دەکرێت کرتەی سێ قۆڵی بکەیت بۆ ئەدمین">
@@ -420,6 +447,12 @@
                     <button class="tool-btn" onclick="openAdminFeedbackModal()" style="padding: 4px 8px; font-size: 10px; background: rgba(56,189,248,0.2); border-color: var(--primary);">💬 پێشنیارەکان (<span id="feedbackCounterBadge">0</span>)</button>
                     <button class="tool-btn" onclick="manualRefreshData()" style="padding: 4px 8px; font-size: 10px;">نوێکردنەوە</button>
                 </div>
+            </div>
+
+            <!-- NEW: Admin Audit & Map triggers -->
+            <div style="display: flex; gap: 6px; margin-bottom: 8px;">
+                <button class="btn" style="background: rgba(56,189,248,0.2); border:1px solid var(--primary); flex:1; font-size:10px;" onclick="openLiveMapModal()">🗺️ نیشاندانی نەخشەی خاڵەکان</button>
+                <button class="btn" style="background: rgba(16,185,129,0.2); border:1px solid #10b981; flex:1; font-size:10px;" onclick="openAuditLogModal()">📋 مێژووی لۆگی چالاکییەکان</button>
             </div>
 
             <div class="admin-sub-box">
@@ -488,6 +521,7 @@
             <div style="display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap;">
                 <button class="btn" style="background:#10b981; flex:1; font-size: 10px;" onclick="adminExportExcel('daily')" id="btnExcelAdmin">Excel (ڕۆژانە)</button>
                 <button class="btn" style="background:#0d9488; flex:1; font-size: 10px;" onclick="adminExportExcel('monthly')" id="btnExcelMonthly">Excel (مانگانە)</button>
+                <button class="btn" style="background:#3b82f6; flex:1; font-size: 10px;" onclick="document.getElementById('rangeExportModalOverlay').style.display='flex'">مەودای بەروار</button>
                 <button class="btn" style="background:#7c3aed; flex:1; font-size: 10px;" onclick="window.print()" id="btnPdfAdmin">PDF</button>
                 <button class="btn" style="background:#ef4444; flex:1; font-size: 10px;" onclick="adminClearData()" id="btnClearCloud">سڕینەوە</button>
             </div>
@@ -685,6 +719,7 @@
         let privateMsgsStore = {};
         let allDaysStore = {};
         let feedbacksStore = {};
+        let auditLogsStore = {};
         let broadcastMsg = "";
         let currentFilter = 'all';
         let currentSyncRef = null;
@@ -695,8 +730,10 @@
         let privateMsgSyncRef = null;
         let allDaysSyncRef = null;
         let feedbacksSyncRef = null;
+        let auditSyncRef = null;
         let myChart = null;
         let previousBroadcast = null;
+        let mapInstance = null;
 
         let todayFormatted = new Date().toISOString().split('T')[0];
         let selectedAdminDate = todayFormatted;
@@ -784,6 +821,59 @@
                     showToast("سڕایەوە");
                 });
             }
+        }
+
+        // NEW: Open Audit Log Modal Function
+        function openAuditLogModal() {
+            let content = Object.keys(auditLogsStore).map(k => {
+                let log = auditLogsStore[k];
+                return `<div style="background:rgba(255,255,255,0.03); border:1px solid var(--border-color); padding:8px; border-radius:6px; margin-bottom:6px; font-size:10px;">
+                    <b>${log.teamName}</b> (${log.section}) - ${log.action} <br><span style="opacity:0.6;">🕒 ${log.timestamp}</span>
+                </div>`;
+            }).join('') || `<p style="text-align:center; opacity:0.6;">هیچ لۆگێک نییە</p>`;
+
+            let win = window.open("", "_blank", "width=400,height=500");
+            win.document.write(`<html dir="rtl"><head><title>Audit Logs</title><style>body{background:#090d16;color:#fff;font-family:sans-serif;padding:15px;}</style></head><body><h3>مێژووی لۆگی چالاکییەکان</h3>${content}</body></html>`);
+        }
+
+        // NEW: Open Live Map Modal Function
+        function openLiveMapModal() {
+            document.getElementById('liveMapModalOverlay').style.display = 'flex';
+            setTimeout(() => {
+                if (!mapInstance) {
+                    mapInstance = L.map('mapContainer').setView([36.5, 44.0], 10);
+                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(mapInstance);
+                } else {
+                    mapInstance.invalidateSize();
+                }
+            }, 300);
+        }
+
+        // NEW: Date Range Export Function
+        function exportRangeExcel() {
+            let start = document.getElementById('rangeStart').value;
+            let end = document.getElementById('rangeEnd').value;
+            if (!start || !end) return alert("تکایە هەردوو بەروار دیاری بکە!");
+            
+            db.ref('daily_reports').once('value').then(snapshot => {
+                let allData = snapshot.val() || {};
+                let csv = "Date,Team,Section,Total,OffDay\n";
+                Object.keys(allData).forEach(dateKey => {
+                    if (dateKey >= start && dateKey <= end) {
+                        let dayObj = allData[dateKey];
+                        Object.keys(dayObj).forEach(tKey => {
+                            let item = dayObj[tKey];
+                            if (item) csv += `${dateKey},${item.teamName},${item.section},${item.total},${item.offday ? 'Yes' : 'No'}\n`;
+                        });
+                    }
+                });
+                let blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' });
+                let link = document.createElement("a");
+                link.href = URL.createObjectURL(blob);
+                link.download = `Range_Report_${start}_to_${end}.csv`;
+                link.click();
+                document.getElementById('rangeExportModalOverlay').style.display = 'none';
+            });
         }
 
         const translations = {
@@ -1090,7 +1180,28 @@
                     if (badge) badge.innerText = count;
                 });
             }
+
+            if (!auditSyncRef) {
+                auditSyncRef = db.ref('audit_logs');
+                auditSyncRef.on('value', (snap) => { auditLogsStore = snap.val() || {}; });
+            }
         }
+
+        // NEW: Offline Sync Handler (Online/Offline Listeners)
+        window.addEventListener('online', () => {
+            showNotification("هێڵی ئینتەرنێت گەڕایەوە، داتاکان سینک دەکرێنەوە...", "success");
+            let pendingOffline = localStorage.getItem('pending_offline_save');
+            if (pendingOffline) {
+                let parsed = JSON.parse(pendingOffline);
+                db.ref(getStorageKeyPath() + '/' + parsed.uniqueKey).set(parsed.teamData).then(() => {
+                    localStorage.removeItem('pending_offline_save');
+                });
+            }
+        });
+
+        window.addEventListener('offline', () => {
+            showNotification("ئاگاداری: ئینتەرنێت پچڕا، داتاکانت لە ناوخۆدا پاشەکەوت دەبن.", "error");
+        });
 
         function checkTeamFile(teamName) {
             let downloadBox = document.getElementById('teamFileDownloadBox');
@@ -1393,11 +1504,26 @@
                 submitted: true, offday: offday, notes: notes, details: details
             };
             cloudStore[uniqueKey] = teamData;
-            db.ref(getStorageKeyPath() + '/' + uniqueKey).set(teamData).then(() => {
-                localStorage.removeItem(`draft_${currentSection}_${t}`);
-                render();
-                showToast(translations[lang].cloudSuccess);
+
+            // Push Audit Log entry
+            db.ref('audit_logs').push({
+                teamName: t,
+                section: currentSection,
+                action: 'ناردن یان نوێکردنەوەی ڕاپۆرت',
+                timestamp: new Date().toLocaleString()
             });
+
+            if (navigator.onLine) {
+                db.ref(getStorageKeyPath() + '/' + uniqueKey).set(teamData).then(() => {
+                    localStorage.removeItem(`draft_${currentSection}_${t}`);
+                    render();
+                    showToast(translations[lang].cloudSuccess);
+                });
+            } else {
+                localStorage.setItem('pending_offline_save', JSON.stringify({ uniqueKey, teamData }));
+                showToast("ئۆفلاینە: داتا لە مۆبایلەکە پاشەکەوت بوو، کاتێک ئینتەرنێت هات دەچێتە فایەربەیس.");
+                render();
+            }
         }
 
         function adminClearData() {
