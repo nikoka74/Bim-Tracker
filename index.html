@@ -173,11 +173,7 @@
         .btn-submit-main:active { transform: scale(0.98); }
         .btn-submit-main:hover { box-shadow: 0 0 25px rgba(59, 130, 246, 0.6); }
 
-        /* Professional button container layout for better arrangement */
         .btn-toolbar { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 14px; }
-        .btn-toolbar .btn:nth-child(3), .btn-toolbar .btn:nth-child(4), .btn-toolbar .btn:nth-child(5) {
-            grid-column: span 1;
-        }
         .btn-toolbar .btn:last-child:nth-child(odd) {
             grid-column: span 2;
         }
@@ -256,7 +252,6 @@
 </head>
 <body>
     <div id="toast" class="toast">Saved!</div>
-
     <div id="toast-container" style="position: fixed; bottom: 20px; left: 20px; z-index: 9999;"></div>
 
     <div id="customModalOverlay" class="custom-modal-overlay">
@@ -279,12 +274,11 @@
         </div>
     </div>
 
-    <!-- Feedback Modal -->
     <div id="feedbackModalOverlay" class="custom-modal-overlay">
         <div class="custom-modal-box" style="max-width: 380px; text-align: right;">
             <h3 style="text-align: center; color: var(--primary); margin-bottom: 12px;">بەشی پێشنیار و گلەییەکان</h3>
-            <p style="margin-bottom: 8px;">ناو یان نیشانەی خۆت (ئارەزوومەندانە / بە نەناسراوی ئەگەر بەتاڵ بێت):</p>
-            <input type="text" id="feedbackAuthor" placeholder="ناوی تیم یان کارمەند (ئەگەرت وێت)..." style="margin-bottom: 10px;">
+            <p style="margin-bottom: 8px;">ناو یان نیشانەی خۆت (ئارەزوومەندانە):</p>
+            <input type="text" id="feedbackAuthor" placeholder="ناوی تیم یان کارمەند..." style="margin-bottom: 10px;">
             <p style="margin-bottom: 8px;">پێشنیار، کێشە یان تێبینییەکەت بنووسە:</p>
             <textarea id="feedbackText" rows="4" placeholder="لێرە بنووسە..." style="background: var(--input-bg); color: var(--text-color); border: 1px solid var(--border-color); border-radius: 10px; padding: 10px; width: 100%; font-size: 12px; margin-bottom: 14px; outline: none; resize: vertical;"></textarea>
             <div class="modal-btn-row">
@@ -294,7 +288,6 @@
         </div>
     </div>
 
-    <!-- Admin Feedback View Modal -->
     <div id="adminFeedbackModalOverlay" class="custom-modal-overlay">
         <div class="custom-modal-box" style="max-width: 440px; text-align: right;">
             <h3 style="text-align: center; color: var(--primary); margin-bottom: 12px;">پێشنیار و گلەیییە نێردراوەکان</h3>
@@ -361,7 +354,7 @@
             </div>
 
             <div class="admin-sub-box">
-                <label style="font-size: 10px; color: var(--primary); font-weight: bold;">ناردنی ئاگاداری گشتی بۆ هەمووان:</label>
+                <label style="font-size: 10px; color: var(--primary); font-weight: bold;">ناردنی ئاگاداری گشتی برای هەمووان:</label>
                 <div style="display: flex; gap: 6px; margin-top: 6px;">
                     <input type="text" id="adminBroadcastInput" placeholder="پەیام بنووسە..." style="flex: 2; font-size: 11px;">
                     <button class="btn" style="background: var(--primary); color: #090d16; flex: 1; font-size: 10px; font-weight: 700;" onclick="saveBroadcastMessage()">بڵاوکردنەوە</button>
@@ -386,9 +379,7 @@
             <div class="admin-sub-box" style="border: 1px solid var(--primary);">
                 <label style="font-size: 10px; color: var(--primary); font-weight: bold;">ئەپلۆدکردن و ناردنی فایل بۆ تیمی دیاریکراو:</label>
                 <div style="display: grid; grid-template-columns: 1fr; gap: 6px; margin-bottom: 6px; margin-top: 6px;">
-                    <select id="kmlTargetTeam" style="font-size: 10px;">
-                        <option value="">-- هەڵبژاردنی تیم --</option>
-                    </select>
+                    <select id="kmlTargetTeam" style="font-size: 10px;"><option value="">-- هەڵبژاردنی تیم --</option></select>
                     <input type="file" id="teamFileUploader" accept=".kml,.csv,.txt,.xlsx,.gpx" style="font-size: 10px;">
                 </div>
                 <button class="btn" style="background: var(--primary); color: #090d16; width: 100%; padding: 6px; font-size: 10px; font-weight: 700;" onclick="uploadFileForSpecificTeam()">ئەپلۆد و ناردن بۆ تیم</button>
@@ -411,8 +402,8 @@
                 <div style="display: flex; gap: 6px; margin-bottom: 6px; align-items: center;">
                     <label style="font-size: 10px; white-space: nowrap; margin-bottom: 0;">شوێن / ڕیزبەندی:</label>
                     <select id="newTeamPositionSelect" style="font-size: 10px;">
-                        <option value="start">سەرەتا (بۆ یەکەم)</option>
-                        <option value="end" selected>کۆتایی (بۆ دوایین)</option>
+                        <option value="start">سەرەتا</option>
+                        <option value="end" selected>کۆتایی</option>
                     </select>
                 </div>
                 <button class="btn" style="background: var(--primary); color: #090d16; width: 100%; padding: 6px; font-size: 10px; font-weight: 700;" onclick="addNewTeam()" id="btnAddTeamBtn">زیادکردنی تیم</button>
@@ -513,39 +504,18 @@
         function showNotification(message, type = 'success') {
             const container = document.getElementById('toast-container');
             const toast = document.createElement('div');
-            
             toast.style.cssText = `
                 background: ${type === 'success' ? '#10b981' : '#ef4444'};
-                color: white;
-                padding: 10px 16px;
-                margin-top: 8px;
-                border-radius: 10px;
-                box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-                font-family: inherit;
-                font-size: 12px;
-                transition: opacity 0.3s ease;
-                opacity: 1;
-                z-index: 99999;
-                backdrop-filter: blur(8px);
+                color: white; padding: 10px 16px; margin-top: 8px; border-radius: 10px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.3); font-family: inherit; font-size: 12px;
+                transition: opacity 0.3s ease; opacity: 1; z-index: 99999; backdrop-filter: blur(8px);
             `;
             toast.innerText = message;
             container.appendChild(toast);
-            
             setTimeout(() => {
                 toast.style.opacity = '0';
                 setTimeout(() => toast.remove(), 300);
             }, 4000);
-        }
-
-        async function checkDeviceBattery() {
-            if ('getBattery' in navigator) {
-                let battery = await navigator.getBattery();
-                let level = Math.round(battery.level * 100);
-                let charging = battery.charging ? "🔌 لە چارجدایە" : "🔋 پاتری ئاسایی";
-                showNotification(`دۆخی پاتری مۆبایلەکەت: ${level}% - ${charging}`, level < 20 ? 'error' : 'success');
-            } else {
-                showNotification("سیستمی پاتری پشتگیری ناورێت لەم بڕۆزەرەدا.", 'error');
-            }
         }
 
         function copyYesterdayDataToCurrent() {
@@ -567,31 +537,22 @@
                 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
                 const oscillator = audioCtx.createOscillator();
                 const gainNode = audioCtx.createGain();
-                
                 oscillator.type = 'triangle';
                 oscillator.frequency.setValueAtTime(650, audioCtx.currentTime); 
-                
                 gainNode.gain.setValueAtTime(0.2, audioCtx.currentTime);
                 gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
-                
                 oscillator.connect(gainNode);
                 gainNode.connect(audioCtx.destination);
-                
                 oscillator.start();
                 oscillator.stop(audioCtx.currentTime + 0.4);
-            } catch(e) {
-                console.log("Audio not supported or blocked");
-            }
+            } catch(e) {}
         }
 
         function setupPwaManifest() {
             let manifestData = {
-                "name": "BIM Operations Management",
-                "short_name": "BIM Operations",
-                "start_url": window.location.href,
-                "display": "standalone",
-                "background_color": "#090d16",
-                "theme_color": "#090d16",
+                "name": "BIM Operations Management", "short_name": "BIM Operations",
+                "start_url": window.location.href, "display": "standalone",
+                "background_color": "#090d16", "theme_color": "#090d16",
                 "icons": [
                     { "src": "https://images.seeklogo.com/logo-png/43/2/bim-logo-png_seeklogo-437596.png", "sizes": "192x192", "type": "image/png" },
                     { "src": "https://images.seeklogo.com/logo-png/43/2/bim-logo-png_seeklogo-437596.png", "sizes": "512x512", "type": "image/png" }
@@ -640,11 +601,6 @@
 
         let defaultLfdTeams = ["Team 16", "Team 17", "Team 24", "Team 28", "Team 29", "Team 31", "Team 37", "Team 39", "Team 40", "Team 45", "Team 73", "Team 76", "Team 83", "Team 87", "Team 88"];
         let lfdTeams = JSON.parse(localStorage.getItem('bim_lfd_teams')) || defaultLfdTeams;
-        if (!lfdTeams.includes("Team 17")) {
-            let idx16 = lfdTeams.indexOf("Team 16");
-            if (idx16 !== -1) lfdTeams.splice(idx16 + 1, 0, "Team 17");
-            else lfdTeams.unshift("Team 17");
-        }
         lfdTeams = [...new Set(lfdTeams)];
         localStorage.setItem('bim_lfd_teams', JSON.stringify(lfdTeams));
 
@@ -698,10 +654,8 @@
                 let inputField = document.getElementById('customModalInput');
                 inputField.value = '';
                 inputField.type = isPasswordType ? 'password' : 'text';
-                
                 document.getElementById('customModalOverlay').style.display = 'flex';
                 inputField.focus();
-
                 modalResolveCallback = resolve;
                 inputField.onkeydown = function(e) { if (e.key === 'Enter') confirmCustomModal(); };
                 document.getElementById('modalConfirmBtn').onclick = confirmCustomModal;
@@ -726,30 +680,21 @@
         }
 
         function submitFeedbackFinal() {
-            let author = document.getElementById('feedbackAuthor').value.trim() || 'نەناسراو (Anonymous)';
+            let author = document.getElementById('feedbackAuthor').value.trim() || 'نەناسراو';
             let text = document.getElementById('feedbackText').value.trim();
             if (!text) return alert("تکایە پێشنیار یان کێشەکەت بنووسە!");
-
-            let feedbackObj = {
-                author: author,
-                text: text,
-                timestamp: new Date().toISOString(),
-                date: todayFormatted
-            };
-
+            let feedbackObj = { author: author, text: text, timestamp: new Date().toISOString(), date: todayFormatted };
             db.ref('feedbacks').push(feedbackObj).then(() => {
                 document.getElementById('feedbackModalOverlay').style.display = 'none';
                 showToast("پێشنیارەکەت بە سەرکەوتوویی نێردرا! سوپاس.");
-            }).catch(err => {
-                alert("هەڵە ڕویدا لە ناردنی پێشنیارەکە.");
-            });
+            }).catch(err => alert("هەڵە ڕویدا."));
         }
 
         function openAdminFeedbackModal() {
             let container = document.getElementById('adminFeedbackListContent');
             let keys = Object.keys(feedbacksStore);
             if (keys.length === 0) {
-                container.innerHTML = `<p style="text-align:center; opacity:0.7; padding: 15px;">هیچ پێشنیار یان گلەییەک نەدۆزرایەوە.</p>`;
+                container.innerHTML = `<p style="text-align:center; opacity:0.7; padding: 15px;">هیچ پێشنیارێک نەدۆزرایەوە.</p>`;
             } else {
                 let html = '';
                 keys.reverse().forEach(key => {
@@ -781,94 +726,52 @@
 
         const translations = {
             ku: {
-                dir: "rtl",
-                subHeader: "سیستمی بەڕێوەبردنی ئامار",
-                grandTotalTitle: "کۆی گشتی پۆینتەکانی ئەمڕۆ",
-                adminTitle: "بەشی بەڕێوەبەر و ناردنی فایل",
-                historyDate: "دیاریکردنی بەروار (ڕۆژانی پێشوو):",
+                dir: "rtl", subHeader: "سیستمی بەڕێوەبردنی ئامار", grandTotalTitle: "کۆی گشتی پۆینتەکانی ئەمڕۆ",
+                adminTitle: "بەشی بەڕێوەبەر و ناردنی فایل", historyDate: "دیاریکردنی بەروار:",
                 fAll: "هەموو", fAchieved: "گەیشتوو (≥7)", fMissed: "نەگەیشتوو (<7)", fOffday: "پشوو",
                 excelAdmin: "Excel (ڕۆژانە)", excelMonthly: "Excel (مانگانە)", pdfAdmin: "PDF", clearCloud: "سڕینەوە",
-                leaderboardLFD: "ڕیزبەندی تیمەکانی LFD", leaderboardMoveIn: "ڕیزبەندی تیمەکانی Move-In",
-                progressText: "نێردراو: ",
-                selectTeam: "تیمەکەت هەڵبژێرە:", chooseTeam: "-- تیم هەڵبژێرە --",
-                offdayText: "مۆڵەت / پشوو (Off-Day)",
-                notesTitle: "(ئەمڕۆ هیچ کێشەیەکت هەبوو؟ ئەگەر هەیە بینووسە)",
-                notesPlaceholder: "هۆکار...",
-                submitText: "ناردن یان نوێکردنەوەی ڕاپۆرت",
-                btnMyTeamWA: "ناردنی تیمی خۆم بۆ واتساپ",
-                btnWhatsapp: "ناردنی تۆتەڵی گشتی بۆ واتساپ",
-                toastSaved: "تۆمارکرا!", refreshToast: "داتاکان نوێکرانەوە!",
-                adminPassPrompt: "وشەی تێپەڕی بەڕێوەبەر بنووسە:", wrongPass: "وشەی تێپەڕ هەڵەیە!",
-                adminOpen: "بەشی بەڕێوەبەر کرایەوە", adminClosed: "بەشی بەڕێوەبەر داخرا",
-                selectTeamAlert: "تکایە سەرەتا تیمەکەت هەڵبژێرە!",
-                cloudSuccess: "داتاکان سەرکەوتووانە پاشەکەوتکران!",
-                clearConfirm: "دڵنیای لە سڕینەوەی داتاکانی ئەم بەروارە؟",
-                clearedToast: "داتاکان سڕانەوە", tabLFD: "بەشی LFD", tabMoveIn: "بەشی Move-In",
-                addTeamTitle: "زیادکردنی تیمی نوێ:", addTeamBtn: "زیادکردنی تیم", teamAdded: "تیمی نوێ زیادکرا!",
-                refreshText: "نوێکردنەوە",
-                wrongPin: "❌ پین کۆدەکەی تیم هەڵەیە!",
-                teamFileTitle: "فایلی نەخشە / ڕێنمایی تایبەت بە تیمەکەت:",
-                btnDownloadFileText: "داگرتنی فایلی تیمەکەم (بە پین کۆد)"
+                progressText: "نێردراو: ", selectTeam: "تیمەکەت هەڵبژێرە:", chooseTeam: "-- تیم هەڵبژێرە --",
+                offdayText: "مۆڵەت / پشوو (Off-Day)", notesTitle: "(هیچ کێشەیەکت هەبوو؟)", notesPlaceholder: "هۆکار...",
+                submitText: "ناردن یان نوێکردنەوەی ڕاپۆرت", btnMyTeamWA: "ناردنی تیمی خۆم بۆ واتساپ", btnWhatsapp: "ناردنی تۆتەڵی گشتی بۆ واتساپ",
+                toastSaved: "تۆمارکرا!", refreshToast: "داتاکان نوێکرانەوە!", adminPassPrompt: "وشەی تێپەڕی بەڕێوەبەر:",
+                wrongPass: "وشەی تێپەڕ هەڵەیە!", adminOpen: "بەشی بەڕێوەبەر کرایەوە", adminClosed: "بەشی بەڕێوەبەر داخرا",
+                selectTeamAlert: "تکایە سەرەتا تیمێک هەڵبژێرە!", cloudSuccess: "داتاکان سەرکەوتووانە پاشەکەوتکران!",
+                clearConfirm: "دڵنیای لە سڕینەوە؟", clearedToast: "داتاکان سڕانەوە", tabLFD: "بەشی LFD", tabMoveIn: "بەشی Move-In",
+                addTeamTitle: "زیادکردنی تیمی نوێ:", addTeamBtn: "زیادکردن", teamAdded: "تیمی نوێ زیادکرا!",
+                refreshText: "نوێکردنەوە", wrongPin: "❌ پین کۆدەکەی تیم هەڵەیە!",
+                teamFileTitle: "فایلی نەخشە / ڕێنمایی:", btnDownloadFileText: "داگرتنی فایلی تیمەکەم"
             },
             en: {
-                dir: "ltr",
-                subHeader: "Operations Management",
-                grandTotalTitle: "Today's Grand Total Points",
-                adminTitle: "Admin Panel & File Dispatch",
-                historyDate: "Select Date:",
+                dir: "ltr", subHeader: "Operations Management", grandTotalTitle: "Today's Grand Total Points",
+                adminTitle: "Admin Panel & File Dispatch", historyDate: "Select Date:",
                 fAll: "All", fAchieved: "Target Met", fMissed: "Target Missed", fOffday: "Off-Day",
                 excelAdmin: "Excel (Daily)", excelMonthly: "Excel (Monthly)", pdfAdmin: "PDF", clearCloud: "Clear",
-                leaderboardLFD: "LFD Leaderboard", leaderboardMoveIn: "Move-In Leaderboard",
-                progressText: "Submitted: ",
-                selectTeam: "Select Your Team:", chooseTeam: "-- Choose Team --",
-                offdayText: "Off-Day / Leave",
-                notesTitle: "(Did you have any problems today? If so, write it down)",
-                notesPlaceholder: "Reason...",
-                submitText: "SUBMIT / UPDATE REPORT",
-                btnMyTeamWA: "My Team Total to WhatsApp",
-                btnWhatsapp: "General Total to WhatsApp",
-                toastSaved: "Saved!", refreshToast: "Refreshed!",
-                adminPassPrompt: "Admin password:", wrongPass: "Incorrect password!",
-                adminOpen: "Admin panel opened", adminClosed: "Admin panel closed",
-                selectTeamAlert: "Please select your team first!",
-                cloudSuccess: "Data saved successfully!",
-                clearConfirm: "Are you sure to clear data?",
-                clearedToast: "Cleared", tabLFD: "LFD Section", tabMoveIn: "Move-In Section",
+                progressText: "Submitted: ", selectTeam: "Select Your Team:", chooseTeam: "-- Choose Team --",
+                offdayText: "Off-Day / Leave", notesTitle: "(Did you have any problems?)", notesPlaceholder: "Reason...",
+                submitText: "SUBMIT / UPDATE REPORT", btnMyTeamWA: "My Team Total to WhatsApp", btnWhatsapp: "General Total to WhatsApp",
+                toastSaved: "Saved!", refreshToast: "Refreshed!", adminPassPrompt: "Admin password:",
+                wrongPass: "Incorrect password!", adminOpen: "Admin panel opened", adminClosed: "Admin panel closed",
+                selectTeamAlert: "Please select your team first!", cloudSuccess: "Data saved successfully!",
+                clearConfirm: "Are you sure?", clearedToast: "Cleared", tabLFD: "LFD Section", tabMoveIn: "Move-In Section",
                 addTeamTitle: "Add Team:", addTeamBtn: "Add Team", teamAdded: "Team added!",
-                refreshText: "Refresh",
-                wrongPin: "❌ Incorrect Team PIN!",
-                teamFileTitle: "Team Specific Map / Guide File:",
-                btnDownloadFileText: "Download My Team File (Pin Code)"
+                refreshText: "Refresh", wrongPin: "❌ Incorrect PIN!",
+                teamFileTitle: "Team Specific Map:", btnDownloadFileText: "Download My Team File"
             },
             ar: {
-                dir: "rtl",
-                subHeader: "إدارة العمليات",
-                grandTotalTitle: "إجمالي النقاط الكلي اليوم",
-                adminTitle: "لوحة التحكم وإرسال الملفات",
-                historyDate: "تحديد التاريخ:",
+                dir: "rtl", subHeader: "إدارة العمليات", grandTotalTitle: "إجمالي النقاط الكلي اليوم",
+                adminTitle: "لوحة التحكم وإرسال الملفات", historyDate: "تحديد التاريخ:",
                 fAll: "الكل", fAchieved: "حقق الهدف", fMissed: "لم يحقق", fOffday: "إجازة",
                 excelAdmin: "إكسل (يومي)", excelMonthly: "إكسل (شهري)", pdfAdmin: "PDF", clearCloud: "مسح",
-                leaderboardLFD: "متصدرو LFD", leaderboardMoveIn: "متصدرو Move-In",
-                progressText: "المرسل: ",
-                selectTeam: "اختر فريقك:", chooseTeam: "-- اختر الفريق --",
-                offdayText: "إجازة / عطلة",
-                notesTitle: "(هل واجهت أي مشاكل اليوم؟ إذا وجدت، يرجى كتابتها)",
-                notesPlaceholder: "السبب...",
-                submitText: "إرسال أو تحديث التقرير",
-                btnMyTeamWA: "إجمالي فريقي لواتساب",
-                btnWhatsapp: "الإجمالي العام لواتساب",
-                toastSaved: "تم الحفظ!", refreshToast: "تم التحديث!",
-                adminPassPrompt: "كلمة مرور المسؤول:", wrongPass: "كلمة المرور غير صحيحة!",
-                adminOpen: "تم فتح لوحة التحكم", adminClosed: "تم إغلاق لوحة التحكم",
-                selectTeamAlert: "يرجى اختيار فريقك أولاً!",
-                cloudSuccess: "تم الحفظ بنجاح!",
-                clearConfirm: "هل أنت متأكد من مسح البيانات؟",
-                clearedToast: "تم المسح", tabLFD: "قسم LFD", tabMoveIn: "قسم Move-In",
+                progressText: "المرسل: ", selectTeam: "اختر فريقك:", chooseTeam: "-- اختر الفريق --",
+                offdayText: "إجازة / عطلة", notesTitle: "(هل واجهت أي مشاكل؟)", notesPlaceholder: "السبب...",
+                submitText: "إرسال أو تحديث التقرير", btnMyTeamWA: "إجمالي فريقي لواتساب", btnWhatsapp: "الإجمالي العام لواتساب",
+                toastSaved: "تم الحفظ!", refreshToast: "تم التحديث!", adminPassPrompt: "كلمة مرور المسؤول:",
+                wrongPass: "كلمة المرور غير صحيحة!", adminOpen: "تم فتح لوحة التحكم", adminClosed: "تم إغلاق لوحة التحكم",
+                selectTeamAlert: "يرجى اختيار فريقك أولاً!", cloudSuccess: "تم الحفظ بنجاح!",
+                clearConfirm: "هل أنت متأكد؟", clearedToast: "تم المسح", tabLFD: "قسم LFD", tabMoveIn: "قسم Move-In",
                 addTeamTitle: "إضافة فريق:", addTeamBtn: "إضافة", teamAdded: "تمت الإضافة!",
-                refreshText: "تحديث",
-                wrongPin: "❌ رمز الأمان غير صحيح!",
-                teamFileTitle: "ملف الخريطة / الدليل الخاص بفريقك:",
-                btnDownloadFileText: "تحميل ملف فريقي (بررمز الأمان)"
+                refreshText: "تحديث", wrongPin: "❌ رمز الأمان غير صحيح!",
+                teamFileTitle: "ملف الخريطة:", btnDownloadFileText: "تحميل ملف فريقي"
             }
         };
 
@@ -876,7 +779,6 @@
             currentSection = sec;
             document.getElementById('tabLFD').classList.remove('active');
             document.getElementById('tabMoveIn').classList.remove('active');
-            
             let card = document.getElementById('totalPointsCard');
             let btnSubmit = document.getElementById('btnSave');
 
@@ -946,18 +848,13 @@
         function convertExcelToKml() {
             let fileInput = document.getElementById('csvFileForKml');
             if (!fileInput.files.length) return alert("تکایە سەرەتا فایلی CSV هەڵبژێرە!");
-
             let file = fileInput.files[0];
             let reader = new FileReader();
             reader.onload = function(e) {
                 let text = e.target.result;
                 let lines = text.split('\n');
-                if (lines.length < 2) return alert("فایلەکە پێکهاتەی دروستی نییە!");
-
-                let kmlContent = `<?xml version="1.0" encoding="UTF-8"?>\n`;
-                kmlContent += `<kml xmlns="http://www.opengis.net/kml/2.2">\n<Document>\n`;
-                kmlContent += `<name>BIM Operations Export</name>\n`;
-
+                if (lines.length < 2) return alert("فایلەکە دروست نییە!");
+                let kmlContent = `<?xml version="1.0" encoding="UTF-8"?>\n<kml xmlns="http://www.opengis.net/kml/2.2">\n<Document>\n<name>Export</name>\n`;
                 for (let i = 1; i < lines.length; i++) {
                     let line = lines[i].trim();
                     if (!line) continue;
@@ -966,23 +863,16 @@
                         let name = cols[0].replace(/"/g, '');
                         let lat = cols[1].replace(/"/g, '');
                         let lon = cols[2].replace(/"/g, '');
-                        kmlContent += `  <Placemark>\n`;
-                        kmlContent += `    <name>${name}</name>\n`;
-                        kmlContent += `    <Point>\n`;
-                        kmlContent += `      <coordinates>${lon},${lat},0</coordinates>\n`;
-                        kmlContent += `    </Point>\n`;
-                        kmlContent += `  </Placemark>\n`;
+                        kmlContent += `  <Placemark><name>${name}</name><Point><coordinates>${lon},${lat},0</coordinates></Point></Placemark>\n`;
                     }
                 }
-
                 kmlContent += `</Document>\n</kml>`;
-
                 let blob = new Blob([kmlContent], { type: 'application/vnd.google-earth.kml+xml' });
                 let link = document.createElement("a");
                 link.href = URL.createObjectURL(blob);
-                link.download = "Bim_Generated_Map.kml";
+                link.download = "Map.kml";
                 link.click();
-                showToast("فایلی KML بەسەرکەوتوویی دروستکرا و داگیرا!");
+                showToast("داگیرا!");
             };
             reader.readAsText(file);
         }
@@ -990,18 +880,15 @@
         function uploadFileForSpecificTeam() {
             let teamName = document.getElementById('kmlTargetTeam').value;
             let fileInput = document.getElementById('teamFileUploader');
-            if (!teamName || !fileInput.files.length) return alert("تکایە سەرەتا تیمێک هەڵبژێرە و فایلێک دیاری بکە!");
-
+            if (!teamName || !fileInput.files.length) return alert("تکایە تیم و فایل دیاری بکە!");
             let file = fileInput.files[0];
             let reader = new FileReader();
             reader.onload = function(e) {
                 let base64Data = e.target.result;
                 let safeKey = teamName.replace(/[\.#$\/\[\]]/g, "_");
-                
                 let fileObj = { name: file.name, data: base64Data };
-
                 db.ref(`team_files/${safeKey}`).set(fileObj).then(() => {
-                    showToast(`فایلی (${file.name}) بە سەرکەوتوویی نێردرا بۆ (${teamName})!`);
+                    showToast(`نێردرا بۆ (${teamName})!`);
                     document.getElementById('teamFileUploader').value = '';
                 });
             };
@@ -1011,11 +898,10 @@
         function sendPrivateTeamMessage() {
             let team = document.getElementById('privateMsgTeam').value;
             let msg = document.getElementById('privateMsgInput').value.trim();
-            if (!team || !msg) return alert("تکایە تیم و پەیامەکە دیاری بکە!");
-            
+            if (!team || !msg) return alert("تیم و پەیام بنووسە!");
             let safeKey = team.replace(/[\.#$\/\[\]]/g, "_");
             db.ref(`private_messages/${safeKey}`).set(msg).then(() => {
-                showToast("پەیامی تایبەت نێردرا بۆ " + team);
+                showToast("پەیامی تایبەت نێردرا");
                 document.getElementById('privateMsgInput').value = '';
             });
         }
@@ -1025,8 +911,7 @@
             let teamName = document.getElementById('newTeamNameInput').value.trim();
             let positionChoice = document.getElementById('newTeamPositionSelect').value;
             let lang = document.getElementById('langSelect').value;
-            if (!teamName) return alert("تکایە ناوی تیم بنووسە!");
-
+            if (!teamName) return alert("ناوی تیم بنووسە!");
             let numericPart = teamName.replace(/\D/g, '');
             let formattedTeamName = numericPart ? `Team ${numericPart}` : teamName;
 
@@ -1066,7 +951,7 @@
         function saveBroadcastMessage() {
             let msg = document.getElementById('adminBroadcastInput').value.trim();
             db.ref('settings/broadcast').set(msg).then(() => {
-                showToast("پەیامی گشتی بڵاوکرایەوە!");
+                showToast("بڵاوکرایەوە!");
                 document.getElementById('adminBroadcastInput').value = '';
             });
         }
@@ -1087,27 +972,17 @@
                     broadcastMsg = snap.val() || "";
                     let ticker = document.getElementById('broadcastTicker');
                     let textSpan = document.getElementById('broadcastTextContent');
-                    
                     if (broadcastMsg.trim() !== "") {
                         ticker.style.display = 'flex';
                         textSpan.innerText = broadcastMsg;
-
                         if (previousBroadcast !== null && previousBroadcast !== broadcastMsg) {
                             playAlertSound();
                             ticker.classList.add('active-new');
                             setTimeout(() => { ticker.classList.remove('active-new'); }, 5000);
-
-                            let banner = document.getElementById('liveAlertBanner');
-                            banner.style.display = 'flex';
-                            document.getElementById('liveAlertText').innerText = `ئاگاداری نوێ: ${broadcastMsg}`;
-                            if (window.Notification && Notification.permission === "granted") {
-                                new Notification("BIM Operations", { body: broadcastMsg });
-                            }
                         }
                         previousBroadcast = broadcastMsg;
                     } else {
                         ticker.style.display = 'none';
-                        ticker.classList.remove('active-new');
                     }
                 });
             }
@@ -1116,14 +991,8 @@
                 teamsSyncRef = db.ref('settings');
                 teamsSyncRef.on('value', (snap) => {
                     let data = snap.val() || {};
-                    if (data.lfd_teams) {
-                        lfdTeams = data.lfd_teams;
-                        localStorage.setItem('bim_lfd_teams', JSON.stringify(lfdTeams));
-                    }
-                    if (data.movein_teams) {
-                        moveInTeams = data.movein_teams;
-                        localStorage.setItem('bim_movein_teams', JSON.stringify(moveInTeams));
-                    }
+                    if (data.lfd_teams) { lfdTeams = data.lfd_teams; localStorage.setItem('bim_lfd_teams', JSON.stringify(lfdTeams)); }
+                    if (data.movein_teams) { moveInTeams = data.movein_teams; localStorage.setItem('bim_movein_teams', JSON.stringify(moveInTeams)); }
                     populateTeamDropdown();
                     render();
                 });
@@ -1132,35 +1001,22 @@
             if (!yesterdaySyncRef) {
                 let yPath = `daily_reports/${yesterdayFormatted}`.replace(/[\.#$\/\[\]]/g, "_");
                 yesterdaySyncRef = db.ref(yPath);
-                yesterdaySyncRef.on('value', (snap) => {
-                    yesterdayStore = snap.val() || {};
-                    render();
-                });
+                yesterdaySyncRef.on('value', (snap) => { yesterdayStore = snap.val() || {}; render(); });
             }
 
             if (!filesSyncRef) {
                 filesSyncRef = db.ref('team_files');
-                filesSyncRef.on('value', (snap) => {
-                    teamFilesStore = snap.val() || {};
-                    let t = document.getElementById('teamSelect').value;
-                    if(t) checkTeamFile(t);
-                });
+                filesSyncRef.on('value', (snap) => { teamFilesStore = snap.val() || {}; let t = document.getElementById('teamSelect').value; if(t) checkTeamFile(t); });
             }
 
             if (!privateMsgSyncRef) {
                 privateMsgSyncRef = db.ref('private_messages');
-                privateMsgSyncRef.on('value', (snap) => {
-                    privateMsgsStore = snap.val() || {};
-                    let t = document.getElementById('teamSelect').value;
-                    if(t) checkPrivateMessage(t);
-                });
+                privateMsgSyncRef.on('value', (snap) => { privateMsgsStore = snap.val() || {}; let t = document.getElementById('teamSelect').value; if(t) checkPrivateMessage(t); });
             }
 
             if (!allDaysSyncRef) {
                 allDaysSyncRef = db.ref('daily_reports');
-                allDaysSyncRef.on('value', (snap) => {
-                    allDaysStore = snap.val() || {};
-                });
+                allDaysSyncRef.on('value', (snap) => { allDaysStore = snap.val() || {}; });
             }
 
             if (!feedbacksSyncRef) {
@@ -1200,16 +1056,14 @@
             let lang = document.getElementById('langSelect').value;
             let t = document.getElementById('teamSelect').value;
             if (!t) return alert(translations[lang].selectTeamAlert);
-
             let teamNumMatch = t.match(/\d+/);
             if (!teamNumMatch) { downloadTeamFileDirect(t); return; }
             let numStr = teamNumMatch[0];
             let expectedPin = (numStr === "88") ? "888" : (numStr + numStr);
 
-            let enteredPin = await showCustomModal("پین کۆدی تیم", `پین کۆدی تیم بۆ (${t}) بنووسە بۆ داگرتنی فایلەکەت:`, true);
+            let enteredPin = await showCustomModal("پین کۆدی تیم", `پین کۆد بۆ (${t}):`, true);
             if (enteredPin === false || enteredPin === null) return;
-
-            if (enteredPin.trim() === expectedPin && /^\d+$/.test(enteredPin.trim())) {
+            if (enteredPin.trim() === expectedPin) {
                 downloadTeamFileDirect(t);
             } else {
                 alert(translations[lang].wrongPin);
@@ -1224,9 +1078,9 @@
                 link.href = fileObj.data;
                 link.download = fileObj.name || "team_map.kml";
                 link.click();
-                showToast("فایلەکە بە سەرکەوتوویی داگیرا!");
+                showToast("داگیرا!");
             } else {
-                alert("هیچ فایلێک لە ئێستادا بۆ ئەم تیمە نەنێردراوە!");
+                alert("هیچ فایلێک نییە!");
             }
         }
 
@@ -1235,8 +1089,6 @@
             db.ref(getStorageKeyPath()).once('value').then((snapshot) => {
                 cloudStore = snapshot.val() || {};
                 render();
-                let t = document.getElementById('teamSelect').value;
-                if(t) loadTeamData();
                 showToast(translations[lang].refreshToast);
             });
         }
@@ -1256,7 +1108,7 @@
             let lang = document.getElementById('langSelect').value;
             let t = translations[lang];
             if (!isAdmin) {
-                let pass = await showCustomModal("بەشی بەڕێوەبەر (Admin)", t.adminPassPrompt, true);
+                let pass = await showCustomModal("بەشی بەڕێوەبەر", t.adminPassPrompt, true);
                 if (pass && btoa(pass) === ADMIN_HASH) {
                     isAdmin = true;
                     document.getElementById('adminPanel').classList.add('active');
@@ -1367,13 +1219,11 @@
                 document.getElementById('targetDailyVal').innerText = DAILY_TARGET;
                 document.getElementById('targetWeeklyVal').innerText = WEEKLY_TARGET;
                 document.getElementById('targetMonthlyVal').innerText = MONTHLY_TARGET;
-
                 checkTeamFile(t);
                 checkPrivateMessage(t);
 
                 let teamRecord = cloudStore[getUniqueTeamKey(t, currentSection)];
                 let draftSaved = localStorage.getItem(`draft_${currentSection}_${t}`);
-                
                 if (teamRecord && teamRecord.details) {
                     fillInputsWithDetails(teamRecord.details, teamRecord.notes, teamRecord.offday);
                 } else if (draftSaved) {
@@ -1426,11 +1276,8 @@
             let container = document.getElementById('historyContentList');
             let html = `<table style="width:100%; border-collapse:collapse; text-align:center;">
                 <tr style="background:rgba(255,255,255,0.05); font-size:10px;">
-                    <th style="padding:6px;">بەروار</th>
-                    <th style="padding:6px;">کۆی گشتی</th>
-                    <th style="padding:6px;">دۆخ</th>
+                    <th style="padding:6px;">بەروار</th><th style="padding:6px;">کۆی گشتی</th><th style="padding:6px;">دۆخ</th>
                 </tr>`;
-
             let foundAny = false;
             for (let i = 0; i < 7; i++) {
                 let d = new Date();
@@ -1439,20 +1286,15 @@
                 let dayKey = dateStr.replace(/[\.#$\/\[\]]/g, "_");
                 let dayData = allDaysStore[dayKey];
                 let teamDayRecord = dayData ? dayData[uniqueKey] : null;
-
                 let totalVal = teamDayRecord ? teamDayRecord.total : "-";
                 let statusVal = teamDayRecord?.offday ? "پشوو" : (teamDayRecord?.submitted ? "نێردراوە" : "نەبووە");
-
                 html += `<tr style="border-bottom:1px solid var(--border-color); font-size:10px;">
-                    <td style="padding:6px;">${dateStr}</td>
-                    <td style="padding:6px; font-weight:bold;">${totalVal}</td>
-                    <td style="padding:6px;">${statusVal}</td>
+                    <td style="padding:6px;">${dateStr}</td><td style="padding:6px; font-weight:bold;">${totalVal}</td><td style="padding:6px;">${statusVal}</td>
                 </tr>`;
                 if (teamDayRecord) foundAny = true;
             }
             html += `</table>`;
-            if (!foundAny) html = `<p style="text-align:center; opacity:0.7;">هیچ زانیارییەکی پێشوو بۆ ئەم تیمە نەدۆزرایەوە.</p>`;
-            
+            if (!foundAny) html = `<p style="text-align:center; opacity:0.7;">هیچ زانیارییەک نەدۆزرایەوە.</p>`;
             container.innerHTML = html;
             document.getElementById('historyModalOverlay').style.display = 'flex';
         }
@@ -1461,16 +1303,14 @@
             let lang = document.getElementById('langSelect').value;
             let t = document.getElementById('teamSelect').value;
             if (!t) return alert(translations[lang].selectTeamAlert);
-
             let teamNumMatch = t.match(/\d+/);
             if (!teamNumMatch) { saveDataFinal(); return; }
             let numStr = teamNumMatch[0];
             let expectedPin = (numStr === "88") ? "888" : (numStr + numStr);
 
-            let enteredPin = await showCustomModal("پین کۆدی تیم", `پین کۆدی تیم بۆ (${t}) بنووسە:`, true);
+            let enteredPin = await showCustomModal("پین کۆدی تیم", `پین کۆدی تیم بۆ (${t}):`, true);
             if (enteredPin === false || enteredPin === null) return;
-
-            if (enteredPin.trim() === expectedPin && /^\d+$/.test(enteredPin.trim())) {
+            if (enteredPin.trim() === expectedPin) {
                 saveDataFinal();
             } else {
                 alert(translations[lang].wrongPin);
@@ -1485,14 +1325,11 @@
             let notes = document.getElementById('c_notes').value;
             let offday = document.getElementById('c_offday').checked;
             let uniqueKey = getUniqueTeamKey(t, currentSection);
-
             let existingRecord = cloudStore[uniqueKey] || {};
             let teamData = {
-                ...existingRecord,
-                teamName: t, section: currentSection, total: total, submitted: true,
-                offday: offday, notes: notes, details: details
+                ...existingRecord, teamName: t, section: currentSection, total: total,
+                submitted: true, offday: offday, notes: notes, details: details
             };
-
             cloudStore[uniqueKey] = teamData;
             db.ref(getStorageKeyPath() + '/' + uniqueKey).set(teamData).then(() => {
                 localStorage.removeItem(`draft_${currentSection}_${t}`);
@@ -1515,19 +1352,18 @@
 
         function adminExportExcel(mode = 'daily') {
             if (mode === 'daily') {
-                let csv = "Team,Section,Details,Total,OffDay,TargetAchieved(%),Reason\n";
+                let csv = "Team,Section,Details,Total,OffDay,Reason\n";
                 Object.keys(cloudStore).forEach(key => {
                     let item = cloudStore[key];
                     if (item && item.details) {
                         let cleanNotes = (item.notes || "").replace(/(\r\n|\n|\r)/gm, " ");
-                        let targetPct = item.offday ? "Off-Day" : Math.round((item.total / DAILY_TARGET) * 100) + "%";
-                        csv += `${item.teamName},${item.section},"${JSON.stringify(item.details).replace(/"/g, '""')}",${item.total},${item.offday ? 'Yes' : 'No'},${targetPct},"${cleanNotes}"\n`;
+                        csv += `${item.teamName},${item.section},"${JSON.stringify(item.details).replace(/"/g, '""')}",${item.total},${item.offday ? 'Yes' : 'No'},"${cleanNotes}"\n`;
                     }
                 });
                 let blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' });
                 let link = document.createElement("a");
                 link.href = URL.createObjectURL(blob);
-                link.download = `Bim_Report_${selectedAdminDate}.csv`;
+                link.download = `Report_${selectedAdminDate}.csv`;
                 link.click();
             } else {
                 db.ref('daily_reports').once('value').then(snapshot => {
@@ -1537,15 +1373,13 @@
                         let dayObj = allData[dateKey];
                         Object.keys(dayObj).forEach(tKey => {
                             let item = dayObj[tKey];
-                            if (item) {
-                                csv += `${dateKey},${item.teamName},${item.section},${item.total},${item.offday ? 'Yes' : 'No'}\n`;
-                            }
+                            if (item) csv += `${dateKey},${item.teamName},${item.section},${item.total},${item.offday ? 'Yes' : 'No'}\n`;
                         });
                     });
                     let blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' });
                     let link = document.createElement("a");
                     link.href = URL.createObjectURL(blob);
-                    link.download = `Bim_Monthly_Report_All.csv`;
+                    link.download = `Monthly_Report.csv`;
                     link.click();
                 });
             }
@@ -1555,18 +1389,14 @@
             let lang = document.getElementById('langSelect').value;
             let selectedTeam = document.getElementById('teamSelect').value;
             if (!selectedTeam) return alert(translations[lang].selectTeamAlert);
-
             let details = getDetailsFromInputs();
             let totalCases = Object.values(details).reduce((a, b) => a + b, 0);
-            let text = `📊 ڕاپۆرتی تیمی ${selectedTeam} (${currentSection.toUpperCase()})\n📅 بەروار: ${selectedAdminDate}\n`;
-            
+            let text = `📊 ڕاپۆرتی تیم ${selectedTeam} (${currentSection.toUpperCase()})\n📅 بەروار: ${selectedAdminDate}\n`;
             if(document.getElementById('c_offday').checked) {
-                text += `📌 دۆخ: مۆڵەت / پشوو (Off-Day)\n`;
+                text += `📌 دۆخ: پشوو (Off-Day)\n`;
             } else {
-                for (let [k, v] of Object.entries(details)) {
-                    if (v > 0) text += `🔹 ${k}: ${v}\n`;
-                }
-                text += `✅ کۆی گشتی (Total): *${totalCases}* (تاڕگێت: ${DAILY_TARGET})\n`;
+                for (let [k, v] of Object.entries(details)) { if (v > 0) text += `🔹 ${k}: ${v}\n`; }
+                text += `✅ کۆی گشتی: *${totalCases}*\n`;
                 let notes = document.getElementById('c_notes').value;
                 if (notes.trim()) text += `📝 هۆکار: ${notes}\n`;
             }
@@ -1580,42 +1410,22 @@
                 let numB = parseInt((b.match(/\d+/) || [0])[0]);
                 return numA - numB;
             });
-
-            let totalTeamsCount = sortedTeams.length;
             let summaryData = {};
             let grandTotalCases = 0;
-
             sortedTeams.forEach(teamName => {
                 let uniqueKey = getUniqueTeamKey(teamName, currentSection);
                 let teamData = cloudStore[uniqueKey];
                 if (teamData && teamData.submitted && !teamData.offday && teamData.details) {
                     for (let [k, v] of Object.entries(teamData.details)) {
                         let val = Number(v) || 0;
-                        if (val > 0) {
-                            summaryData[k] = (summaryData[k] || 0) + val;
-                            grandTotalCases += val;
-                        }
+                        if (val > 0) { summaryData[k] = (summaryData[k] || 0) + val; grandTotalCases += val; }
                     }
                 }
             });
-
             let cleanTeamNumbers = sortedTeams.map(t => (t.match(/\d+/) || [t])[0]);
-
-            let report = `📋 تۆتەڵی گشتی ڕاپۆرتی BIM Operations (${currentSection.toUpperCase()})\n`;
-            report += `📅 بەروار: ${selectedAdminDate}\n`;
-            report += `👥 تیمەکان: (${cleanTeamNumbers.join(', ')}) — (${totalTeamsCount} تیم)\n`;
-            report += `📌 کۆی گشتی جۆرەکان (Total Cases):\n`;
-            
-            if (Object.keys(summaryData).length > 0) {
-                for (const [caseType, count] of Object.entries(summaryData)) {
-                    report += `${caseType}: ${count}\n`;
-                }
-            } else {
-                report += `هیچ داتایەک تۆمار نەکراوە\n`;
-            }
-            
-            report += `\nGrand total Team cases: ${grandTotalCases}`;
-
+            let report = `📋 تۆتەڵی گشتی (${currentSection.toUpperCase()})\n📅 بەروار: ${selectedAdminDate}\n👥 تیمەکان: (${cleanTeamNumbers.join(', ')})\n`;
+            for (const [caseType, count] of Object.entries(summaryData)) { report += `${caseType}: ${count}\n`; }
+            report += `\nGrand total: ${grandTotalCases}`;
             window.open(`https://wa.me/?text=${encodeURIComponent(report)}`, '_blank');
         }
 
@@ -1623,13 +1433,10 @@
             let arr = sectionName === 'lfd' ? lfdTeams : moveInTeams;
             let targetIndex = index + direction;
             if (targetIndex < 0 || targetIndex >= arr.length) return;
-            
             let item = arr.splice(index, 1)[0];
             arr.splice(targetIndex, 0, item);
-
             if (sectionName === 'lfd') db.ref('settings/lfd_teams').set(lfdTeams);
             else db.ref('settings/movein_teams').set(moveInTeams);
-            
             populateTeamDropdown();
             render();
         }
@@ -1642,135 +1449,82 @@
                 let isOffday = teamData?.offday || false;
                 let val = teamData?.total || 0;
                 if (isSubmitted && !isOffday) sectionTotal += val;
-                list.push({ name: t, total: val, submitted: isSubmitted, offday: isOffday, notes: teamData?.notes || "", originalIndex: originalIndex, location: teamData?.location });
+                list.push({ name: t, total: val, submitted: isSubmitted, offday: isOffday, notes: teamData?.notes || "", originalIndex: originalIndex });
             });
-
             let displayList = [...list];
-            if (currentFilter !== 'all') {
-                displayList.sort((a, b) => b.total - a.total);
-            }
-
+            if (currentFilter !== 'all') { displayList.sort((a, b) => b.total - a.total); }
             let filtered = displayList.filter(item => {
                 if (currentFilter === 'achieved') return item.submitted && !item.offday && item.total >= DAILY_TARGET;
                 if (currentFilter === 'missed') return item.submitted && !item.offday && item.total < DAILY_TARGET;
                 if (currentFilter === 'offday') return item.offday;
                 return true;
             });
-
             return { html: filtered.map((item, index) => {
                 let rankClass = index === 0 && item.total > 0 ? "rank-1" : index === 1 && item.total > 0 ? "rank-2" : index === 2 && item.total > 0 ? "rank-3" : "rank-other";
                 let statusText = item.offday ? `<span style="color:#f59e0b; font-weight:600;">Off-Day</span>` :
-                                 item.submitted ? `<b>${item.total}</b> <span style="${item.total >= DAILY_TARGET ? "color:#34d399;" : "color:#f87171;"}">(${Math.round((item.total / DAILY_TARGET) * 100)}%)</span>` :
-                                 `<span style="opacity:0.5;">Pending</span>`;
+                                 item.submitted ? `<b>${item.total}</b>` : `<span style="opacity:0.5;">Pending</span>`;
                 let reasonHTML = item.submitted && item.notes?.trim() ? `<div class="leaderboard-reason">Reason: ${item.notes}</div>` : "";
-                
-                let mapLinkHTML = "";
-                if (item.location && item.location.mapUrl) {
-                    mapLinkHTML = `<a href="${item.location.mapUrl}" target="_blank" style="font-size:9px; background:var(--primary); color:#090d16; padding:2px 6px; border-radius:4px; text-decoration:none; margin-right:4px; font-weight:700;">📍 نەخشە</a>`;
-                }
-                
-                let adminControlsHTML = "";
-                if (isAdmin) {
-                    adminControlsHTML = `
-                        <div style="display: flex; gap: 4px; margin-top: 6px;">
-                            <button class="tool-btn" style="font-size:9px; padding: 3px 6px;" onclick="moveTeamPosition('${sectionName}', ${item.originalIndex}, -1)">⬆️ بەرزکردنەوە</button>
-                            <button class="tool-btn" style="font-size:9px; padding: 3px 6px;" onclick="moveTeamPosition('${sectionName}', ${item.originalIndex}, 1)">⬇️ دابەزاندن</button>
-                        </div>
-                    `;
-                }
-
+                let adminControlsHTML = isAdmin ? `<div style="display: flex; gap: 4px; margin-top: 6px;"><button class="tool-btn" style="font-size:9px;" onclick="moveTeamPosition('${sectionName}', ${item.originalIndex}, -1)">⬆️</button><button class="tool-btn" style="font-size:9px;" onclick="moveTeamPosition('${sectionName}', ${item.originalIndex}, 1)">⬇️</button></div>` : "";
                 return `<div class="leaderboard-item">
                     <div class="leaderboard-row-top">
-                        <div style="display:flex; align-items:center;">
-                            <span class="rank-badge ${rankClass}">${index + 1}</span>
-                            <span>${item.name}</span>
-                        </div>
-                        <div>${mapLinkHTML} ${statusText}</div>
+                        <div style="display:flex; align-items:center;"><span class="rank-badge ${rankClass}">${index + 1}</span><span>${item.name}</span></div>
+                        <div>${statusText}</div>
                     </div>
-                    ${adminControlsHTML}
-                    ${reasonHTML}
+                    ${adminControlsHTML} ${reasonHTML}
                 </div>`;
-            }).join('') || `<div style="text-align:center; padding:10px; opacity:0.6; font-size:11px;">هیچ تیمێک نییە</div>`, total: sectionTotal };
+            }).join('') || `<div style="text-align:center; padding:10px; opacity:0.6;">هیچ تیمێک نییە</div>`, total: sectionTotal };
         }
 
         function updateChart(achievedCount, missedCount, offdayCount) {
             let ctx = document.getElementById('statsChart').getContext('2d');
-            let textColor = '#f8fafc';
-
             if (myChart) myChart.destroy();
             myChart = new Chart(ctx, {
                 type: 'doughnut',
                 data: {
-                    labels: ['Target Met', 'Target Missed', 'Off-Day'],
-                    datasets: [{
-                        data: [achievedCount, missedCount, offdayCount],
-                        backgroundColor: ['#10b981', '#ef4444', '#f59e0b'],
-                        borderWidth: 0
-                    }]
+                    labels: ['Met', 'Missed', 'Off-Day'],
+                    datasets: [{ data: [achievedCount, missedCount, offdayCount], backgroundColor: ['#10b981', '#ef4444', '#f59e0b'], borderWidth: 0 }]
                 },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { position: 'left', labels: { color: textColor, font: { size: 10, family: 'Vazirmatn' } } }
-                    }
-                }
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'left', labels: { color: '#f8fafc', font: { size: 10 } } } } }
             });
         }
 
         function render() {
-            let lang = document.getElementById('langSelect').value;
             let activeTeams = currentSection === 'lfd' ? lfdTeams : moveInTeams;
-            let submittedCount = 0;
-            let achieved = 0, missed = 0, offday = 0;
-            let sectionGrandTotal = 0;
-
+            let submittedCount = 0, achieved = 0, missed = 0, offday = 0, sectionGrandTotal = 0;
             activeTeams.forEach(t => {
                 let teamData = cloudStore[getUniqueTeamKey(t, currentSection)];
                 if (teamData && teamData.submitted) {
                     submittedCount++;
-                    if (teamData.offday) {
-                        offday++;
-                    } else {
-                        if (teamData.total >= DAILY_TARGET) achieved++;
-                        else missed++;
+                    if (teamData.offday) offday++;
+                    else {
+                        if (teamData.total >= DAILY_TARGET) achieved++; else missed++;
                         sectionGrandTotal += Number(teamData.total || 0);
                     }
                 }
             });
-
             document.getElementById('grandTotalPoints').innerText = sectionGrandTotal.toLocaleString();
             updateChart(achieved, missed, offday);
-
             let sectionRes = renderList(activeTeams, currentSection);
             document.getElementById('leaderboardContainer').innerHTML = sectionRes.html;
             document.getElementById('adminSectionTotal').innerText = `Total: ${sectionRes.total}`;
-            document.getElementById('lblLeaderboardTitle').innerText = currentSection === 'lfd' ? "ڕیزبەندی تیمەکانی LFD" : "ڕیزبەندی تیمەکانی Move-In";
-
-            let totalTeamsCount = activeTeams.length > 0 ? activeTeams.length : 1;
-            let percentage = Math.round((submittedCount / totalTeamsCount) * 100) || 0;
-            document.getElementById('progressBar').style.width = percentage + '%';
-            document.getElementById('progressText').innerText = `${translations[lang].progressText} ${percentage}% (${submittedCount}/${activeTeams.length})`;
+            let pct = activeTeams.length > 0 ? Math.round((submittedCount / activeTeams.length) * 100) : 0;
+            document.getElementById('progressBar').style.width = pct + '%';
+            document.getElementById('progressText').innerText = translations[document.getElementById('langSelect').value].progressText + pct + '%';
         }
 
         window.onload = function() {
             setupPwaManifest();
-            if (window.Notification && Notification.permission !== "granted") {
-                Notification.requestPermission();
-            }
             let savedLang = localStorage.getItem('bim_lang') || 'ku';
             document.getElementById('langSelect').value = savedLang;
             applyLanguage(savedLang);
-
             renderCasesGrid();
-            populateTeamDropdown();
-            document.getElementById('adminDateSelector').value = todayFormatted;
             initRealtimeSync();
-
-            let savedTeam = localStorage.getItem('bim_selected_team');
-            if (savedTeam && lfdTeams.includes(savedTeam)) {
-                document.getElementById('teamSelect').value = savedTeam;
-                loadTeamData();
+            let rememberedTeam = localStorage.getItem('bim_selected_team');
+            if (rememberedTeam) {
+                setTimeout(() => {
+                    let sel = document.getElementById('teamSelect');
+                    if(sel) { sel.value = rememberedTeam; loadTeamData(); }
+                }, 300);
             }
         };
     </script>
