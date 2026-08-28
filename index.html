@@ -54,39 +54,55 @@
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         .refresh-btn.spinning svg { animation: spin 0.6s linear; }
 
+        /* دیزاینی نوێ و شازی کارتی کۆی گشتی پۆینتەکان */
         .total-points-card {
-            background: linear-gradient(135deg, #6366f1, #a855f7);
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 50%, #db2777 100%);
             color: white;
-            padding: 16px 20px;
-            border-radius: 14px;
+            padding: 18px 22px;
+            border-radius: 16px;
             display: flex;
             align-items: center;
-            gap: 16px;
-            box-shadow: 0 8px 20px -4px rgba(99, 102, 241, 0.35);
+            gap: 18px;
+            box-shadow: 0 12px 25px -4px rgba(124, 58, 237, 0.4);
             margin-bottom: 14px;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+        }
+        .total-points-card::after {
+            content: '';
+            position: absolute;
+            top: -50%; right: -50%;
+            width: 200%; height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 60%);
+            pointer-events: none;
         }
         .total-points-card.movein-theme {
-            background: linear-gradient(135deg, #059669, #10b981);
-            box-shadow: 0 8px 20px -4px rgba(16, 185, 129, 0.35);
+            background: linear-gradient(135deg, #047857 0%, #059669 50%, #10b981 100%);
+            box-shadow: 0 12px 25px -4px rgba(16, 185, 129, 0.4);
         }
         .total-points-card .icon-container {
-            background: rgba(255, 255, 255, 0.2);
-            padding: 10px;
-            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.25);
+            backdrop-filter: blur(8px);
+            padding: 12px;
+            border-radius: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
+            box-shadow: inset 0 1px 1px rgba(255,255,255,0.4);
         }
         .total-points-card h3 {
-            margin: 0 0 2px 0;
+            margin: 0 0 3px 0;
             font-size: 13px;
-            font-weight: 500;
-            opacity: 0.9;
+            font-weight: 600;
+            opacity: 0.95;
+            letter-spacing: 0.3px;
         }
         .total-points-card .counter {
-            font-size: 26px;
-            font-weight: 700;
+            font-size: 28px;
+            font-weight: 800;
             line-height: 1;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
         }
 
         .broadcast-ticker { background: #dc2626; color: white; padding: 8px 12px; border-radius: 8px; font-size: 11px; margin-bottom: 12px; font-weight: 500; display: flex; align-items: center; gap: 8px; box-shadow: 0 2px 4px rgba(220,38,38,0.2); transition: background 0.3s ease; }
@@ -200,7 +216,6 @@
 <body>
     <div id="toast" class="toast">Saved!</div>
 
-    <!-- کانتێنەری ئاگادارکردنەوەی تایبەت (Toast Notifications) -->
     <div id="toast-container" style="position: fixed; bottom: 20px; left: 20px; z-index: 9999;"></div>
 
     <div id="customModalOverlay" class="custom-modal-overlay">
@@ -215,7 +230,6 @@
         </div>
     </div>
 
-    <!-- مۆدالی نوێ بۆ پیشاندانی مێژووی تیم -->
     <div id="historyModalOverlay" class="custom-modal-overlay">
         <div class="custom-modal-box" style="max-width: 380px; text-align: right;">
             <h3 id="historyModalTitle" style="text-align: center; color: var(--primary); margin-bottom: 10px;">مێژووی ٧ ڕۆژی ڕابردوو</h3>
@@ -252,9 +266,10 @@
             <button class="section-tab-btn" id="tabMoveIn" onclick="switchSection('movein')">بەشی Move-In</button>
         </div>
 
+        <!-- کارتی کۆی گشتی کە بە سەوز دیاری کرابوو و شازتر کرا -->
         <div class="total-points-card" id="totalPointsCard">
             <div class="icon-container">
-                <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+                <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
             </div>
             <div>
                 <h3 id="lblGrandTotalTitle">کۆی گشتی پۆینتەکانی ئەمڕۆ</h3>
@@ -285,7 +300,6 @@
                 </div>
             </div>
 
-            <!-- بەشی پەیامی تایبەت بۆ تیمێک -->
             <div class="admin-sub-box" style="border: 1px dashed var(--primary);">
                 <label style="font-size: 10px; color: var(--primary); font-weight: bold;">ناردنی پەیامی تایبەت بۆ تیمی دیاریکراو:</label>
                 <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 4px; margin-top: 4px;">
@@ -374,7 +388,6 @@
                 <option value="" id="optChooseTeam">-- تیم هەڵبژێرە --</option>
             </select>
 
-            <!-- پەیامی تایبەت بۆ تیم ئەگەر هەبێت -->
             <div id="teamPrivateMsgBox" class="admin-sub-box" style="background: rgba(2,132,199,0.1); border: 1px solid var(--primary); display: none; margin-top: 6px;">
                 <label style="font-size: 10px; color: var(--primary); font-weight: bold;">📢 پەیامی تایبەت بۆ تیمەکەت:</label>
                 <p id="teamPrivateMsgText" style="font-size: 11px; margin-top: 2px;"></p>
@@ -386,7 +399,6 @@
                 <div><h5>مانگانە</h5><p id="targetMonthlyVal">180</p></div>
             </div>
 
-            <!-- دوگمەی بینینی مێژووی ۷ ڕۆژی تیمەکەی خۆی -->
             <button class="tool-btn" style="width: 100%; margin-top: 6px; justify-content: center; background: var(--bg-color);" onclick="openTeamHistoryModal()" id="btnTeamHistory" style="display: none;">
                 📈 مێژووی کارکردنی ۷ ڕۆژی ڕابردووی تیمەکەم
             </button>
@@ -398,13 +410,7 @@
 
             <div class="cases-grid" id="casesGridContainer"></div>
 
-            <!-- بەشی زیادکراوی GPS و وەرگرتنی شوێن -->
-            <div class="field-actions" style="margin: 10px 0;">
-                <button type="button" onclick="saveTaskWithLocationAndNotify()" style="background: #2563eb; color: white; padding: 8px 12px; border: none; border-radius: 8px; cursor: pointer; font-family: inherit; font-size: 11px; width: 100%;">
-                    📍 تۆمارکردنی شوێنی ئێستا (GPS Map)
-                </button>
-                <span id="location-status" style="font-size: 10px; color: #555; display: block; margin-top: 4px; text-align: center;"></span>
-            </div>
+            <!-- دوگمەی GPS Map بە تەواوی لادرا -->
 
             <div class="offday-container">
                 <input type="checkbox" id="c_offday" onchange="saveDraftStateLocally()">
@@ -435,7 +441,6 @@
     </div>
 
     <script>
-        // ۱. سیستەمی ئاگادارکردنەوەی ناوخۆی داشبۆرد (Toast Notification)
         function showNotification(message, type = 'success') {
             const container = document.getElementById('toast-container');
             const toast = document.createElement('div');
@@ -460,56 +465,6 @@
                 toast.style.opacity = '0';
                 setTimeout(() => toast.remove(), 300);
             }, 4000);
-        }
-
-        // ۲. وەرگرتنی شوێن و پاشەکەوتکردن لەسەر Firebase لەگەڵ ناردنی ئاگادارکردنەوە
-        function saveTaskWithLocationAndNotify() {
-            let lang = document.getElementById('langSelect').value;
-            let t = document.getElementById('teamSelect').value;
-            if (!t) return alert(translations[lang].selectTeamAlert);
-
-            const statusSpan = document.getElementById('location-status');
-            
-            if (!navigator.geolocation) {
-                showNotification("وێبگەڕەکەت پشتگیری GPS ناکات.", "error");
-                return;
-            }
-
-            statusSpan.innerText = "⏳ خەریکی دەستنیشانکردنی شوێنە...";
-
-            navigator.geolocation.getCurrentPosition(async (position) => {
-                const lat = position.coords.latitude;
-                const lng = position.coords.longitude;
-                const mapUrl = `https://www.google.com/maps?q=${lat},${lng}`;
-                
-                try {
-                    let uniqueKey = getUniqueTeamKey(t, currentSection);
-                    
-                    // پاشەکەوتکردنی لینک و شوێنی نەخشە لەگەڵ زانیارییەکانی تیمی ئێستا
-                    db.ref(getStorageKeyPath() + '/' + uniqueKey + '/location').set({
-                        latitude: lat,
-                        longitude: lng,
-                        mapUrl: mapUrl,
-                        timestamp: firebase.database.ServerValue.TIMESTAMP
-                    });
-
-                    statusSpan.innerText = "✅ شوێنەکە تۆمارکرا: " + mapUrl;
-                    showNotification("شوێنی کارەکە بە سەرکەوتوویی پاشەکەوت کرا!", "success");
-                    
-                } catch (error) {
-                    console.error("هەڵە لە ناردنی داتا: ", error);
-                    statusSpan.innerText = "❌ هەڵە ڕوویدا لە پاشەکەوتکردن";
-                    showNotification("شکست لە پاشەکەوتکردنی شوێن!", "error");
-                }
-
-            }, (error) => {
-                statusSpan.innerText = "❌ نەتوانرا شوێن بدۆزرێتەوە";
-                showNotification("تکایە دڵنیابە لە کارکردنی GPS لە مۆبایل یان وێبگەڕەکەت.", "error");
-            }, {
-                enableHighAccuracy: true,
-                timeout: 10000,
-                maximumAge: 0
-            });
         }
 
         function playAlertSound() {
@@ -783,6 +738,7 @@
         function renderCasesGrid() {
             let container = document.getElementById('casesGridContainer');
             if (currentSection === 'lfd') {
+                // لادانی closed و ناوئبنانی بە other
                 container.innerHTML = `
                     <div class="case-item">Paid <input type="number" id="c_paid" value="0" min="0" oninput="saveDraftStateLocally()"></div>
                     <div class="case-item">Disc <input type="number" id="c_disc" value="0" min="0" oninput="saveDraftStateLocally()"></div>
@@ -790,7 +746,7 @@
                     <div class="case-item">Special <input type="number" id="c_special" value="0" min="0" oninput="saveDraftStateLocally()"></div>
                     <div class="case-item">Dist <input type="number" id="c_dist" value="0" min="0" oninput="saveDraftStateLocally()"></div>
                     <div class="case-item">Inaccess <input type="number" id="c_inaccess" value="0" min="0" oninput="saveDraftStateLocally()"></div>
-                    <div class="case-item">Closed <input type="number" id="c_closed" value="0" min="0" oninput="saveDraftStateLocally()"></div>
+                    <div class="case-item">Other <input type="number" id="c_other" value="0" min="0" oninput="saveDraftStateLocally()"></div>
                     <div class="case-item">Not Found <input type="number" id="c_notfound" value="0" min="0" oninput="saveDraftStateLocally()"></div>
                     <div class="case-item">Denied <input type="number" id="c_denied" value="0" min="0" oninput="saveDraftStateLocally()"></div>
                 `;
@@ -1202,7 +1158,7 @@
                     Special: parseInt(document.getElementById('c_special')?.value) || 0,
                     Distributed: parseInt(document.getElementById('c_dist')?.value) || 0,
                     Inaccessible: parseInt(document.getElementById('c_inaccess')?.value) || 0,
-                    Closed: parseInt(document.getElementById('c_closed')?.value) || 0,
+                    Other: parseInt(document.getElementById('c_other')?.value) || 0,
                     NotFound: parseInt(document.getElementById('c_notfound')?.value) || 0,
                     Denied: parseInt(document.getElementById('c_denied')?.value) || 0
                 };
@@ -1273,7 +1229,7 @@
                 if(document.getElementById('c_special')) document.getElementById('c_special').value = d.Special || d.special || 0;
                 if(document.getElementById('c_dist')) document.getElementById('c_dist').value = d.Distributed || d.dist || 0;
                 if(document.getElementById('c_inaccess')) document.getElementById('c_inaccess').value = d.Inaccessible || d.inaccess || 0;
-                if(document.getElementById('c_closed')) document.getElementById('c_closed').value = d.Closed || d.closed || 0;
+                if(document.getElementById('c_other')) document.getElementById('c_other').value = d.Other || d.closed || d.Other || 0;
                 if(document.getElementById('c_notfound')) document.getElementById('c_notfound').value = d.NotFound || d.notfound || 0;
                 if(document.getElementById('c_denied')) document.getElementById('c_denied').value = d.Denied || d.denied || 0;
             } else {
@@ -1294,7 +1250,6 @@
             document.getElementById('teamFileDownloadBox').style.display = 'none';
         }
 
-        // پیشاندانی مێژووی ٧ ڕۆژی ڕابردووی تیم لە مودالێکدا
         function openTeamHistoryModal() {
             let t = document.getElementById('teamSelect').value;
             if (!t) return;
