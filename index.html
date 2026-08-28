@@ -790,7 +790,6 @@
                 document.getElementById('authModalOverlay').style.display = 'none';
                 showToast("ئەکاونتەکەت بە سەرکەوتوویی دروستکرا!");
                 
-                // Automatically select team if exists in dropdown
                 let teamSelect = document.getElementById('teamSelect');
                 for(let i = 0; i < teamSelect.options.length; i++) {
                     if(teamSelect.options[i].value.toLowerCase() === teamName.toLowerCase()) {
