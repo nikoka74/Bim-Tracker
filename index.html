@@ -278,6 +278,7 @@
             </div>
             <div class="top-tools">
                 <button id="installAppBtn" class="tool-btn install-btn" onclick="installPwaApp()">ئەپ</button>
+                <button class="tool-btn" onclick="checkDeviceBattery()" title="پشکنینی پاتری و دۆخ">🔋 پاتری</button>
                 <button class="tool-btn refresh-btn" onclick="manualRefreshData()" id="btnRefreshMain" title="نوێکردنەوەی داتاکان">
                     <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
                     <span id="lblRefreshText">نوێکردنەوە</span>
@@ -412,9 +413,12 @@
 
         <div class="control-group">
             <label for="teamSelect" id="lblSelectTeam">تیمەکەت هەڵبژێرە:</label>
-            <select id="teamSelect" onchange="loadTeamData()">
-                <option value="" id="optChooseTeam">-- تیم هەڵبژێرە --</option>
-            </select>
+            <div style="display: flex; gap: 6px;">
+                <select id="teamSelect" onchange="loadTeamData()" style="flex: 2;">
+                    <option value="" id="optChooseTeam">-- تیم هەڵبژێرە --</option>
+                </select>
+                <button class="tool-btn" style="flex: 1; font-size: 10px; justify-content: center; background: rgba(16,185,129,0.15); border-color: #10b981; color: #34d399;" onclick="copyYesterdayDataToCurrent()" title="هێنانی داتای دوێنێ">📥 دوێنێ</button>
+            </div>
 
             <div id="teamPrivateMsgBox" class="admin-sub-box" style="background: rgba(56,189,248,0.08); border: 1px solid var(--primary); display: none; margin-top: 8px;">
                 <label style="font-size: 10px; color: var(--primary); font-weight: bold;">📢 پەیامی تایبەت بۆ تیمەکەت:</label>
@@ -492,6 +496,31 @@
                 toast.style.opacity = '0';
                 setTimeout(() => toast.remove(), 300);
             }, 4000);
+        }
+
+        async function checkDeviceBattery() {
+            if ('getBattery' in navigator) {
+                let battery = await navigator.getBattery();
+                let level = Math.round(battery.level * 100);
+                let charging = battery.charging ? "🔌 لە چارجدایە" : "🔋 پاتری ئاسایی";
+                showNotification(`دۆخی پاتری مۆبایلەکەت: ${level}% - ${charging}`, level < 20 ? 'error' : 'success');
+            } else {
+                showNotification("سیستمی پاتری پشتگیری ناورێت لەم بڕۆزەرەدا.", 'error');
+            }
+        }
+
+        function copyYesterdayDataToCurrent() {
+            let t = document.getElementById('teamSelect').value;
+            if (!t) return alert("تکایە سەرەتا تیمێک هەڵبژێرە!");
+            let uniqueKey = getUniqueTeamKey(t, currentSection);
+            let yDayRecord = yesterdayStore[uniqueKey];
+            if (yDayRecord && yDayRecord.details) {
+                fillInputsWithDetails(yDayRecord.details, yDayRecord.notes, yDayRecord.offday);
+                saveDraftStateLocally();
+                showNotification("داتای دوێنێ سەرکەوتووانە هێنرا!");
+            } else {
+                showNotification("هیچ داتایەک لە دوێنێ بۆ ئەم تیمە نەدۆزرایەوە.", 'error');
+            }
         }
 
         function playAlertSound() {
