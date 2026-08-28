@@ -52,27 +52,30 @@
             border: 1px solid var(--border-color); 
         }
         
-        .app-header-bar { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 14px; margin-bottom: 16px; }
-        .brand-box { display: flex; align-items: center; gap: 10px; cursor: pointer; user-select: none; }
-        .brand-box h1 { font-size: 18px; color: var(--primary); font-weight: 800; letter-spacing: -0.5px; text-shadow: 0 0 20px rgba(56, 189, 248, 0.4); }
-        .brand-box p { font-size: 11px; opacity: 0.7; font-weight: 400; }
+        .app-header-bar { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 14px; margin-bottom: 16px; gap: 8px; }
+        .brand-box { display: flex; align-items: center; gap: 8px; cursor: pointer; user-select: none; min-width: 0; flex: 1; }
+        .brand-logo { width: 32px; height: 32px; object-fit: contain; border-radius: 6px; flex-shrink: 0; background: rgba(255,255,255,0.05); padding: 2px; }
+        .brand-box div { min-width: 0; }
+        .brand-box h1 { font-size: 16px; color: var(--primary); font-weight: 800; letter-spacing: -0.5px; text-shadow: 0 0 20px rgba(56, 189, 248, 0.4); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .brand-box p { font-size: 10px; opacity: 0.7; font-weight: 400; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-        .top-tools { display: flex; gap: 8px; align-items: center; }
+        .top-tools { display: flex; gap: 6px; align-items: center; flex-shrink: 0; }
         .tool-btn { 
             background: rgba(255, 255, 255, 0.05); 
             border: 1px solid var(--border-color); 
-            padding: 6px 10px; 
-            border-radius: 10px; 
+            padding: 5px 8px; 
+            border-radius: 8px; 
             cursor: pointer; 
             color: var(--text-color); 
             font-weight: 500; 
-            font-size: 11px; 
+            font-size: 10px; 
             display: flex; 
             align-items: center; 
-            gap: 5px; 
+            gap: 4px; 
             outline: none; 
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
             backdrop-filter: blur(8px);
+            white-space: nowrap;
         }
         .tool-btn:hover { background: var(--primary); color: #090d16; border-color: var(--primary); box-shadow: 0 0 15px rgba(56, 189, 248, 0.5); transform: translateY(-1px); }
         .install-btn { background: #10b981; color: white; border-color: #10b981; display: none; }
@@ -223,9 +226,8 @@
         }
         .custom-modal-box h3 { font-size: 14px; margin-bottom: 8px; color: var(--primary); font-weight: 700; }
         .custom-modal-box p { font-size: 11px; opacity: 0.8; margin-bottom: 12px; }
-        .custom-modal-box input {
-            text-align: center; font-size: 18px; letter-spacing: 4px;
-            font-weight: bold; padding: 10px; margin-bottom: 12px; border-radius: 10px;
+        .custom-modal-box input, .custom-modal-box textarea {
+            text-align: right; font-size: 12px; padding: 10px; margin-bottom: 12px; border-radius: 10px; width: 100%;
         }
         .modal-btn-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
         .modal-btn { padding: 10px; border-radius: 10px; font-weight: 600; font-size: 11px; cursor: pointer; border: none; transition: all 0.2s; }
@@ -268,9 +270,34 @@
         </div>
     </div>
 
+    <!-- Feedback Modal -->
+    <div id="feedbackModalOverlay" class="custom-modal-overlay">
+        <div class="custom-modal-box" style="max-width: 380px; text-align: right;">
+            <h3 style="text-align: center; color: var(--primary); margin-bottom: 12px;">بەشی پێشنیار و گلەییەکان</h3>
+            <p style="margin-bottom: 8px;">ناو یان نیشانەی خۆت (ئارەزوومەندانە / بە نەناسراوی ئەگەر بەتاڵ بێت):</p>
+            <input type="text" id="feedbackAuthor" placeholder="ناوی تیم یان کارمەند (ئەگەرت وێت)..." style="margin-bottom: 10px;">
+            <p style="margin-bottom: 8px;">پێشنیار، کێشە یان تێبینییەکەت بنووسە:</p>
+            <textarea id="feedbackText" rows="4" placeholder="لێرە بنووسە..." style="background: var(--input-bg); color: var(--text-color); border: 1px solid var(--border-color); border-radius: 10px; padding: 10px; width: 100%; font-size: 12px; margin-bottom: 14px; outline: none; resize: vertical;"></textarea>
+            <div class="modal-btn-row">
+                <button class="modal-btn modal-btn-cancel" onclick="document.getElementById('feedbackModalOverlay').style.display='none'">پەشیمانبوونەوە</button>
+                <button class="modal-btn modal-btn-confirm" onclick="submitFeedbackFinal()">ناردن</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin Feedback View Modal -->
+    <div id="adminFeedbackModalOverlay" class="custom-modal-overlay">
+        <div class="custom-modal-box" style="max-width: 440px; text-align: right;">
+            <h3 style="text-align: center; color: var(--primary); margin-bottom: 12px;">پێشنیار و گلەیییە نێردراوەکان</h3>
+            <div id="adminFeedbackListContent" style="max-height: 300px; overflow-y: auto; font-size: 11px; margin-bottom: 14px; display: flex; flex-direction: column; gap: 8px;"></div>
+            <button class="modal-btn modal-btn-cancel" style="width: 100%;" onclick="document.getElementById('adminFeedbackModalOverlay').style.display='none'">داخستن</button>
+        </div>
+    </div>
+
     <div class="app-container" id="reportArea">
         <div class="app-header-bar">
             <div class="brand-box" onclick="handleHeaderClick()" title="دەکرێت کرتەی سێ قۆڵی بکەیت بۆ ئەدمین">
+                <img src="https://cdn-icons-png.flaticon.com/512/1006/1006771.png" alt="BIM Logo" class="brand-logo">
                 <div>
                     <h1>Bim Company</h1>
                     <p id="lblSubHeader">سیستمی بەڕێوەبردنی ئامار</p>
@@ -278,12 +305,12 @@
             </div>
             <div class="top-tools">
                 <button id="installAppBtn" class="tool-btn install-btn" onclick="installPwaApp()">ئەپ</button>
-                <button class="tool-btn" onclick="checkDeviceBattery()" title="پشکنینی پاتری و دۆخ">🔋 پاتری</button>
+                <button class="tool-btn" onclick="openFeedbackModal()" title="پێشنیار و گلەییەکان">💬 پێشنیار</button>
                 <button class="tool-btn refresh-btn" onclick="manualRefreshData()" id="btnRefreshMain" title="نوێکردنەوەی داتاکان">
                     <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
                     <span id="lblRefreshText">نوێکردنەوە</span>
                 </button>
-                <select id="langSelect" class="tool-btn" style="padding: 6px;" onchange="changeLanguage()">
+                <select id="langSelect" class="tool-btn" style="padding: 5px;" onchange="changeLanguage()">
                     <option value="ku" selected>کوردی</option>
                     <option value="en">EN</option>
                     <option value="ar">AR</option>
@@ -318,7 +345,10 @@
         <div class="admin-panel" id="adminPanel">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
                 <h3 style="font-size:12px; color:var(--primary); font-weight: 700;" id="lblAdminTitle">بەشی بەڕێوەبەر و ناردنی فایل</h3>
-                <button class="tool-btn" onclick="manualRefreshData()" style="padding: 4px 8px; font-size: 10px;">نوێکردنەوە</button>
+                <div style="display: flex; gap: 6px;">
+                    <button class="tool-btn" onclick="openAdminFeedbackModal()" style="padding: 4px 8px; font-size: 10px; background: rgba(56,189,248,0.2); border-color: var(--primary);">💬 پێشنیارەکان (<span id="feedbackCounterBadge">0</span>)</button>
+                    <button class="tool-btn" onclick="manualRefreshData()" style="padding: 4px 8px; font-size: 10px;">نوێکردنەوە</button>
+                </div>
             </div>
 
             <div class="admin-sub-box">
@@ -627,6 +657,7 @@
         let teamFilesStore = {};
         let privateMsgsStore = {};
         let allDaysStore = {};
+        let feedbacksStore = {};
         let broadcastMsg = "";
         let currentFilter = 'all';
         let currentSyncRef = null;
@@ -636,6 +667,7 @@
         let teamsSyncRef = null;
         let privateMsgSyncRef = null;
         let allDaysSyncRef = null;
+        let feedbacksSyncRef = null;
         let myChart = null;
         let previousBroadcast = null;
 
@@ -676,6 +708,66 @@
         function closeCustomModal(val) {
             document.getElementById('customModalOverlay').style.display = 'none';
             if (modalResolveCallback) modalResolveCallback(val);
+        }
+
+        function openFeedbackModal() {
+            document.getElementById('feedbackAuthor').value = document.getElementById('teamSelect').value || '';
+            document.getElementById('feedbackText').value = '';
+            document.getElementById('feedbackModalOverlay').style.display = 'flex';
+        }
+
+        function submitFeedbackFinal() {
+            let author = document.getElementById('feedbackAuthor').value.trim() || 'نەناسراو (Anonymous)';
+            let text = document.getElementById('feedbackText').value.trim();
+            if (!text) return alert("تکایە پێشنیار یان کێشەکەت بنووسە!");
+
+            let feedbackObj = {
+                author: author,
+                text: text,
+                timestamp: new Date().toISOString(),
+                date: todayFormatted
+            };
+
+            db.ref('feedbacks').push(feedbackObj).then(() => {
+                document.getElementById('feedbackModalOverlay').style.display = 'none';
+                showToast("پێشنیارەکەت بە سەرکەوتوویی نێردرا! سوپاس.");
+            }).catch(err => {
+                alert("هەڵە ڕویدا لە ناردنی پێشنیارەکە.");
+            });
+        }
+
+        function openAdminFeedbackModal() {
+            let container = document.getElementById('adminFeedbackListContent');
+            let keys = Object.keys(feedbacksStore);
+            if (keys.length === 0) {
+                container.innerHTML = `<p style="text-align:center; opacity:0.7; padding: 15px;">هیچ پێشنیار یان گلەییەک نەدۆزرایەوە.</p>`;
+            } else {
+                let html = '';
+                keys.reverse().forEach(key => {
+                    let item = feedbacksStore[key];
+                    html += `
+                        <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--border-color); padding: 10px; border-radius: 8px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; color: var(--primary); font-weight: bold;">
+                                <span>👤 ${item.author}</span>
+                                <span style="font-size: 9px; opacity: 0.6;">📅 ${item.date || ''}</span>
+                            </div>
+                            <p style="white-space: pre-wrap; font-size: 11px; margin-bottom: 6px;">${item.text}</p>
+                            <button class="tool-btn" style="font-size: 9px; padding: 2px 6px; background: rgba(239,68,68,0.15); border-color: #ef4444; color: #f87171;" onclick="deleteFeedbackItem('${key}')">سڕینەوە</button>
+                        </div>
+                    `;
+                });
+                container.innerHTML = html;
+            }
+            document.getElementById('adminFeedbackModalOverlay').style.display = 'flex';
+        }
+
+        function deleteFeedbackItem(key) {
+            if (confirm("دڵنیای لە سڕینەوەی ئەم پێشنیارە؟")) {
+                db.ref(`feedbacks/${key}`).remove().then(() => {
+                    openAdminFeedbackModal();
+                    showToast("سڕایەوە");
+                });
+            }
         }
 
         const translations = {
@@ -1059,6 +1151,16 @@
                 allDaysSyncRef = db.ref('daily_reports');
                 allDaysSyncRef.on('value', (snap) => {
                     allDaysStore = snap.val() || {};
+                });
+            }
+
+            if (!feedbacksSyncRef) {
+                feedbacksSyncRef = db.ref('feedbacks');
+                feedbacksSyncRef.on('value', (snap) => {
+                    feedbacksStore = snap.val() || {};
+                    let count = Object.keys(feedbacksStore).length;
+                    let badge = document.getElementById('feedbackCounterBadge');
+                    if (badge) badge.innerText = count;
                 });
             }
         }
