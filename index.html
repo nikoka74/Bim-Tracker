@@ -52,12 +52,13 @@
             border: 1px solid var(--border-color); 
         }
         
-        .app-header-bar { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 14px; margin-bottom: 16px; gap: 8px; }
-        .brand-box { display: flex; align-items: center; gap: 10px; cursor: pointer; user-select: none; min-width: 0; flex: 1; }
-        .brand-logo { width: 40px; height: 40px; object-fit: contain; border-radius: 8px; flex-shrink: 0; background: rgba(255,255,255,0.08); padding: 4px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.15); display: block !important; visibility: visible !important; }
-        .brand-box div { min-width: 0; }
-        .brand-box h1 { font-size: 16px; color: var(--primary); font-weight: 800; letter-spacing: -0.5px; text-shadow: 0 0 20px rgba(56, 189, 248, 0.4); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .brand-box p { font-size: 10px; opacity: 0.7; font-weight: 400; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        /* گۆڕانکاری بۆ ڕێکخستنی لۆگۆ و دەقەکان لەسەر مۆبایل */
+        .app-header-bar { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; margin-bottom: 14px; gap: 4px; }
+        .brand-box { display: flex; align-items: center; gap: 8px; cursor: pointer; user-select: none; min-width: 0; flex: 1; overflow: hidden; }
+        .brand-logo { width: 32px; height: 32px; object-fit: contain; border-radius: 6px; flex-shrink: 0; background: rgba(255,255,255,0.08); padding: 3px; border: 1px solid rgba(255,255,255,0.15); display: block !important; visibility: visible !important; }
+        .brand-box div { min-width: 0; flex: 1; }
+        .brand-box h1 { font-size: 13px; color: var(--primary); font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .brand-box p { font-size: 9px; opacity: 0.7; font-weight: 400; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
         .top-tools { display: flex; gap: 6px; align-items: center; flex-shrink: 0; }
         .tool-btn { 
@@ -360,7 +361,6 @@
 
     <!-- Script Application Logic -->
     <script>
-        // Firebase Config Setup (Placeholder - uses default structure)
         const firebaseConfig = {
             databaseURL: "https://bim-operations-default-rtdb.firebaseio.com/"
         };
@@ -370,7 +370,6 @@
         }
         const db = firebase.database();
 
-        // Local State Variables
         let currentSection = 'inspection';
         let employees = ["ئارام", "کاروان", "شیلان", "محمد", "بەختیار"];
         let inspectionCasesConfig = [
@@ -386,7 +385,6 @@
         let deferredPrompt = null;
         let chartInstance = null;
 
-        // Initialization on Load
         window.onload = function() {
             initDate();
             renderInspectionCases();
@@ -407,7 +405,7 @@
                 const item = document.createElement('div');
                 item.className = 'case-item';
                 item.innerHTML = `
-                    <div>${c.label} (${c.خ خاڵ || c.points} خ)</div>
+                    <div>${c.label} (${c.points} خ)</div>
                     <input type="number" id="${c.id}" min="0" value="0" oninput="calculateTotalLive()">
                 `;
                 grid.appendChild(item);
@@ -469,7 +467,6 @@
             calculateTotalLive();
         }
 
-        // Firebase Sync Operations
         function loadSettingsFromFirebase() {
             db.ref('settings').on('value', snapshot => {
                 const data = snapshot.val();
@@ -498,7 +495,6 @@
             db.ref('records').on('value', snapshot => {
                 allRecords = snapshot.val() || {};
                 
-                // Extract unique employees
                 let empSet = new Set(employees);
                 Object.values(allRecords).forEach(rec => {
                     if(rec.employee) empSet.add(rec.employee);
@@ -639,7 +635,6 @@
             showToast('سیستم نوێکرایەوە');
         }
 
-        // History Modal Logic
         function openHistoryModal() {
             const container = document.getElementById('historyListContainer');
             container.innerHTML = '';
@@ -679,7 +674,6 @@
             }
         }
 
-        // Report & Chart Modal
         function openReportModal() {
             updateReportData();
             document.getElementById('reportModal').style.display = 'flex';
@@ -719,7 +713,6 @@
         function renderChart(records) {
             const ctx = document.getElementById('reportChart').getContext('2d');
             
-            // Group by date
             let dateMap = {};
             records.forEach(r => {
                 dateMap[r.date] = (dateMap[r.date] || 0) + (r.totalPoints || 0);
@@ -755,7 +748,6 @@
             });
         }
 
-        // Admin & PIN Authentication
         function openAdminModal() {
             document.getElementById('pin1').value = '';
             document.getElementById('pin2').value = '';
@@ -832,7 +824,6 @@
             }
         }
 
-        // PWA Setup
         function setupPWAInstall() {
             window.addEventListener('beforeinstallprompt', (e) => {
                 e.preventDefault();
@@ -853,7 +844,6 @@
             }
         }
 
-        // Toast Helper
         function showToast(message) {
             const toast = document.getElementById('toastMessage');
             toast.innerText = message;
