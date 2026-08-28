@@ -1660,44 +1660,51 @@
                     </div>
                     ${adminControlsHTML} ${reasonHTML}
                 </div>`;
-            }).join('') || `<div style="text-align:center; padding:10px; opacity:0.6;">هیچ تیمێک نییە</div>`, total: sectionTotal };
-        }
-
-        function updateChart(achievedCount, missedCount, offdayCount) {
-            let ctx = document.getElementById('statsChart').getContext('2d');
-            if (myChart) myChart.destroy();
-            myChart = new Chart(ctx, {
-                type: 'doughnut',
-                data: {
-                    labels: ['Met', 'Missed', 'Off-Day'],
-                    datasets: [{ data: [achievedCount, missedCount, offdayCount], backgroundColor: ['#10b981', '#ef4444', '#f59e0b'], borderWidth: 0 }]
-                },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'left', labels: { color: '#f8fafc', font: { size: 10 } } } } }
-            });
+            }).join(''), sectionTotal, list };
         }
 
         function render() {
             let activeTeams = currentSection === 'lfd' ? lfdTeams : moveInTeams;
-            let submittedCount = 0, achieved = 0, missed = 0, offday = 0, sectionGrandTotal = 0;
-            activeTeams.forEach(t => {
-                let teamData = cloudStore[getUniqueTeamKey(t, currentSection)];
-                if (teamData && teamData.submitted) {
-                    submittedCount++;
-                    if (teamData.offday) offday++;
-                    else {
-                        if (teamData.total >= DAILY_TARGET) achieved++; else missed++;
-                        sectionGrandTotal += Number(teamData.total || 0);
+            let res = renderList(activeTeams, currentSection);
+            document.getElementById('leaderboardContainer').innerHTML = res.html;
+            document.getElementById('adminSectionTotal').innerText = `Total: ${res.sectionTotal}`;
+            document.getElementById('grandTotalPoints').innerText = res.sectionTotal;
+
+            let submittedCount = res.list.filter(item => item.submitted || item.offday).length;
+            let totalTeamsCount = activeTeams.length;
+            let percent = totalTeamsCount > 0 ? Math.round((submittedCount / totalTeamsCount) * 100) : 0;
+            document.getElementById('progressBar').style.width = percent + '%';
+            let lang = document.getElementById('langSelect').value;
+            document.getElementById('progressText').innerText = translations[lang].progressText + percent + '% (' + submittedCount + '/' + totalTeamsCount + ')';
+            updateChart(res.list);
+        }
+
+        function updateChart(list) {
+            let ctx = document.getElementById('statsChart').getContext('2d');
+            let labels = list.map(item => item.name);
+            let dataVals = list.map(item => item.total);
+            if (myChart) {
+                myChart.data.labels = labels;
+                myChart.data.datasets[0].data = dataVals;
+                myChart.update();
+            } else {
+                myChart = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [{ label: 'Points', data: dataVals, backgroundColor: '#38bdf8', borderRadius: 4 }]
+                    },
+                    options: {
+                        responsive: true, maintainAspectRatio: false,
+                        plugins: { legend: { display: false } },
+                        scales: { x: { ticks: { font: { size: 9 }, color: '#fff' } }, y: { ticks: { font: { size: 9 }, color: '#fff' } } }
                     }
-                }
-            });
-            document.getElementById('grandTotalPoints').innerText = sectionGrandTotal.toLocaleString();
-            updateChart(achieved, missed, offday);
-            let sectionRes = renderList(activeTeams, currentSection);
-            document.getElementById('leaderboardContainer').innerHTML = sectionRes.html;
-            document.getElementById('adminSectionTotal').innerText = `Total: ${sectionRes.total}`;
-            let pct = activeTeams.length > 0 ? Math.round((submittedCount / activeTeams.length) * 100) : 0;
-            document.getElementById('progressBar').style.width = pct + '%';
-            document.getElementById('progressText').innerText = translations[document.getElementById('langSelect').value].progressText + pct + '%';
+                });
+            }
+        }
+
+        function exportAsImage() {
+            alert("بۆ وەرگرتنی وێنە دەتوانیت سکرینشۆت (Screenshot) بگریت یان لە ڕێگەی PDF ـەوە پاشەکەوتی بکەیت!");
         }
 
         window.onload = function() {
@@ -1705,14 +1712,16 @@
             let savedLang = localStorage.getItem('bim_lang') || 'ku';
             document.getElementById('langSelect').value = savedLang;
             applyLanguage(savedLang);
-            renderCasesGrid();
             initRealtimeSync();
-            let rememberedTeam = localStorage.getItem('bim_selected_team');
-            if (rememberedTeam) {
+            let savedTeam = localStorage.getItem('bim_selected_team');
+            if (savedTeam) {
                 setTimeout(() => {
-                    let sel = document.getElementById('teamSelect');
-                    if(sel) { sel.value = rememberedTeam; loadTeamData(); }
-                }, 300);
+                    let teamSelect = document.getElementById('teamSelect');
+                    if ([...teamSelect.options].some(o => o.value === savedTeam)) {
+                        teamSelect.value = savedTeam;
+                        loadTeamData();
+                    }
+                }, 500);
             }
         };
     </script>
