@@ -696,7 +696,10 @@
         }
 
         function checkUserAccountOnStartup() {
-            let allTeams = [...new Set([...lfdTeams, ...moveInTeams])];
+            let allTeams = [];
+            for (let i = 1; i <= 150; i++) {
+                allTeams.push(`Team ${i}`);
+            }
             let sel = document.getElementById('regTeamSelect');
             sel.innerHTML = `<option value="">-- هەڵبژاردنی تیم --</option>`;
             allTeams.forEach(t => { sel.innerHTML += `<option value="${t}">${t}</option>`; });
@@ -1682,15 +1685,13 @@
                 localStorage.removeItem(`bim_draft_${currentSection}_${t}`);
                 
                 let logObj = {
-                    username: currentUserAccount ? currentUserAccount.name : "نەناسراو",
+                    username: currentUserAccount ? currentUserAccount.name : 'نەناسراو',
                     teamName: t,
                     section: currentSection,
-                    action: "ناردنی ڕاپۆرت",
+                    action: `ناردنی ڕاپۆرت (${total} خاڵ)`,
                     timestamp: new Date().toLocaleString()
                 };
                 db.ref('audit_logs').push(logObj);
-            }).catch(err => {
-                alert("هەڵە لە پاشەکەوتکردن: " + err.message);
             });
         }
     </script>
