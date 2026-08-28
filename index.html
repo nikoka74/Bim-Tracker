@@ -147,56 +147,45 @@
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         .refresh-btn.spinning svg { animation: spin 0.6s linear; }
 
+        /* Professional Trend / Line Analysis Card */
         .total-points-card {
-            background: linear-gradient(135deg, rgba(79, 70, 229, 0.8) 0%, rgba(124, 58, 237, 0.8) 50%, rgba(219, 39, 119, 0.8) 100%);
+            background: linear-gradient(135deg, rgba(15, 23, 42, 0.9) 0%, rgba(30, 41, 59, 0.9) 100%);
             backdrop-filter: blur(12px);
             color: white;
-            padding: 20px 24px;
+            padding: 16px 20px;
             border-radius: 16px;
             display: flex;
-            align-items: center;
-            gap: 18px;
-            box-shadow: 0 15px 30px -5px rgba(124, 58, 237, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.3);
+            flex-direction: column;
+            gap: 12px;
+            box-shadow: 0 15px 30px -5px rgba(0, 0, 0, 0.5), inset 0 1px 1px rgba(255, 255, 255, 0.15);
             margin-bottom: 16px;
-            position: relative;
-            overflow: hidden;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            transition: all 0.4s ease;
+            border: 1px solid rgba(56, 189, 248, 0.2);
         }
-        .total-points-card::after {
-            content: '';
-            position: absolute;
-            top: -50%; right: -50%;
-            width: 200%; height: 200%;
-            background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 60%);
-            pointer-events: none;
-        }
-        .total-points-card.movein-theme {
-            background: linear-gradient(135deg, rgba(4, 120, 87, 0.85) 0%, rgba(5, 150, 105, 0.85) 50%, rgba(16, 185, 129, 0.85) 100%);
-            box-shadow: 0 15px 30px -5px rgba(16, 185, 129, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.3);
-        }
-        .total-points-card .icon-container {
-            background: rgba(255, 255, 255, 0.2);
-            backdrop-filter: blur(8px);
-            padding: 14px;
-            border-radius: 14px;
+        .trend-header-row {
             display: flex;
+            justify-content: space-between;
             align-items: center;
-            justify-content: center;
-            box-shadow: inset 0 1px 1px rgba(255,255,255,0.4);
         }
         .total-points-card h3 {
-            margin: 0 0 4px 0;
+            margin: 0;
             font-size: 13px;
             font-weight: 600;
-            opacity: 0.95;
+            color: var(--primary);
             letter-spacing: 0.3px;
         }
         .total-points-card .counter {
-            font-size: 32px;
+            font-size: 20px;
             font-weight: 800;
-            line-height: 1;
-            text-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            color: #34d399;
+            background: rgba(16, 185, 129, 0.1);
+            padding: 4px 12px;
+            border-radius: 8px;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+        .trend-chart-container {
+            position: relative;
+            height: 90px;
+            width: 100%;
         }
 
         .broadcast-ticker { background: rgba(220, 38, 38, 0.85); backdrop-filter: blur(8px); color: white; padding: 10px 14px; border-radius: 10px; font-size: 11px; margin-bottom: 14px; font-weight: 500; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 15px rgba(220,38,38,0.3); border: 1px solid rgba(255,255,255,0.15); }
@@ -230,17 +219,11 @@
             display: flex; align-items: center; justify-content: center; gap: 8px; 
             box-shadow: 0 8px 20px rgba(37, 99, 235, 0.4); transition: all 0.3s ease;
         }
-        .btn-submit-main.movein-theme {
-            background: linear-gradient(135deg, #059669, #047857);
-            box-shadow: 0 8px 20px rgba(5, 150, 105, 0.4);
-        }
         .btn-submit-main:active { transform: scale(0.98); }
         .btn-submit-main:hover { box-shadow: 0 0 25px rgba(59, 130, 246, 0.6); }
 
         .btn-toolbar { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 14px; }
-        .btn-toolbar .btn:last-child:nth-child(odd) {
-            grid-column: span 2;
-        }
+        .btn-toolbar .btn:last-child:nth-child(odd) { grid-column: span 2; }
 
         .btn { padding: 12px 10px; border: none; border-radius: 12px; font-size: 12px; font-weight: 700; cursor: pointer; color: white; text-align: center; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; gap: 6px; box-shadow: 0 4px 15px rgba(0,0,0,0.25); }
         .btn:hover { opacity: 0.95; transform: translateY(-2px); }
@@ -303,121 +286,34 @@
         .modal-btn-confirm { background: var(--primary); color: #090d16; font-weight: 700; }
         .modal-btn-cancel { background: rgba(255,255,255,0.05); color: var(--text-color); border: 1px solid var(--border-color); }
 
-        /* Auth Pages & Styles */
-        .auth-container {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            margin-top: 10px;
-        }
-        .auth-tabs {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 6px;
-            margin-bottom: 10px;
-        }
-        .auth-tab-btn {
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid var(--border-color);
-            padding: 8px;
-            border-radius: 10px;
-            font-size: 11px;
-            font-weight: 700;
-            color: var(--text-color);
-            cursor: pointer;
-            text-align: center;
-        }
-        .auth-tab-btn.active {
-            background: var(--primary);
-            color: #090d16;
-            border-color: var(--primary);
-        }
-        .auth-form-panel {
-            display: none;
-            flex-direction: column;
-            gap: 8px;
-        }
-        .auth-form-panel.active {
-            display: flex;
-        }
+        .auth-container { display: flex; flex-direction: column; gap: 12px; margin-top: 10px; }
+        .auth-tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 10px; }
+        .auth-tab-btn { background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border-color); padding: 8px; border-radius: 10px; font-size: 11px; font-weight: 700; color: var(--text-color); cursor: pointer; text-align: center; }
+        .auth-tab-btn.active { background: var(--primary); color: #090d16; border-color: var(--primary); }
+        .auth-form-panel { display: none; flex-direction: column; gap: 8px; }
+        .auth-form-panel.active { display: flex; }
 
-        /* Chat Section Styles */
         .chat-section-container {
-            display: none;
-            flex-direction: column;
-            height: 420px;
-            background: rgba(11, 15, 25, 0.7);
-            border: 1px solid var(--border-color);
-            border-radius: 16px;
-            overflow: hidden;
-            margin-bottom: 14px;
+            display: none; flex-direction: column; height: 420px;
+            background: rgba(11, 15, 25, 0.7); border: 1px solid var(--border-color);
+            border-radius: 16px; overflow: hidden; margin-bottom: 14px;
         }
-        .chat-section-container.active {
-            display: flex;
-        }
-        .chat-messages-area {
-            flex: 1;
-            padding: 12px;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            scroll-behavior: smooth;
-        }
-        .chat-msg-bubble {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid var(--border-color);
-            padding: 8px 12px;
-            border-radius: 10px;
-            max-width: 85%;
-            font-size: 11px;
-            align-self: flex-start;
-        }
-        .chat-msg-bubble.my-msg {
-            background: rgba(56, 189, 248, 0.15);
-            border-color: rgba(56, 189, 248, 0.3);
-            align-self: flex-end;
-        }
-        .chat-msg-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 9px;
-            color: var(--primary);
-            margin-bottom: 3px;
-            font-weight: bold;
-            gap: 12px;
-        }
-        .chat-input-bar {
-            display: flex;
-            gap: 6px;
-            padding: 10px;
-            background: rgba(17, 28, 46, 0.9);
-            border-top: 1px solid var(--border-color);
-        }
-        .chat-input-bar input {
-            flex: 1;
-            margin-bottom: 0;
-            font-size: 11px;
-            padding: 8px 12px;
-        }
+        .chat-section-container.active { display: flex; }
+        .chat-messages-area { flex: 1; padding: 12px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; scroll-behavior: smooth; }
+        .chat-msg-bubble { background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border-color); padding: 8px 12px; border-radius: 10px; max-width: 85%; font-size: 11px; align-self: flex-start; }
+        .chat-msg-bubble.my-msg { background: rgba(56, 189, 248, 0.15); border-color: rgba(56, 189, 248, 0.3); align-self: flex-end; }
+        .chat-msg-header { display: flex; justify-content: space-between; align-items: center; font-size: 9px; color: var(--primary); margin-bottom: 3px; font-weight: bold; gap: 12px; }
+        .chat-input-bar { display: flex; gap: 6px; padding: 10px; background: rgba(17, 28, 46, 0.9); border-top: 1px solid var(--border-color); }
+        .chat-input-bar input { flex: 1; margin-bottom: 0; font-size: 11px; padding: 8px 12px; }
 
-        .site-footer-copy {
-            text-align: center;
-            font-size: 10px;
-            opacity: 0.6;
-            margin-top: 16px;
-            border-top: 1px dashed var(--border-color);
-            padding-top: 10px;
-            font-weight: 500;
-        }
+        .site-footer-copy { text-align: center; font-size: 10px; opacity: 0.6; margin-top: 16px; border-top: 1px dashed var(--border-color); padding-top: 10px; font-weight: 500; }
     </style>
 </head>
 <body>
     <div id="toast" class="toast">Saved!</div>
     <div id="toast-container" style="position: fixed; bottom: 20px; left: 20px; z-index: 9999;"></div>
 
-    <!-- Account Setup / Login Modal (Mandatory on First Load / Authentication) -->
+    <!-- Account Setup / Login Modal -->
     <div id="accountModalOverlay" class="custom-modal-overlay" style="display: flex;">
         <div class="custom-modal-box" style="max-width: 380px; text-align: right;">
             <h3 id="authModalTitle">🔐 چوژوورەوە یان دروستکردنی ئەکاونت</h3>
@@ -428,25 +324,23 @@
                 <button class="auth-tab-btn" id="authTabRegisterBtn" onclick="switchAuthTab('register')">دروستکردنی ئەکاونت</button>
             </div>
 
-            <!-- Login Form -->
             <div id="loginFormPanel" class="auth-form-panel active">
                 <input type="email" id="loginEmailInput" placeholder="ئیمەیڵ (Email)..." autocomplete="email">
                 <input type="password" id="loginPasswordInput" placeholder="وشەی تێپەڕ (Password)..." autocomplete="current-password">
                 <button class="modal-btn modal-btn-confirm" style="width: 100%; padding: 12px; margin-top: 4px;" onclick="handleFirebaseLogin()">چوونەژوورەوە</button>
             </div>
 
-            <!-- Register Form -->
             <div id="registerFormPanel" class="auth-form-panel">
                 <input type="text" id="regUsernameInput" placeholder="ناوی تەواو / کارمەند..." autocomplete="off">
                 <select id="regTeamSelect" style="margin-bottom: 8px;">
                     <option value="">-- هەڵبژاردنی تیم --</option>
                 </select>
                 <input type="email" id="regEmailInput" placeholder="ئیمەیڵ (Email)..." autocomplete="email">
-                <input type="password" id="regPasswordInput" placeholder="وشەی تێپەڕ (Password - לפחות 6 ký tự)..." autocomplete="new-password">
+                <input type="password" id="regPasswordInput" placeholder="وشەی تێپەڕ (Password)..." autocomplete="new-password">
                 <button class="modal-btn modal-btn-confirm" style="width: 100%; padding: 12px; margin-top: 4px;" onclick="handleFirebaseRegister()">تۆمارکردن و دەستپێکردن</button>
             </div>
 
-            <button class="modal-btn modal-btn-cancel" style="width: 100%; margin-top: 10px;" onclick="bypassAuthAsGuest()">بەردەوامبوون وەک میوان (Guest)</button>
+            <button class="modal-btn modal-btn-cancel" style="width: 100%; margin-top: 10px;" onclick="bypassAuthAsGuest()">بەردەوامبوون وەک میوان</button>
         </div>
     </div>
 
@@ -492,7 +386,6 @@
         </div>
     </div>
 
-    <!-- Live Map Modal -->
     <div id="liveMapModalOverlay" class="custom-modal-overlay">
         <div class="custom-modal-box" style="max-width: 500px; width: 95%; text-align: right;">
             <h3 style="text-align: center; color: var(--primary); margin-bottom: 10px;">🗺️ نەخشەی ڕاستەوخۆی خاڵەکان</h3>
@@ -501,7 +394,6 @@
         </div>
     </div>
 
-    <!-- Advanced Range Export Modal -->
     <div id="rangeExportModalOverlay" class="custom-modal-overlay">
         <div class="custom-modal-box" style="max-width: 380px; text-align: right;">
             <h3 style="text-align: center; color: var(--primary); margin-bottom: 12px;">📈 دەرکردنی ڕاپۆرت بە مەودای بەروار</h3>
@@ -557,13 +449,14 @@
 
         <!-- OPERATIONS TRACKER MAIN WRAPPER -->
         <div id="operationsMainWrapper">
+            <!-- Professional Trend / Line Analysis Card -->
             <div class="total-points-card" id="totalPointsCard">
-                <div class="icon-container">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
-                </div>
-                <div>
-                    <h3 id="lblGrandTotalTitle">کۆی گشتی پۆینتەکانی ئەمڕۆ</h3>
+                <div class="trend-header-row">
+                    <h3 id="lblGrandTotalTitle">جۆرەکان و کۆی گشتی ئەمڕۆ</h3>
                     <span id="grandTotalPoints" class="counter">0</span>
+                </div>
+                <div class="trend-chart-container">
+                    <canvas id="trendChartCanvas"></canvas>
                 </div>
             </div>
 
@@ -785,7 +678,6 @@
         const db = firebase.database();
         const auth = firebase.auth();
 
-        // Account & Auth Management System
         let currentUserAccount = JSON.parse(localStorage.getItem('bim_chat_user')) || null;
 
         function switchAuthTab(tab) {
@@ -811,7 +703,6 @@
 
             auth.onAuthStateChanged((user) => {
                 if (user) {
-                    // Logged in with Firebase Auth
                     document.getElementById('accountModalOverlay').style.display = 'none';
                     if (!currentUserAccount) {
                         currentUserAccount = { name: user.displayName || user.email.split('@')[0], team: document.getElementById('teamSelect').value || allTeams[0], email: user.email };
@@ -882,7 +773,7 @@
         }
 
         function bypassAuthAsGuest() {
-            currentUserAccount = { name: "میوان (Guest)", team: lfdTeams[0] || "Team 16" };
+            currentUserAccount = { name: "میوان", team: "Guest" };
             localStorage.setItem('bim_chat_user', JSON.stringify(currentUserAccount));
             document.getElementById('accountModalOverlay').style.display = 'none';
             updateChatUserDisplay();
@@ -891,7 +782,8 @@
 
         function updateChatUserDisplay() {
             if (currentUserAccount) {
-                document.getElementById('chatUserInfoDisplay').innerText = `👤 ${currentUserAccount.name} (${currentUserAccount.team})`;
+                let displayName = currentUserAccount.name === "میوان" ? "میوان" : `${currentUserAccount.name} (${currentUserAccount.team})`;
+                document.getElementById('chatUserInfoDisplay').innerText = `👤 ${displayName}`;
             }
         }
 
@@ -929,8 +821,7 @@
             let manifestData = {
                 "name": "BIM Operations Management", "short_name": "BIM Operations",
                 "start_url": window.location.href, "display": "standalone",
-                "background_color": "#090d16", "theme_color": "#090d16",
-                "icons": []
+                "background_color": "#090d16", "theme_color": "#090d16", "icons": []
             };
             let stringManifest = JSON.stringify(manifestData);
             let blob = new Blob([stringManifest], {type: 'application/json'});
@@ -947,11 +838,9 @@
         function installPwaApp() {
             if (deferredPrompt) {
                 deferredPrompt.prompt();
-                deferredPrompt.userChoice.then((choiceResult) => {
-                    deferredPrompt = null;
-                });
+                deferredPrompt.userChoice.then((choiceResult) => { deferredPrompt = null; });
             } else {
-                alert("بۆ دامەزراندنی ئەپەکە لە مۆبایلەکەت، دەتوانیت لە ڕێگەی مێنوی بڕۆزەرەوە (سێ خاڵەکەی سەرەوە) کرتە لەسەر (Add to Home Screen) یان (Install App) بکەیت!");
+                alert("بۆ دامەزراندنی ئەپەکە، دەتوانیت لە ڕێگەی مێنوی بڕۆزەرەوە (Add to Home Screen) هەڵبژێریت!");
             }
         }
 
@@ -994,6 +883,7 @@
         let auditSyncRef = null;
         let chatSyncRef = null;
         let myChart = null;
+        let trendChartInstance = null;
         let previousBroadcast = null;
         let mapInstance = null;
 
@@ -1085,7 +975,6 @@
             }
         }
 
-        // Open Audit Log Modal Function (Shows who submitted points and with which team in log)
         function openAuditLogModal() {
             let content = Object.keys(auditLogsStore).map(k => {
                 let log = auditLogsStore[k];
@@ -1096,7 +985,7 @@
             }).join('') || `<p style="text-align:center; opacity:0.6;">هیچ لۆگێک نییە</p>`;
 
             let win = window.open("", "_blank", "width=450,height=600");
-            win.document.write(`<html dir="rtl"><head><title>Audit Logs</title><style>body{background:#090d16;color:#fff;font-family:sans-serif;padding:15px;}</style></head><body><h3>📋 مێژووی لۆگی چالاکییەکان (کێ پۆینتی ناردووە)</h3>${content}</body></html>`);
+            win.document.write(`<html dir="rtl"><head><title>Audit Logs</title><style>body{background:#090d16;color:#fff;font-family:sans-serif;padding:15px;}</style></head><body><h3>📋 مێژووی لۆگی چالاکییەکان</h3>${content}</body></html>`);
         }
 
         function openLiveMapModal() {
@@ -1139,7 +1028,7 @@
 
         const translations = {
             ku: {
-                dir: "rtl", subHeader: "سیستمی بەڕێوەبردنی ئامار", grandTotalTitle: "کۆی گشتی پۆینتەکانی ئەمڕۆ",
+                dir: "rtl", subHeader: "سیستمی بەڕێوەبردنی ئامار", grandTotalTitle: "جۆرەکان و کۆی گشتی ئەمڕۆ",
                 adminTitle: "بەشی بەڕێوەبەر و ناردنی فایل", historyDate: "دیاریکردنی بەروار:",
                 fAll: "هەموو", fAchieved: "گەیشتوو (≥7)", fMissed: "نەگەیشتوو (<7)", fOffday: "پشوو",
                 excelAdmin: "Excel (ڕۆژانە)", excelMonthly: "Excel (مانگانە)", pdfAdmin: "PDF", clearCloud: "سڕینەوە",
@@ -1155,7 +1044,7 @@
                 teamFileTitle: "فایلی نەخشە / ڕێنمایی:", btnDownloadFileText: "داگرتنی فایلی تیمەکەم"
             },
             en: {
-                dir: "ltr", subHeader: "Operations Management", grandTotalTitle: "Today's Grand Total Points",
+                dir: "ltr", subHeader: "Operations Management", grandTotalTitle: "Today's Trend & Total",
                 adminTitle: "Admin Panel & File Dispatch", historyDate: "Select Date:",
                 fAll: "All", fAchieved: "Target Met", fMissed: "Target Missed", fOffday: "Off-Day",
                 excelAdmin: "Excel (Daily)", excelMonthly: "Excel (Monthly)", pdfAdmin: "PDF", clearCloud: "Clear",
@@ -1171,7 +1060,7 @@
                 teamFileTitle: "Team Specific Map:", btnDownloadFileText: "Download My Team File"
             },
             ar: {
-                dir: "rtl", subHeader: "إدارة العمليات", grandTotalTitle: "إجمالي النقاط الكلي اليوم",
+                dir: "rtl", subHeader: "إدارة العمليات", grandTotalTitle: "اتجاه الحالات والإجمالي اليوم",
                 adminTitle: "لوحة التحكم وإرسال الملفات", historyDate: "تحديد التاريخ:",
                 fAll: "الكل", fAchieved: "حقق الهدف", fMissed: "لم يحقق", fOffday: "إجازة",
                 excelAdmin: "إكسل (يومي)", excelMonthly: "إكسل (شهري)", pdfAdmin: "PDF", clearCloud: "مسح",
@@ -1194,8 +1083,6 @@
             document.getElementById('tabMoveIn').classList.remove('active');
             document.getElementById('tabChat').classList.remove('active');
             
-            let card = document.getElementById('totalPointsCard');
-            let btnSubmit = document.getElementById('btnSave');
             let mainWrapper = document.getElementById('operationsMainWrapper');
             let chatContainer = document.getElementById('chatSectionContainer');
 
@@ -1212,12 +1099,8 @@
 
             if (sec === 'lfd') {
                 document.getElementById('tabLFD').classList.add('active');
-                card.classList.remove('movein-theme');
-                btnSubmit.classList.remove('movein-theme');
             } else {
                 document.getElementById('tabMoveIn').classList.add('active');
-                card.classList.add('movein-theme');
-                btnSubmit.classList.add('movein-theme');
             }
             renderCasesGrid();
             populateTeamDropdown();
@@ -1225,7 +1108,6 @@
             render();
         }
 
-        // Chat Functions
         function sendChatMessage() {
             let input = document.getElementById('chatMessageInput');
             let text = input.value.trim();
@@ -1241,16 +1123,14 @@
                 timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
                 date: todayFormatted
             };
-            db.ref('chat_messages').push(chatObj).then(() => {
-                input.value = '';
-            });
+            db.ref('chat_messages').push(chatObj).then(() => { input.value = ''; });
         }
 
         function renderChatMessages() {
             let area = document.getElementById('chatMessagesArea');
             let keys = Object.keys(chatMessagesStore);
             if (keys.length === 0) {
-                area.innerHTML = `<p style="text-align:center; opacity:0.6; margin-top: 20px; font-size: 11px;">هیچ پەیامێک لە چاتدا نییە. گفتوگۆ دەست پێبکە!</p>`;
+                area.innerHTML = `<p style="text-align:center; opacity:0.6; margin-top: 20px; font-size: 11px;">هیچ پەیامێک لە چاتدا نییە.</p>`;
                 return;
             }
             let html = '';
@@ -1517,20 +1397,8 @@
             }
         }
 
-        window.addEventListener('online', () => {
-            showNotification("هێڵی ئینتەرنێت گەڕایەوە، داتاکان سینک دەکرێنەوە...", "success");
-            let pendingOffline = localStorage.getItem('pending_offline_save');
-            if (pendingOffline) {
-                let parsed = JSON.parse(pendingOffline);
-                db.ref(getStorageKeyPath() + '/' + parsed.uniqueKey).set(parsed.teamData).then(() => {
-                    localStorage.removeItem('pending_offline_save');
-                });
-            }
-        });
-
-        window.addEventListener('offline', () => {
-            showNotification("ئاگاداری: ئینتەرنێت پچڕا، داتاکانت لە ناوخۆدا پاشەکەوت دەبن.", "error");
-        });
+        window.addEventListener('online', () => { showNotification("هێڵی ئینتەرنێت گەڕایەوە", "success"); });
+        window.addEventListener('offline', () => { showNotification("ئاگاداری: ئینتەرنێت پچڕا", "error"); });
 
         function checkTeamFile(teamName) {
             let downloadBox = document.getElementById('teamFileDownloadBox');
@@ -1694,113 +1562,73 @@
                     "Other Team": parseInt(document.getElementById('c_other_team')?.value) || 0
                 };
             }
-            return {};
         }
 
-        function getUniqueTeamKey(teamName, section) {
-            return `${section}_${teamName.replace(/[\.#$\/\[\]]/g, "_")}`;
+        function fillInputsWithDetails(details, notes = "", offday = false) {
+            if (!details) return;
+            document.getElementById('c_offday').checked = offday;
+            document.getElementById('c_notes').value = notes || "";
+            if (currentSection === 'lfd') {
+                if(document.getElementById('c_paid')) document.getElementById('c_paid').value = details.Paid || 0;
+                if(document.getElementById('c_disc')) document.getElementById('c_disc').value = details.Disconnected || 0;
+                if(document.getElementById('c_reconn')) document.getElementById('c_reconn').value = details.Reconnected || 0;
+                if(document.getElementById('c_special')) document.getElementById('c_special').value = details.Special || 0;
+                if(document.getElementById('c_dist')) document.getElementById('c_dist').value = details.Distributed || 0;
+                if(document.getElementById('c_inaccess')) document.getElementById('c_inaccess').value = details.Inaccessible || 0;
+                if(document.getElementById('c_other')) document.getElementById('c_other').value = details.Other || 0;
+                if(document.getElementById('c_notfound')) document.getElementById('c_notfound').value = details.NotFound || 0;
+                if(document.getElementById('c_denied')) document.getElementById('c_denied').value = details.Denied || 0;
+            } else if (currentSection === 'movein') {
+                if(document.getElementById('c_inst_meter')) document.getElementById('c_inst_meter').value = details["Inst. Meter"] || 0;
+                if(document.getElementById('c_inst_encl')) document.getElementById('c_inst_encl').value = details["Inst. Encl"] || 0;
+                if(document.getElementById('c_inst_3p')) document.getElementById('c_inst_3p').value = details["3P Encl"] || 0;
+                if(document.getElementById('c_bim_team')) document.getElementById('c_bim_team').value = details["BIM Team"] || 0;
+                if(document.getElementById('c_other_team')) document.getElementById('c_other_team').value = details["Other Team"] || 0;
+            }
         }
 
         function saveDraftStateLocally() {
             let t = document.getElementById('teamSelect').value;
-            if (!t) return;
+            if(!t) return;
             let details = getDetailsFromInputs();
-            let notes = document.getElementById('c_notes')?.value || '';
-            let offday = document.getElementById('c_offday')?.checked || false;
-            localStorage.setItem(`draft_${currentSection}_${t}`, JSON.stringify({ details, notes, offday }));
+            let offday = document.getElementById('c_offday').checked;
+            let notes = document.getElementById('c_notes').value;
+            let total = Object.values(details).reduce((a,b)=>a+b, 0);
+            let draft = { teamName: t, section: currentSection, details, total, offday, notes };
+            localStorage.setItem(`bim_draft_${currentSection}_${t}`, JSON.stringify(draft));
         }
 
         function loadTeamData() {
             let t = document.getElementById('teamSelect').value;
-            localStorage.setItem('bim_selected_team', t);
-            let targetsBox = document.getElementById('teamTargetsBox');
-            let historyBtn = document.getElementById('btnTeamHistory');
-            
-            if (t) {
-                targetsBox.style.display = 'grid';
-                historyBtn.style.display = 'flex';
-                document.getElementById('targetDailyVal').innerText = DAILY_TARGET;
-                document.getElementById('targetWeeklyVal').innerText = WEEKLY_TARGET;
-                document.getElementById('targetMonthlyVal').innerText = MONTHLY_TARGET;
-                checkTeamFile(t);
-                checkPrivateMessage(t);
-
-                let teamRecord = cloudStore[getUniqueTeamKey(t, currentSection)];
-                let draftSaved = localStorage.getItem(`draft_${currentSection}_${t}`);
-                if (teamRecord && teamRecord.details) {
-                    fillInputsWithDetails(teamRecord.details, teamRecord.notes, teamRecord.offday);
-                } else if (draftSaved) {
-                    let parsedDraft = JSON.parse(draftSaved);
-                    fillInputsWithDetails(parsedDraft.details, parsedDraft.notes, parsedDraft.offday);
-                } else {
-                    resetInputsLocally();
-                }
-            } else {
-                targetsBox.style.display = 'none';
-                historyBtn.style.display = 'none';
-                document.getElementById('teamPrivateMsgBox').style.display = 'none';
-                resetInputsLocally();
-            }
-        }
-
-        function fillInputsWithDetails(d, notes, offday) {
-            if (currentSection === 'lfd') {
-                if(document.getElementById('c_paid')) document.getElementById('c_paid').value = d.Paid || d.paid || 0;
-                if(document.getElementById('c_disc')) document.getElementById('c_disc').value = d.Disconnected || d.disc || 0;
-                if(document.getElementById('c_reconn')) document.getElementById('c_reconn').value = d.Reconnected || d.reconn || 0;
-                if(document.getElementById('c_special')) document.getElementById('c_special').value = d.Special || d.special || 0;
-                if(document.getElementById('c_dist')) document.getElementById('c_dist').value = d.Distributed || d.dist || 0;
-                if(document.getElementById('c_inaccess')) document.getElementById('c_inaccess').value = d.Inaccessible || d.inaccess || 0;
-                if(document.getElementById('c_other')) document.getElementById('c_other').value = d.Other || d.closed || 0;
-                if(document.getElementById('c_notfound')) document.getElementById('c_notfound').value = d.NotFound || d.notfound || 0;
-                if(document.getElementById('c_denied')) document.getElementById('c_denied').value = d.Denied || d.denied || 0;
-            } else if (currentSection === 'movein') {
-                if(document.getElementById('c_inst_meter')) document.getElementById('c_inst_meter').value = d["Inst. Meter"] || d.inst_meter || 0;
-                if(document.getElementById('c_inst_encl')) document.getElementById('c_inst_encl').value = d["Inst. Encl"] || d.inst_encl || 0;
-                if(document.getElementById('c_inst_3p')) document.getElementById('c_inst_3p').value = d["3P Encl"] || d.inst_3p || 0;
-                if(document.getElementById('c_bim_team')) document.getElementById('c_bim_team').value = d["BIM Team"] || d.bim_team || 0;
-                if(document.getElementById('c_other_team')) document.getElementById('c_other_team').value = d["Other Team"] || d.other_team || 0;
-            }
-            if(document.getElementById('c_notes')) document.getElementById('c_notes').value = notes || '';
-            if(document.getElementById('c_offday')) document.getElementById('c_offday').checked = offday || false;
-        }
-
-        function resetInputsLocally() {
-            document.querySelectorAll('.cases-grid input').forEach(inp => inp.value = 0);
-            if(document.getElementById('c_notes')) document.getElementById('c_notes').value = '';
-            if(document.getElementById('c_offday')) document.getElementById('c_offday').checked = false;
-            document.getElementById('teamFileDownloadBox').style.display = 'none';
-        }
-
-        function openTeamHistoryModal() {
-            let t = document.getElementById('teamSelect').value;
             if (!t) return;
+            checkTeamFile(t);
+            checkPrivateMessage(t);
+            document.getElementById('teamTargetsBox').style.display = 'grid';
+            document.getElementById('btnTeamHistory').style.display = 'flex';
+
             let uniqueKey = getUniqueTeamKey(t, currentSection);
-            let container = document.getElementById('historyContentList');
-            let html = `<table style="width:100%; border-collapse:collapse; text-align:center;">
-                <tr style="background:rgba(255,255,255,0.05); font-size:10px;">
-                    <th style="padding:6px;">بەروار</th><th style="padding:6px;">کۆی گشتی</th><th style="padding:6px;">دۆخ</th>
-                </tr>`;
-            let foundAny = false;
-            for (let i = 0; i < 7; i++) {
-                let d = new Date();
-                d.setDate(d.getDate() - i);
-                let dateStr = d.toISOString().split('T')[0];
-                let dayKey = dateStr.replace(/[\.#$\/\[\]]/g, "_");
-                let dayData = allDaysStore[dayKey];
-                let teamDayRecord = dayData ? dayData[uniqueKey] : null;
-                let totalVal = teamDayRecord ? teamDayRecord.total : "-";
-                let statusVal = teamDayRecord?.offday ? "پشوو" : (teamDayRecord?.submitted ? "نێردراوە" : "نەبووە");
-                html += `<tr style="border-bottom:1px solid var(--border-color); font-size:10px;">
-                    <td style="padding:6px;">${dateStr}</td><td style="padding:6px; font-weight:bold;">${totalVal}</td><td style="padding:6px;">${statusVal}</td>
-                </tr>`;
-                if (teamDayRecord) foundAny = true;
+            let record = cloudStore[uniqueKey];
+            if (record) {
+                fillInputsWithDetails(record.details, record.notes, record.offday);
+            } else {
+                let localDraft = localStorage.getItem(`bim_draft_${currentSection}_${t}`);
+                if (localDraft) {
+                    let d = JSON.parse(localDraft);
+                    fillInputsWithDetails(d.details, d.notes, d.offday);
+                } else {
+                    resetInputsToZero();
+                }
             }
-            html += `</table>`;
-            if (!foundAny) html = `<p style="text-align:center; opacity:0.7;">هیچ زانیارییەک نەدۆزرایەوە.</p>`;
-            container.innerHTML = html;
-            document.getElementById('historyModalOverlay').style.display = 'flex';
         }
+
+        function resetInputsToZero() {
+            document.getElementById('c_offday').checked = false;
+            document.getElementById('c_notes').value = '';
+            let inputs = document.querySelectorAll('.cases-grid input');
+            inputs.forEach(inp => inp.value = 0);
+        }
+
+        function getUniqueTeamKey(teamName, sec) { return `${sec}_${teamName}`.replace(/[\.#$\/\[\]]/g, "_"); }
 
         async function promptPinAndSave() {
             let lang = document.getElementById('langSelect').value;
@@ -1808,237 +1636,288 @@
             if (!t) return alert(translations[lang].selectTeamAlert);
 
             let teamNumMatch = t.match(/\d+/);
-            if (!teamNumMatch) { saveReportData(t); return; }
+            if (!teamNumMatch) { saveReportDataFinal(); return; }
             let numStr = teamNumMatch[0];
             let expectedPin = (numStr === "88") ? "888" : (numStr + numStr);
 
-            let enteredPin = await showCustomModal("پین کۆدی تیم", `تکایە پین کۆدی (${t}) بنووسە بۆ ناردنی ڕاپۆرت:`, true);
+            let enteredPin = await showCustomModal("پین کۆدی تیم", `تکایە پین کۆدی (${t}) بنووسە:`, true);
             if (enteredPin === false || enteredPin === null) return;
             if (enteredPin.trim() === expectedPin) {
-                saveReportData(t);
+                saveReportDataFinal();
             } else {
                 alert(translations[lang].wrongPin);
             }
         }
 
-        function saveReportData(teamName) {
+        function saveReportDataFinal() {
             let lang = document.getElementById('langSelect').value;
+            let t = document.getElementById('teamSelect').value;
             let details = getDetailsFromInputs();
-            let notes = document.getElementById('c_notes')?.value || '';
-            let offday = document.getElementById('c_offday')?.checked || false;
+            let offday = document.getElementById('c_offday').checked;
+            let notes = document.getElementById('c_notes').value;
+            let total = Object.values(details).reduce((a, b) => a + b, 0);
 
-            let total = 0;
-            if (!offday) {
-                Object.values(details).forEach(val => total += val);
-            }
-
-            let uniqueKey = getUniqueTeamKey(teamName, currentSection);
             let teamData = {
-                teamName: teamName,
+                teamName: t,
                 section: currentSection,
                 details: details,
                 total: total,
-                notes: notes,
                 offday: offday,
-                submitted: true,
+                notes: notes,
                 timestamp: new Date().toLocaleTimeString()
             };
 
-            let auditObj = {
-                username: currentUserAccount ? currentUserAccount.name : 'نەناسراو',
-                teamName: teamName,
-                section: currentSection,
-                action: `ناردنی ئامار (${total} خاڵ)`,
-                timestamp: new Date().toLocaleString()
-            };
-
+            let uniqueKey = getUniqueTeamKey(t, currentSection);
             db.ref(getStorageKeyPath() + '/' + uniqueKey).set(teamData).then(() => {
-                db.ref('audit_logs').push(auditObj);
                 showToast(translations[lang].toastSaved);
-                localStorage.removeItem(`draft_${currentSection}_${teamName}`);
-            }).catch(err => {
-                localStorage.setItem('pending_offline_save', JSON.stringify({ uniqueKey, teamData }));
-                showNotification("پەیوەندی ئینتەرنێت نییە، لە ناوخۆدا پاشەکەوت کرا و کاتێک ئینتەرنێت هات دەنێردرێت.", "error");
-            });
-        }
-
-        function adminClearData() {
-            let lang = document.getElementById('langSelect').value;
-            if (confirm(translations[lang].clearConfirm)) {
-                db.ref(getStorageKeyPath()).remove().then(() => {
-                    showToast(translations[lang].clearedToast);
-                });
-            }
-        }
-
-        function shareToWhatsApp() {
-            let teamsList = currentSection === 'lfd' ? lfdTeams : moveInTeams;
-            let text = `📊 *ڕاپۆرتی گشتی BIM Operations (${currentSection.toUpperCase()})* - ${selectedAdminDate}\n\n`;
-            let grandTotal = 0;
-            teamsList.forEach(t => {
-                let rec = cloudStore[getUniqueTeamKey(t, currentSection)];
-                let tot = rec ? (rec.total || 0) : 0;
-                grandTotal += tot;
-                let status = rec?.offday ? " (پشوو)" : ` (${tot} خاڵ)`;
-                text += `• ${t}: ${status}\n`;
-            });
-            text += `\n🏆 *کۆی گشتی: ${grandTotal}*`;
-            window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, '_blank');
-        }
-
-        function shareMyTeamToWhatsApp() {
-            let t = document.getElementById('teamSelect').value;
-            if (!t) return alert("تکایە تیمێک هەڵبژێرە!");
-            let rec = cloudStore[getUniqueTeamKey(t, currentSection)];
-            let text = `📊 *ڕاپۆرتی تیمی ${t} (${currentSection.toUpperCase()})* - ${selectedAdminDate}\n\n`;
-            if (rec && rec.details) {
-                Object.keys(rec.details).forEach(k => {
-                    text += `• ${k}: ${rec.details[k]}\n`;
-                });
-                text += `\n📌 *کۆی گشتی: ${rec.total || 0}*`;
-                if (rec.notes) text += `\n💬 تێبینی: ${rec.notes}`;
-            } else {
-                text += `هیچ داتایەک نەدۆزرایەوە بۆ ئەمڕۆ.`;
-            }
-            window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, '_blank');
-        }
-
-        function exportAsImage() {
-            showToast("بۆ دەرهێنانی وێنە، دەتوانیت سکرینشۆت بگریت یان PDF بەکاربهێنیت.");
-        }
-
-        function adminExportExcel(type) {
-            let teamsList = currentSection === 'lfd' ? lfdTeams : moveInTeams;
-            let csv = "Team,Total,OffDay,Notes\n";
-            teamsList.forEach(t => {
-                let rec = cloudStore[getUniqueTeamKey(t, currentSection)];
-                let tot = rec ? (rec.total || 0) : 0;
-                let off = rec?.offday ? "Yes" : "No";
-                let notes = rec?.notes ? `"${rec.notes.replace(/"/g, '""')}"` : '""';
-                csv += `${t},${tot},${off},${notes}\n`;
-            });
-            let blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' });
-            let link = document.createElement("a");
-            link.href = URL.createObjectURL(blob);
-            link.download = `BIM_Report_${currentSection}_${selectedAdminDate}.csv`;
-            link.click();
-        }
-
-        function render() {
-            let teamsList = currentSection === 'lfd' ? lfdTeams : moveInTeams;
-            let grandTotal = 0;
-            let submittedCount = 0;
-            let leaderboardHtml = "";
-            let chartLabels = [];
-            let chartDataValues = [];
-
-            let filteredTeams = teamsList.filter(t => {
-                let rec = cloudStore[getUniqueTeamKey(t, currentSection)];
-                let tot = rec ? (rec.total || 0) : 0;
-                let isOff = rec ? (rec.offday || false) : false;
-                let isAchieved = tot >= DAILY_TARGET;
-
-                if (currentFilter === 'achieved') return isAchieved && !isOff;
-                if (currentFilter === 'missed') return !isAchieved && !isOff;
-                if (currentFilter === 'offday') return isOff;
-                return true;
-            });
-
-            // Sort teams by total points descending for leaderboard
-            let sortedTeamsForLeaderboard = [...teamsList].sort((a, b) => {
-                let recA = cloudStore[getUniqueTeamKey(a, currentSection)];
-                let recB = cloudStore[getUniqueTeamKey(b, currentSection)];
-                return (recB?.total || 0) - (recA?.total || 0);
-            });
-
-            sortedTeamsForLeaderboard.forEach((t, index) => {
-                let rec = cloudStore[getUniqueTeamKey(t, currentSection)];
-                let tot = rec ? (rec.total || 0) : 0;
-                let isOff = rec ? (rec.offday || false) : false;
-                let notes = rec ? (rec.notes || '') : '';
-                if (rec && (rec.submitted || tot > 0 || isOff)) submittedCount++;
-                if (!isOff) grandTotal += tot;
-
-                chartLabels.push(t);
-                chartDataValues.push(tot);
-
-                let rankClass = index === 0 ? 'rank-1' : (index === 1 ? 'rank-2' : (index === 2 ? 'rank-3' : 'rank-other'));
+                localStorage.removeItem(`bim_draft_${currentSection}_${t}`);
                 
-                // Check if team matches filter or display all in leaderboard
-                let isAchieved = tot >= DAILY_TARGET;
-                let matchesFilter = true;
-                if (currentFilter === 'achieved') matchesFilter = isAchieved && !isOff;
-                if (currentFilter === 'missed') matchesFilter = !isAchieved && !isOff;
-                if (currentFilter === 'offday') matchesFilter = isOff;
+                let auditObj = {
+                    username: currentUserAccount ? currentUserAccount.name : 'نەناسراو',
+                    teamName: t,
+                    section: currentSection,
+                    action: `ناردنی ڕاپۆرت (${total} پۆینت)`,
+                    timestamp: new Date().toLocaleString()
+                };
+                db.ref('audit_logs').push(auditObj);
+            }).catch(err => {
+                let offlineObj = { uniqueKey, teamData };
+                localStorage.setItem('pending_offline_save', JSON.stringify(offlineObj));
+                showNotification("ئینتەرنێت نییە، لە ناوخۆدا پاشەکەوت کرا و کاتێک هێڵ هات دەنێردرێت.", "error");
+            });
+        }
 
-                if (matchesFilter) {
-                    leaderboardHtml += `
-                        <div class="leaderboard-item">
-                            <div class="leaderboard-row-top">
-                                <div>
-                                    <span class="rank-badge ${rankClass}">${index + 1}</span>
-                                    <b>${t}</b> ${isOff ? '<span style="color:#f59e0b;">(پشوو)</span>' : ''}
-                                </div>
-                                <div style="color: var(--primary); font-weight: bold;">${tot} خاڵ</div>
+        function openTeamHistoryModal() {
+            let t = document.getElementById('teamSelect').value;
+            if (!t) return;
+            let listDiv = document.getElementById('historyContentList');
+            let html = '';
+            let dates = Object.keys(allDaysStore).sort().reverse();
+            let foundCount = 0;
+
+            dates.forEach(dateKey => {
+                let dayData = allDaysStore[dateKey];
+                let uniqueKey = getUniqueTeamKey(t, currentSection);
+                if (dayData && dayData[uniqueKey]) {
+                    let record = dayData[uniqueKey];
+                    foundCount++;
+                    html += `
+                        <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--border-color); padding: 8px; border-radius: 8px; margin-bottom: 6px;">
+                            <div style="display: flex; justify-content: space-between; color: var(--primary); font-weight: bold;">
+                                <span>📅 ${dateKey}</span>
+                                <span>Total: ${record.total}</span>
                             </div>
-                            ${notes ? `<div class="leaderboard-reason">💬 ${notes}</div>` : ''}
+                            <div style="font-size: 10px; opacity: 0.8; margin-top: 2px;">
+                                ${record.offday ? '<b>پشوو / مۆڵەت</b>' : JSON.stringify(record.details)}
+                            </div>
                         </div>
                     `;
                 }
             });
 
-            document.getElementById('grandTotalPoints').innerText = grandTotal;
-            document.getElementById('adminSectionTotal').innerText = `Total: ${grandTotal}`;
-            document.getElementById('leaderboardContainer').innerHTML = leaderboardHtml || `<p style="text-align:center; opacity:0.6; padding: 10px;">هیچ تیمێک نەدۆزرایەوە</p>`;
+            if (foundCount === 0) html = `<p style="text-align:center; opacity:0.6;">هیچ مێژوویەک نەدۆزرایەوە.</p>`;
+            listDiv.innerHTML = html;
+            document.getElementById('historyModalOverlay').style.display = 'flex';
+        }
 
-            let progressPercent = teamsList.length > 0 ? Math.round((submittedCount / teamsList.length) * 100) : 0;
-            document.getElementById('progressBar').style.width = progressPercent + '%';
-            let lang = document.getElementById('langSelect').value;
-            document.getElementById('progressText').innerText = translations[lang].progressText + progressPercent + '%';
+        // Updated Share My Team to WhatsApp (Shows ONLY achieved cases for that team)
+        function shareMyTeamToWhatsApp() {
+            let t = document.getElementById('teamSelect').value;
+            if (!t) return alert("تکایە سەرەتا تیمێک هەڵبژێرە!");
+            let uniqueKey = getUniqueTeamKey(t, currentSection);
+            let record = cloudStore[uniqueKey];
+            if (!record) return alert("هیچ ڕاپۆرتێک بۆ ئەم تیمە نییە ئەمڕۆ!");
 
-            // Update Chart
-            let ctx = document.getElementById('statsChart')?.getContext('2d');
-            if (ctx) {
-                if (myChart) myChart.destroy();
-                myChart = new Chart(ctx, {
-                    type: 'bar',
-                    data: {
-                        labels: chartLabels,
-                        datasets: [{
-                            label: 'خاڵەکان',
-                            data: chartDataValues,
-                            backgroundColor: '#38bdf8',
-                            borderRadius: 4
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: { legend: { display: false } },
-                        scales: {
-                            x: { ticks: { color: '#f8fafc', font: { size: 9 } }, grid: { display: false } },
-                            y: { ticks: { color: '#f8fafc', font: { size: 9 } }, grid: { color: 'rgba(255,255,255,0.05)' } }
-                        }
-                    }
-                });
+            let detailsStr = Object.keys(record.details)
+                .filter(k => record.details[k] > 0)
+                .map(k => `▫️ ${k}: *${record.details[k]}*`)
+                .join('\n');
+
+            let text = `📊 *ڕاپۆرتی تیمی (${t})*\n` +
+                       `📌 بەش: ${currentSection.toUpperCase()}\n` +
+                       `━━━━━━━━━━━━━━━\n` +
+                       (record.offday ? `🏖️ دۆخ: مۆڵەت / پشوو\n` : detailsStr + `\n━━━━━━━━━━━━━━━\n⭐ *کۆی گشتی: ${record.total}*`) +
+                       (record.notes ? `\n⚠️ تێبینی: ${record.notes}` : '') +
+                       `\n📅 بەروار: ${selectedAdminDate}`;
+
+            window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, '_blank');
+        }
+
+        // Updated General Share to WhatsApp (NO TEAM NAMES, ONLY CASE TYPES AND TOTALS)
+        function shareToWhatsApp() {
+            let teamsList = currentSection === 'lfd' ? lfdTeams : moveInTeams;
+            let grandTotal = 0;
+            let aggDetails = {};
+
+            teamsList.forEach(t => {
+                let uniqueKey = getUniqueTeamKey(t, currentSection);
+                let record = cloudStore[uniqueKey];
+                if (record && !record.offday && record.details) {
+                    grandTotal += record.total || 0;
+                    Object.keys(record.details).forEach(k => {
+                        aggDetails[k] = (aggDetails[k] || 0) + (record.details[k] || 0);
+                    });
+                }
+            });
+
+            let detailsStr = Object.keys(aggDetails)
+                .map(k => `▫️ ${k}: *${aggDetails[k]}*`)
+                .join('\n');
+
+            let text = `📊 *تۆتەڵی گشتی ئامارەکانی ئەمڕۆ*\n` +
+                       `📌 بەش: ${currentSection.toUpperCase()}\n` +
+                       `━━━━━━━━━━━━━━━\n` +
+                       detailsStr + `\n` +
+                       `━━━━━━━━━━━━━━━\n` +
+                       `⭐ *کۆی گشتی کامڵ: ${grandTotal}*\n` +
+                       `📅 بەروار: ${selectedAdminDate}`;
+
+            window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, '_blank');
+        }
+
+        function exportAsImage() {
+            window.print();
+        }
+
+        function adminExportExcel(type) {
+            let csv = "Team,Section,Total,OffDay,Notes,Date\n";
+            let teamsList = currentSection === 'lfd' ? lfdTeams : moveInTeams;
+            teamsList.forEach(t => {
+                let uniqueKey = getUniqueTeamKey(t, currentSection);
+                let record = cloudStore[uniqueKey];
+                if (record) {
+                    csv += `${t},${currentSection},${record.total},${record.offday?'Yes':'No'},"${record.notes||''}",${selectedAdminDate}\n`;
+                }
+            });
+            let blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' });
+            let link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.download = `Report_${currentSection}_${selectedAdminDate}.csv`;
+            link.click();
+        }
+
+        function adminClearData() {
+            if (confirm("دڵنیای لە سڕینەوەی داتاکانی ئەم ڕۆژە؟")) {
+                db.ref(getStorageKeyPath()).remove().then(() => { showToast("سڕایەوە"); });
             }
         }
 
+        function render() {
+            let container = document.getElementById('leaderboardContainer');
+            let teamsList = currentSection === 'lfd' ? lfdTeams : moveInTeams;
+            let filteredTeams = [];
+            let totalSubmittedCount = 0;
+            let sectionGrandTotal = 0;
+            let aggDetails = {};
+
+            teamsList.forEach(t => {
+                let uniqueKey = getUniqueTeamKey(t, currentSection);
+                let record = cloudStore[uniqueKey];
+                let isOff = record ? record.offday : false;
+                let tot = record ? (record.total || 0) : 0;
+
+                if (record) totalSubmittedCount++;
+                if (record && !isOff) {
+                    sectionGrandTotal += tot;
+                    Object.keys(record.details || {}).forEach(k => {
+                        aggDetails[k] = (aggDetails[k] || 0) + (record.details[k] || 0);
+                    });
+                }
+
+                let match = false;
+                if (currentFilter === 'all') match = true;
+                else if (currentFilter === 'achieved') match = (record && !isOff && tot >= DAILY_TARGET);
+                else if (currentFilter === 'missed') match = (record && !isOff && tot < DAILY_TARGET);
+                else if (currentFilter === 'offday') match = (record && isOff);
+
+                if (match) filteredTeams.push({ teamName: t, record, total: tot, offday: isOff });
+            });
+
+            // Update Trend / Line Chart and Grand Total
+            document.getElementById('grandTotalPoints').innerText = sectionGrandTotal;
+            updateTrendChart(aggDetails);
+
+            filteredTeams.sort((a, b) => b.total - a.total);
+
+            let html = '';
+            filteredTeams.forEach((item, index) => {
+                let rClass = index === 0 ? 'rank-1' : (index === 1 ? 'rank-2' : (index === 2 ? 'rank-3' : 'rank-other'));
+                let badge = `<span class="rank-badge ${rClass}">${index + 1}</span>`;
+                let detailsText = item.record && item.record.details ? JSON.stringify(item.record.details) : 'هیچ نییە';
+                let notesText = item.record && item.record.notes ? `<div class="leaderboard-reason">⚠️ ${item.record.notes}</div>` : '';
+
+                html += `
+                    <div class="leaderboard-item">
+                        <div class="leaderboard-row-top">
+                            <div style="display: flex; align-items: center; font-weight: bold;">
+                                ${badge} ${item.teamName}
+                            </div>
+                            <div style="font-weight: bold; color: ${item.offday ? '#f59e0b' : 'var(--primary)'};">
+                                ${item.offday ? '🏖️ پشوو' : `Total: ${item.total}`}
+                            </div>
+                        </div>
+                        <div style="font-size: 10px; opacity: 0.7; margin-top: 2px;">
+                            ${item.offday ? 'مۆڵەت / پشوو' : detailsText}
+                        </div>
+                        ${notesText}
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html || `<p style="text-align:center; opacity:0.6; padding:10px;">هیچ تیمێک نەدۆزرایەوە</p>`;
+            document.getElementById('adminSectionTotal').innerText = `Total: ${sectionGrandTotal}`;
+
+            let percent = teamsList.length > 0 ? Math.round((totalSubmittedCount / teamsList.length) * 100) : 0;
+            document.getElementById('progressBar').style.width = percent + '%';
+            document.getElementById('progressText').innerText = `Submitted: ${percent}% (${totalSubmittedCount}/${teamsList.length})`;
+        }
+
+        function updateTrendChart(aggDetails) {
+            let canvasCtx = document.getElementById('trendChartCanvas').getContext('2d');
+            let labels = Object.keys(aggDetails);
+            let dataVals = Object.values(aggDetails);
+
+            if (trendChartInstance) {
+                trendChartInstance.data.labels = labels;
+                trendChartInstance.data.datasets[0].data = dataVals;
+                trendChartInstance.update();
+                return;
+            }
+
+            trendChartInstance = new Chart(canvasCtx, {
+                type: 'line',
+                data: {
+                    labels: labels.length ? labels : ['No Data'],
+                    datasets: [{
+                        label: 'جۆرەکان',
+                        data: dataVals.length ? dataVals : [0],
+                        borderColor: '#38bdf8',
+                        backgroundColor: 'rgba(56, 189, 248, 0.15)',
+                        borderWidth: 2,
+                        tension: 0.3,
+                        fill: true,
+                        pointBackgroundColor: '#34d399'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { ticks: { color: '#94a3b8', font: { size: 9 } }, grid: { display: false } },
+                        y: { ticks: { color: '#94a3b8', font: { size: 9 } }, grid: { color: 'rgba(255,255,255,0.05)' } }
+                    }
+                }
+            });
+        }
+
         window.onload = function() {
-            setupPwaManifest();
             let savedLang = localStorage.getItem('bim_lang') || 'ku';
             document.getElementById('langSelect').value = savedLang;
             applyLanguage(savedLang);
-            checkUserAccountOnStartup();
+            setupPwaManifest();
             initRealtimeSync();
-
-            let savedTeam = localStorage.getItem('bim_selected_team');
-            if (savedTeam) {
-                setTimeout(() => {
-                    document.getElementById('teamSelect').value = savedTeam;
-                    loadTeamData();
-                }, 300);
-            }
+            checkUserAccountOnStartup();
         };
     </script>
 </body>
