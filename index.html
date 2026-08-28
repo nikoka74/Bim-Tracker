@@ -54,7 +54,6 @@
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         .refresh-btn.spinning svg { animation: spin 0.6s linear; }
 
-        /* دیزاینی نوێ و شازی کارتی کۆی گشتی پۆینتەکان */
         .total-points-card {
             background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 50%, #db2777 100%);
             color: white;
@@ -266,7 +265,6 @@
             <button class="section-tab-btn" id="tabMoveIn" onclick="switchSection('movein')">بەشی Move-In</button>
         </div>
 
-        <!-- کارتی کۆی گشتی کە بە سەوز دیاری کرابوو و شازتر کرا -->
         <div class="total-points-card" id="totalPointsCard">
             <div class="icon-container">
                 <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
@@ -410,8 +408,6 @@
 
             <div class="cases-grid" id="casesGridContainer"></div>
 
-            <!-- دوگمەی GPS Map بە تەواوی لادرا -->
-
             <div class="offday-container">
                 <input type="checkbox" id="c_offday" onchange="saveDraftStateLocally()">
                 <label for="c_offday" id="lblOffdayText" style="margin-bottom:0; cursor:pointer; font-weight:600; font-size:11px; color:#d97706;">مۆڵەت / پشوو (Off-Day)</label>
@@ -553,7 +549,10 @@
         lfdTeams = [...new Set(lfdTeams)];
         localStorage.setItem('bim_lfd_teams', JSON.stringify(lfdTeams));
 
-        let moveInTeams = JSON.parse(localStorage.getItem('bim_movein_teams')) || ["Team 28", "Team 29", "Team 31"];
+        let defaultMoveInTeams = ["Team 28", "Team 29", "Team 31"];
+        let moveInTeams = JSON.parse(localStorage.getItem('bim_movein_teams')) || defaultMoveInTeams;
+        moveInTeams = [...new Set(moveInTeams)];
+        localStorage.setItem('bim_movein_teams', JSON.stringify(moveInTeams));
 
         let currentSection = 'lfd';
         const DAILY_TARGET = 7;
@@ -738,7 +737,6 @@
         function renderCasesGrid() {
             let container = document.getElementById('casesGridContainer');
             if (currentSection === 'lfd') {
-                // لادانی closed و ناوئبنانی بە other
                 container.innerHTML = `
                     <div class="case-item">Paid <input type="number" id="c_paid" value="0" min="0" oninput="saveDraftStateLocally()"></div>
                     <div class="case-item">Disc <input type="number" id="c_disc" value="0" min="0" oninput="saveDraftStateLocally()"></div>
@@ -767,7 +765,7 @@
             let privateSelect = document.getElementById('privateMsgTeam');
             let lang = document.getElementById('langSelect').value;
             let teamsList = currentSection === 'lfd' ? lfdTeams : moveInTeams;
-            let allTeamsCombined = [...lfdTeams, ...moveInTeams];
+            let allTeamsCombined = [...new Set([...lfdTeams, ...moveInTeams])];
             let currentSelected = teamSelect.value;
 
             let html = `<option value="">${translations[lang].chooseTeam}</option>`;
@@ -1229,7 +1227,7 @@
                 if(document.getElementById('c_special')) document.getElementById('c_special').value = d.Special || d.special || 0;
                 if(document.getElementById('c_dist')) document.getElementById('c_dist').value = d.Distributed || d.dist || 0;
                 if(document.getElementById('c_inaccess')) document.getElementById('c_inaccess').value = d.Inaccessible || d.inaccess || 0;
-                if(document.getElementById('c_other')) document.getElementById('c_other').value = d.Other || d.closed || d.Other || 0;
+                if(document.getElementById('c_other')) document.getElementById('c_other').value = d.Other || d.closed || 0;
                 if(document.getElementById('c_notfound')) document.getElementById('c_notfound').value = d.NotFound || d.notfound || 0;
                 if(document.getElementById('c_denied')) document.getElementById('c_denied').value = d.Denied || d.denied || 0;
             } else {
