@@ -322,12 +322,13 @@
     <div id="authModalOverlay" class="custom-modal-overlay" style="display: flex;">
         <div class="custom-modal-box" style="max-width: 380px; text-align: right;">
             <h3 id="authModalTitle">دروستکردنی ئەکاونت یان چوونەژوورەوە</h3>
-            <p id="authModalDesc">تکایە جیمێڵ و پاسوۆرد بنووسە بۆ پاراستنی ئەکاونتەکەت لەسەر تیم</p>
+            <p id="authModalDesc">تکایە جیمێڵ و پاسوۆرد بنووسە بۆ چوونەژوورەوە یان دروستکردنی ئەکاونت</p>
             
             <div id="authRegisterFields">
                 <input type="email" id="authEmail" placeholder="جیمێڵ (Email)..." autocomplete="email">
                 <input type="password" id="authPassword" placeholder="پاسوۆرد (حەرف و ژمارە)..." autocomplete="current-password">
-                <input type="text" id="authPhone" placeholder="ژمارە مۆبایل بۆ سەلامەتی (بۆ کۆد)..." autocomplete="tel">
+                <input type="text" id="authName" placeholder="ناوی بەکارهێنەر / تیم..." autocomplete="name">
+                <input type="text" id="authPhone" placeholder="ژمارە مۆبایل (ئارەزوومەندانە)..." autocomplete="tel">
             </div>
 
             <div class="modal-btn-row" style="margin-top: 10px;">
@@ -721,23 +722,37 @@
             return `${deviceType} - ${browserName} (${platform}) [Res: ${screenRes}]`;
         }
 
+        // Check persistent auth state on page load
+        auth.onAuthStateChanged((user) => {
+            if (user) {
+                currentUserAccount = user;
+                document.getElementById('authModalOverlay').style.display = 'none';
+                initRealtimeSync();
+            } else {
+                document.getElementById('authModalOverlay').style.display = 'flex';
+            }
+        });
+
         function switchAuthMode() {
             isRegisterMode = !isRegisterMode;
             let title = document.getElementById('authModalTitle');
             let desc = document.getElementById('authModalDesc');
+            let nameInput = document.getElementById('authName');
             let phoneInput = document.getElementById('authPhone');
             let submitBtn = document.getElementById('authSubmitBtn');
             let switchBtn = document.getElementById('authModeSwitchBtn');
 
             if (isRegisterMode) {
                 title.innerText = "دروستکردنی ئەکاونت";
-                desc.innerText = "تکایە جیمێڵ و پاسوۆرد بنووسە بۆ پاراستنی ئەکاونتەکەت";
+                desc.innerText = "تکایە جیمێڵ و پاسوۆرد بنووسە بۆ دروستکردنی ئەکاونتەکەت";
+                nameInput.style.display = 'block';
                 phoneInput.style.display = 'block';
                 submitBtn.innerText = "دروستکردنی ئەکاونت";
-                switchBtn.innerText = "هەموونییە؟ چوونەژوورەوە";
+                switchBtn.innerText = "ئەکاونتت هەەیە؟ چوونەژوورەوە";
             } else {
                 title.innerText = "چوونەژوورەوە";
-                desc.innerText = "تکایە جیمێڵ و پاسوۆردەکەت بنووسە";
+                desc.innerText = "تکایە جیمێڵ و پاسوۆردەکەت بنووسە بۆ چوونەژوورەوە";
+                nameInput.style.display = 'none';
                 phoneInput.style.display = 'none';
                 submitBtn.innerText = "چوونەژوورەوە";
                 switchBtn.innerText = "ئەکاونتت نییە؟ دروستکردن";
@@ -747,6 +762,7 @@
         function submitAuthAction() {
             let email = document.getElementById('authEmail').value.trim();
             let password = document.getElementById('authPassword').value.trim();
+            let name = document.getElementById('authName').value.trim();
             let phone = document.getElementById('authPhone').value.trim();
             let selectedTeam = document.getElementById('teamSelect').value || "Team 16";
             let deviceId = getDeviceFingerprint();
@@ -757,12 +773,12 @@
                 auth.createUserWithEmailAndPassword(email, password).then((userCredential) => {
                     currentUserAccount = userCredential.user;
                     let accountData = {
-                        email: email, phone: phone || "N/A", deviceId: deviceId,
+                        email: email, name: name || email.split('@')[0], phone: phone || "N/A", deviceId: deviceId,
                         team: selectedTeam, createdAt: new Date().toISOString()
                     };
                     db.ref('accounts_registry/' + currentUserAccount.uid).set(accountData);
                     document.getElementById('authModalOverlay').style.display = 'none';
-                    showToast("ئەکاونتەکەت بە سەرکەوتوویی دروستکرا!");
+                    showToast("ئەکاونتەکەت بە سەرکەوتوویی دروستکرا و چوویتە ژوورەوە!");
                     initRealtimeSync();
                 }).catch((error) => {
                     alert("هەڵە لە دروستکردنی ئەکاونت: " + error.message);
@@ -1198,7 +1214,7 @@
                 let acc = accountsRegistry[k];
                 html += `
                     <div style="background:rgba(255,255,255,0.03); border:1px solid var(--border-color); padding:6px; border-radius:6px; margin-bottom:4px;">
-                        <b>📧 ${acc.email}</b><br>
+                        <b>👤 ${acc.name || acc.email}</b> | 📧 ${acc.email}<br>
                         📱 جۆری مۆبایل/دێڤایس: ${acc.deviceId}<br>
                         🎯 تیمەکەی هەڵیبژاردووە: <span style="color:var(--primary); font-weight:bold;">${acc.team}</span>
                     </div>
@@ -1217,7 +1233,6 @@
         }
 
         function handleHeaderClick() {
-            // Admin can click directly on the logo at the top without account creation
             isAdmin = !isAdmin;
             let panel = document.getElementById('adminPanel');
             if (isAdmin) {
@@ -1585,7 +1600,6 @@
             setupPwaManifest();
             renderCasesGrid();
             populateTeamDropdown();
-            initRealtimeSync();
             initChart();
             let savedLang = localStorage.getItem('bim_lang') || 'ku';
             document.getElementById('langSelect').value = savedLang;
