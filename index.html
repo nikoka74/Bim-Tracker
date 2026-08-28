@@ -210,8 +210,8 @@
         select, input, textarea { width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--border-color); font-size: 12px; outline: none; background: var(--input-bg); color: var(--text-color); transition: all 0.3s ease; backdrop-filter: blur(8px); }
         select:focus, input:focus, textarea:focus { border-color: var(--primary); box-shadow: 0 0 15px rgba(56, 189, 248, 0.3); }
 
-        .section-tabs { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 14px; }
-        .section-tab-btn { background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border-color); padding: 10px; border-radius: 12px; font-weight: 700; font-size: 12px; cursor: pointer; color: var(--text-color); text-align: center; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); backdrop-filter: blur(8px); }
+        .section-tabs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-bottom: 14px; }
+        .section-tab-btn { background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border-color); padding: 10px 6px; border-radius: 12px; font-weight: 700; font-size: 11px; cursor: pointer; color: var(--text-color); text-align: center; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); backdrop-filter: blur(8px); }
         .section-tab-btn.active { background: linear-gradient(135deg, #0284c7, #0369a1); color: white; border-color: #38bdf8; box-shadow: 0 0 20px rgba(2, 132, 199, 0.5); transform: translateY(-1px); }
 
         .cases-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 14px; margin-bottom: 14px; }
@@ -294,13 +294,74 @@
         }
         .custom-modal-box h3 { font-size: 14px; margin-bottom: 8px; color: var(--primary); font-weight: 700; }
         .custom-modal-box p { font-size: 11px; opacity: 0.8; margin-bottom: 12px; }
-        .custom-modal-box input, .custom-modal-box textarea {
+        .custom-modal-box input, .custom-modal-box textarea, .custom-modal-box select {
             text-align: right; font-size: 12px; padding: 10px; margin-bottom: 12px; border-radius: 10px; width: 100%;
         }
         .modal-btn-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
         .modal-btn { padding: 10px; border-radius: 10px; font-weight: 600; font-size: 11px; cursor: pointer; border: none; transition: all 0.2s; }
         .modal-btn-confirm { background: var(--primary); color: #090d16; font-weight: 700; }
         .modal-btn-cancel { background: rgba(255,255,255,0.05); color: var(--text-color); border: 1px solid var(--border-color); }
+
+        /* Chat Section Styles */
+        .chat-section-container {
+            display: none;
+            flex-direction: column;
+            height: 420px;
+            background: rgba(11, 15, 25, 0.7);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            overflow: hidden;
+            margin-bottom: 14px;
+        }
+        .chat-section-container.active {
+            display: flex;
+        }
+        .chat-messages-area {
+            flex: 1;
+            padding: 12px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            scroll-behavior: smooth;
+        }
+        .chat-msg-bubble {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
+            padding: 8px 12px;
+            border-radius: 10px;
+            max-width: 85%;
+            font-size: 11px;
+            align-self: flex-start;
+        }
+        .chat-msg-bubble.my-msg {
+            background: rgba(56, 189, 248, 0.15);
+            border-color: rgba(56, 189, 248, 0.3);
+            align-self: flex-end;
+        }
+        .chat-msg-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 9px;
+            color: var(--primary);
+            margin-bottom: 3px;
+            font-weight: bold;
+            gap: 12px;
+        }
+        .chat-input-bar {
+            display: flex;
+            gap: 6px;
+            padding: 10px;
+            background: rgba(17, 28, 46, 0.9);
+            border-top: 1px solid var(--border-color);
+        }
+        .chat-input-bar input {
+            flex: 1;
+            margin-bottom: 0;
+            font-size: 11px;
+            padding: 8px 12px;
+        }
 
         .site-footer-copy {
             text-align: center;
@@ -316,6 +377,19 @@
 <body>
     <div id="toast" class="toast">Saved!</div>
     <div id="toast-container" style="position: fixed; bottom: 20px; left: 20px; z-index: 9999;"></div>
+
+    <!-- Account Setup Modal (Mandatory on First Load) -->
+    <div id="accountModalOverlay" class="custom-modal-overlay" style="display: flex;">
+        <div class="custom-modal-box">
+            <h3>👤 دروستکردنی ئەکاونت</h3>
+            <p>تکایە ناو و تیمەکەت بنووسە بۆ بەشداریکردن لە سیستم و چات:</p>
+            <input type="text" id="accUsernameInput" placeholder="ناوی تەواو / کارمەند..." autocomplete="off">
+            <select id="accTeamSelect" style="margin-bottom: 12px;">
+                <option value="">-- هەڵبژاردنی تیم --</option>
+            </select>
+            <button class="modal-btn modal-btn-confirm" style="width: 100%; padding: 12px;" onclick="saveUserAccount()">تۆمارکردن و دەستپێکردن</button>
+        </div>
+    </div>
 
     <div id="customModalOverlay" class="custom-modal-overlay">
         <div class="custom-modal-box">
@@ -359,7 +433,7 @@
         </div>
     </div>
 
-    <!-- NEW: Live Map Modal -->
+    <!-- Live Map Modal -->
     <div id="liveMapModalOverlay" class="custom-modal-overlay">
         <div class="custom-modal-box" style="max-width: 500px; width: 95%; text-align: right;">
             <h3 style="text-align: center; color: var(--primary); margin-bottom: 10px;">🗺️ نەخشەی ڕاستەوخۆی خاڵەکان</h3>
@@ -368,7 +442,7 @@
         </div>
     </div>
 
-    <!-- NEW: Advanced Range Export Modal -->
+    <!-- Advanced Range Export Modal -->
     <div id="rangeExportModalOverlay" class="custom-modal-overlay">
         <div class="custom-modal-box" style="max-width: 380px; text-align: right;">
             <h3 style="text-align: center; color: var(--primary); margin-bottom: 12px;">📈 دەرکردنی ڕاپۆرت بە مەودای بەروار</h3>
@@ -419,183 +493,199 @@
         <div class="section-tabs">
             <button class="section-tab-btn active" id="tabLFD" onclick="switchSection('lfd')">بەشی LFD</button>
             <button class="section-tab-btn" id="tabMoveIn" onclick="switchSection('movein')">بەشی Move-In</button>
+            <button class="section-tab-btn" id="tabChat" onclick="switchSection('chat')" style="background: rgba(56, 189, 248, 0.15); border-color: var(--primary);">💬 چاتی گشتی</button>
         </div>
 
-        <div class="total-points-card" id="totalPointsCard">
-            <div class="icon-container">
-                <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+        <!-- OPERATIONS TRACKER MAIN WRAPPER -->
+        <div id="operationsMainWrapper">
+            <div class="total-points-card" id="totalPointsCard">
+                <div class="icon-container">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+                </div>
+                <div>
+                    <h3 id="lblGrandTotalTitle">کۆی گشتی پۆینتەکانی ئەمڕۆ</h3>
+                    <span id="grandTotalPoints" class="counter">0</span>
+                </div>
             </div>
-            <div>
-                <h3 id="lblGrandTotalTitle">کۆی گشتی پۆینتەکانی ئەمڕۆ</h3>
-                <span id="grandTotalPoints" class="counter">0</span>
+
+            <div id="liveAlertBanner" class="live-alert-banner">
+                <span id="liveAlertText">ئاگاداری نوێ!</span>
+                <button onclick="document.getElementById('liveAlertBanner').style.display='none'" style="background:none; border:none; color:white; font-weight:bold; cursor:pointer;">✕</button>
             </div>
-        </div>
 
-        <div id="liveAlertBanner" class="live-alert-banner">
-            <span id="liveAlertText">ئاگاداری نوێ!</span>
-            <button onclick="document.getElementById('liveAlertBanner').style.display='none'" style="background:none; border:none; color:white; font-weight:bold; cursor:pointer;">✕</button>
-        </div>
+            <div id="broadcastTicker" class="broadcast-ticker" style="display:none;">
+                <span>ئاگاداری:</span> <span id="broadcastTextContent"></span>
+            </div>
 
-        <div id="broadcastTicker" class="broadcast-ticker" style="display:none;">
-            <span>ئاگاداری:</span> <span id="broadcastTextContent"></span>
-        </div>
+            <div class="admin-panel" id="adminPanel">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                    <h3 style="font-size:12px; color:var(--primary); font-weight: 700;" id="lblAdminTitle">بەشی بەڕێوەبەر و ناردنی فایل</h3>
+                    <div style="display: flex; gap: 6px;">
+                        <button class="tool-btn" onclick="openAdminFeedbackModal()" style="padding: 4px 8px; font-size: 10px; background: rgba(56,189,248,0.2); border-color: var(--primary);">💬 پێشنیارەکان (<span id="feedbackCounterBadge">0</span>)</button>
+                        <button class="tool-btn" onclick="manualRefreshData()" style="padding: 4px 8px; font-size: 10px;">نوێکردنەوە</button>
+                    </div>
+                </div>
 
-        <div class="admin-panel" id="adminPanel">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                <h3 style="font-size:12px; color:var(--primary); font-weight: 700;" id="lblAdminTitle">بەشی بەڕێوەبەر و ناردنی فایل</h3>
+                <div style="display: flex; gap: 6px; margin-bottom: 8px;">
+                    <button class="btn" style="background: rgba(56,189,248,0.2); border:1px solid var(--primary); flex:1; font-size:10px;" onclick="openLiveMapModal()">🗺️ نەخشەی خاڵەکان</button>
+                    <button class="btn" style="background: rgba(16,185,129,0.2); border:1px solid #10b981; flex:1; font-size:10px;" onclick="openAuditLogModal()">📋 مێژووی لۆگی چالاکییەکان</button>
+                </div>
+
+                <div class="admin-sub-box">
+                    <label style="font-size: 10px; color: var(--primary); font-weight: bold;">ناردنی ئاگاداری گشتی بۆ هەمووان:</label>
+                    <div style="display: flex; gap: 6px; margin-top: 6px;">
+                        <input type="text" id="adminBroadcastInput" placeholder="پەیام بنووسە..." style="flex: 2; font-size: 11px;">
+                        <button class="btn" style="background: var(--primary); color: #090d16; flex: 1; font-size: 10px; font-weight: 700;" onclick="saveBroadcastMessage()">بڵاوکردنەوە</button>
+                    </div>
+                </div>
+
+                <div class="admin-sub-box" style="border: 1px dashed var(--primary);">
+                    <label style="font-size: 10px; color: var(--primary); font-weight: bold;">ناردنی پەیامی تایبەت بۆ تیمی دیاریکراو:</label>
+                    <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 6px; margin-top: 6px;">
+                        <select id="privateMsgTeam" style="font-size: 10px;"><option value="">-- تیم --</option></select>
+                        <input type="text" id="privateMsgInput" placeholder="پەیامی تایبەت..." style="font-size: 10px;">
+                    </div>
+                    <button class="btn" style="background: var(--primary); color: #090d16; width: 100%; padding: 6px; font-size: 10px; margin-top: 6px; font-weight: 700;" onclick="sendPrivateTeamMessage()">ناردنی پەیامی تایبەت</button>
+                </div>
+
+                <div class="admin-sub-box" style="border: 1px dashed #10b981;">
+                    <label style="font-size: 10px; color: #10b981; font-weight: bold;">گۆڕینی فایلی CSV بۆ فایلی KML:</label>
+                    <input type="file" id="csvFileForKml" accept=".csv" style="font-size: 10px; margin-bottom: 6px; margin-top: 6px;">
+                    <button class="btn" style="background: #10b981; width: 100%; padding: 6px; font-size: 10px;" onclick="convertExcelToKml()">دروستکردن و داگرتنی KML</button>
+                </div>
+
+                <div class="admin-sub-box" style="border: 1px solid var(--primary);">
+                    <label style="font-size: 10px; color: var(--primary); font-weight: bold;">ئەپلۆدکردن و ناردنی فایل بۆ تیمی دیاریکراو:</label>
+                    <div style="display: grid; grid-template-columns: 1fr; gap: 6px; margin-bottom: 6px; margin-top: 6px;">
+                        <select id="kmlTargetTeam" style="font-size: 10px;"><option value="">-- هەڵبژاردنی تیم --</option></select>
+                        <input type="file" id="teamFileUploader" accept=".kml,.csv,.txt,.xlsx,.gpx" style="font-size: 10px;">
+                    </div>
+                    <button class="btn" style="background: var(--primary); color: #090d16; width: 100%; padding: 6px; font-size: 10px; font-weight: 700;" onclick="uploadFileForSpecificTeam()">ئەپلۆد و ناردن بۆ تیم</button>
+                </div>
+
+                <div class="admin-sub-box">
+                    <label style="font-size: 10px; color: var(--primary); font-weight: bold;" id="lblHistoryDate">دیاریکردنی بەروار (ڕۆژانی پێشوو):</label>
+                    <input type="date" id="adminDateSelector" onchange="onAdminDateChange()" style="font-weight: bold; text-align: center; font-size: 11px; margin-top: 6px;">
+                </div>
+                
+                <div class="admin-sub-box">
+                    <label style="color: var(--primary); font-weight: bold; margin-bottom: 6px; font-size: 10px;" id="lblAddTeamTitle">زیادکردنی تیمی نوێ:</label>
+                    <div style="display: flex; gap: 6px; margin-bottom: 6px;">
+                        <select id="newTeamSection" style="flex: 1; font-size: 10px;">
+                            <option value="lfd">بەشی LFD</option>
+                            <option value="movein">بەشی Move-In</option>
+                        </select>
+                        <input type="text" id="newTeamNameInput" placeholder="ناوی تیم (Team 99)" style="flex: 2; font-size: 10px;">
+                    </div>
+                    <div style="display: flex; gap: 6px; margin-bottom: 6px; align-items: center;">
+                        <label style="font-size: 10px; white-space: nowrap; margin-bottom: 0;">شوێن / ڕیزبەندی:</label>
+                        <select id="newTeamPositionSelect" style="font-size: 10px;">
+                            <option value="start">سەرەتا</option>
+                            <option value="end" selected>کۆتایی</option>
+                        </select>
+                    </div>
+                    <button class="btn" style="background: var(--primary); color: #090d16; width: 100%; padding: 6px; font-size: 10px; font-weight: 700;" onclick="addNewTeam()" id="btnAddTeamBtn">زیادکردنی تیم</button>
+                </div>
+
+                <div class="filter-bar">
+                    <button class="filter-btn active" id="f_all" onclick="setFilter('all')">هەموو</button>
+                    <button class="filter-btn" id="f_achieved" onclick="setFilter('achieved')">گەیشتوو (≥7)</button>
+                    <button class="filter-btn" id="f_missed" onclick="setFilter('missed')">نەگەیشتوو (<7)</button>
+                    <button class="filter-btn" id="f_offday" onclick="setFilter('offday')">پشوو</button>
+                </div>
+
+                <div style="display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap;">
+                    <button class="btn" style="background:#10b981; flex:1; font-size: 10px;" onclick="adminExportExcel('daily')" id="btnExcelAdmin">Excel (ڕۆژانە)</button>
+                    <button class="btn" style="background:#0d9488; flex:1; font-size: 10px;" onclick="adminExportExcel('monthly')" id="btnExcelMonthly">Excel (مانگانە)</button>
+                    <button class="btn" style="background:#3b82f6; flex:1; font-size: 10px;" onclick="document.getElementById('rangeExportModalOverlay').style.display='flex'">مەودای بەروار</button>
+                    <button class="btn" style="background:#7c3aed; flex:1; font-size: 10px;" onclick="window.print()" id="btnPdfAdmin">PDF</button>
+                    <button class="btn" style="background:#ef4444; flex:1; font-size: 10px;" onclick="adminClearData()" id="btnClearCloud">سڕینەوە</button>
+                </div>
+
+                <div style="background:rgba(11,15,25,0.6); border:1px solid var(--border-color); border-radius:10px; padding:10px; margin-top:10px; height:140px; display:flex; align-items:center; justify-content:center;">
+                    <canvas id="statsChart"></canvas>
+                </div>
+
+                <div class="leaderboard-box">
+                    <div class="leaderboard-title" id="leaderboardBoxTitle">
+                        <span id="lblLeaderboardTitle">ڕیزبەندی تیمەکان</span>
+                        <span id="adminSectionTotal" style="font-size: 10px; background: var(--primary); color: #090d16; padding: 2px 6px; border-radius: 6px; font-weight: 700;">Total: 0</span>
+                    </div>
+                    <div id="leaderboardContainer"></div>
+                </div>
+            </div>
+
+            <div class="progress-container">
+                <div class="progress-bar" id="progressBar"></div>
+                <div class="progress-text" id="progressText">Submitted: 0%</div>
+            </div>
+
+            <div class="control-group">
+                <label for="teamSelect" id="lblSelectTeam">تیمەکەت هەڵبژێرە:</label>
                 <div style="display: flex; gap: 6px;">
-                    <button class="tool-btn" onclick="openAdminFeedbackModal()" style="padding: 4px 8px; font-size: 10px; background: rgba(56,189,248,0.2); border-color: var(--primary);">💬 پێشنیارەکان (<span id="feedbackCounterBadge">0</span>)</button>
-                    <button class="tool-btn" onclick="manualRefreshData()" style="padding: 4px 8px; font-size: 10px;">نوێکردنەوە</button>
-                </div>
-            </div>
-
-            <!-- NEW: Admin Audit & Map triggers -->
-            <div style="display: flex; gap: 6px; margin-bottom: 8px;">
-                <button class="btn" style="background: rgba(56,189,248,0.2); border:1px solid var(--primary); flex:1; font-size:10px;" onclick="openLiveMapModal()">🗺️ نیشاندانی نەخشەی خاڵەکان</button>
-                <button class="btn" style="background: rgba(16,185,129,0.2); border:1px solid #10b981; flex:1; font-size:10px;" onclick="openAuditLogModal()">📋 مێژووی لۆگی چالاکییەکان</button>
-            </div>
-
-            <div class="admin-sub-box">
-                <label style="font-size: 10px; color: var(--primary); font-weight: bold;">ناردنی ئاگاداری گشتی برای هەمووان:</label>
-                <div style="display: flex; gap: 6px; margin-top: 6px;">
-                    <input type="text" id="adminBroadcastInput" placeholder="پەیام بنووسە..." style="flex: 2; font-size: 11px;">
-                    <button class="btn" style="background: var(--primary); color: #090d16; flex: 1; font-size: 10px; font-weight: 700;" onclick="saveBroadcastMessage()">بڵاوکردنەوە</button>
-                </div>
-            </div>
-
-            <div class="admin-sub-box" style="border: 1px dashed var(--primary);">
-                <label style="font-size: 10px; color: var(--primary); font-weight: bold;">ناردنی پەیامی تایبەت بۆ تیمی دیاریکراو:</label>
-                <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 6px; margin-top: 6px;">
-                    <select id="privateMsgTeam" style="font-size: 10px;"><option value="">-- تیم --</option></select>
-                    <input type="text" id="privateMsgInput" placeholder="پەیامی تایبەت..." style="font-size: 10px;">
-                </div>
-                <button class="btn" style="background: var(--primary); color: #090d16; width: 100%; padding: 6px; font-size: 10px; margin-top: 6px; font-weight: 700;" onclick="sendPrivateTeamMessage()">ناردنی پەیامی تایبەت</button>
-            </div>
-
-            <div class="admin-sub-box" style="border: 1px dashed #10b981;">
-                <label style="font-size: 10px; color: #10b981; font-weight: bold;">گۆڕینی فایلی CSV بۆ فایلی KML:</label>
-                <input type="file" id="csvFileForKml" accept=".csv" style="font-size: 10px; margin-bottom: 6px; margin-top: 6px;">
-                <button class="btn" style="background: #10b981; width: 100%; padding: 6px; font-size: 10px;" onclick="convertExcelToKml()">دروستکردن و داگرتنی KML</button>
-            </div>
-
-            <div class="admin-sub-box" style="border: 1px solid var(--primary);">
-                <label style="font-size: 10px; color: var(--primary); font-weight: bold;">ئەپلۆدکردن و ناردنی فایل بۆ تیمی دیاریکراو:</label>
-                <div style="display: grid; grid-template-columns: 1fr; gap: 6px; margin-bottom: 6px; margin-top: 6px;">
-                    <select id="kmlTargetTeam" style="font-size: 10px;"><option value="">-- هەڵبژاردنی تیم --</option></select>
-                    <input type="file" id="teamFileUploader" accept=".kml,.csv,.txt,.xlsx,.gpx" style="font-size: 10px;">
-                </div>
-                <button class="btn" style="background: var(--primary); color: #090d16; width: 100%; padding: 6px; font-size: 10px; font-weight: 700;" onclick="uploadFileForSpecificTeam()">ئەپلۆد و ناردن بۆ تیم</button>
-            </div>
-
-            <div class="admin-sub-box">
-                <label style="font-size: 10px; color: var(--primary); font-weight: bold;" id="lblHistoryDate">دیاریکردنی بەروار (ڕۆژانی پێشوو):</label>
-                <input type="date" id="adminDateSelector" onchange="onAdminDateChange()" style="font-weight: bold; text-align: center; font-size: 11px; margin-top: 6px;">
-            </div>
-            
-            <div class="admin-sub-box">
-                <label style="color: var(--primary); font-weight: bold; margin-bottom: 6px; font-size: 10px;" id="lblAddTeamTitle">زیادکردنی تیمی نوێ:</label>
-                <div style="display: flex; gap: 6px; margin-bottom: 6px;">
-                    <select id="newTeamSection" style="flex: 1; font-size: 10px;">
-                        <option value="lfd">بەشی LFD</option>
-                        <option value="movein">بەشی Move-In</option>
+                    <select id="teamSelect" onchange="loadTeamData()" style="flex: 2;">
+                        <option value="" id="optChooseTeam">-- تیم هەڵبژێرە --</option>
                     </select>
-                    <input type="text" id="newTeamNameInput" placeholder="ناوی تیم (Team 99)" style="flex: 2; font-size: 10px;">
+                    <button class="tool-btn" style="flex: 1; font-size: 10px; justify-content: center; background: rgba(16,185,129,0.15); border-color: #10b981; color: #34d399;" onclick="copyYesterdayDataToCurrent()" title="هێنانی داتای دوێنێ">📥 دوێنێ</button>
                 </div>
-                <div style="display: flex; gap: 6px; margin-bottom: 6px; align-items: center;">
-                    <label style="font-size: 10px; white-space: nowrap; margin-bottom: 0;">شوێن / ڕیزبەندی:</label>
-                    <select id="newTeamPositionSelect" style="font-size: 10px;">
-                        <option value="start">سەرەتا</option>
-                        <option value="end" selected>کۆتایی</option>
-                    </select>
+
+                <div id="teamPrivateMsgBox" class="admin-sub-box" style="background: rgba(56,189,248,0.08); border: 1px solid var(--primary); display: none; margin-top: 8px;">
+                    <label style="font-size: 10px; color: var(--primary); font-weight: bold;">📢 پەیامی تایبەت بۆ تیمەکەت:</label>
+                    <p id="teamPrivateMsgText" style="font-size: 11px; margin-top: 4px;"></p>
                 </div>
-                <button class="btn" style="background: var(--primary); color: #090d16; width: 100%; padding: 6px; font-size: 10px; font-weight: 700;" onclick="addNewTeam()" id="btnAddTeamBtn">زیادکردنی تیم</button>
-            </div>
 
-            <div class="filter-bar">
-                <button class="filter-btn active" id="f_all" onclick="setFilter('all')">هەموو</button>
-                <button class="filter-btn" id="f_achieved" onclick="setFilter('achieved')">گەیشتوو (≥7)</button>
-                <button class="filter-btn" id="f_missed" onclick="setFilter('missed')">نەگەیشتوو (<7)</button>
-                <button class="filter-btn" id="f_offday" onclick="setFilter('offday')">پشوو</button>
-            </div>
-
-            <div style="display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap;">
-                <button class="btn" style="background:#10b981; flex:1; font-size: 10px;" onclick="adminExportExcel('daily')" id="btnExcelAdmin">Excel (ڕۆژانە)</button>
-                <button class="btn" style="background:#0d9488; flex:1; font-size: 10px;" onclick="adminExportExcel('monthly')" id="btnExcelMonthly">Excel (مانگانە)</button>
-                <button class="btn" style="background:#3b82f6; flex:1; font-size: 10px;" onclick="document.getElementById('rangeExportModalOverlay').style.display='flex'">مەودای بەروار</button>
-                <button class="btn" style="background:#7c3aed; flex:1; font-size: 10px;" onclick="window.print()" id="btnPdfAdmin">PDF</button>
-                <button class="btn" style="background:#ef4444; flex:1; font-size: 10px;" onclick="adminClearData()" id="btnClearCloud">سڕینەوە</button>
-            </div>
-
-            <div style="background:rgba(11,15,25,0.6); border:1px solid var(--border-color); border-radius:10px; padding:10px; margin-top:10px; height:140px; display:flex; align-items:center; justify-content:center;">
-                <canvas id="statsChart"></canvas>
-            </div>
-
-            <div class="leaderboard-box">
-                <div class="leaderboard-title" id="leaderboardBoxTitle">
-                    <span id="lblLeaderboardTitle">ڕیزبەندی تیمەکان</span>
-                    <span id="adminSectionTotal" style="font-size: 10px; background: var(--primary); color: #090d16; padding: 2px 6px; border-radius: 6px; font-weight: 700;">Total: 0</span>
+                <div class="team-targets-info" id="teamTargetsBox" style="margin-top: 10px; display: none;">
+                    <div><h5>ڕۆژانە</h5><p id="targetDailyVal">7</p></div>
+                    <div><h5>هەفتانە</h5><p id="targetWeeklyVal">42</p></div>
+                    <div><h5>مانگانە</h5><p id="targetMonthlyVal">180</p></div>
                 </div>
-                <div id="leaderboardContainer"></div>
+
+                <button class="tool-btn" style="width: 100%; margin-top: 8px; justify-content: center; background: rgba(255,255,255,0.03); display: none;" onclick="openTeamHistoryModal()" id="btnTeamHistory">
+                    📈 مێژووی کارکردنی ۷ ڕۆژی ڕابردووی تیمەکەم
+                </button>
+
+                <div id="teamFileDownloadBox" class="admin-sub-box" style="border: 1px dashed var(--primary); margin-top: 10px; display: none;">
+                    <label style="font-size: 10px; color: var(--primary); font-weight: bold;" id="lblTeamFileTitle">فایلی نەخشە / ڕێنمایی تایبەت بە تیمەکەت:</label>
+                    <button class="btn" style="background: var(--primary); color: #090d16; width: 100%; padding: 8px; font-size: 11px; margin-top: 6px; font-weight: 700;" onclick="promptPinAndDownloadTeamFile()" id="btnDownloadTeamFile">داگرتنی فایلی تیمەکەم (بە پین کۆد)</button>
+                </div>
+
+                <div class="cases-grid" id="casesGridContainer"></div>
+
+                <div class="offday-container">
+                    <input type="checkbox" id="c_offday" onchange="saveDraftStateLocally()">
+                    <label for="c_offday" id="lblOffdayText" style="margin-bottom:0; cursor:pointer; font-weight:600; font-size:11px; color:#f59e0b;">مۆڵەت / پشوو (Off-Day)</label>
+                </div>
+
+                <div style="margin-top: 10px;">
+                    <label for="c_notes" id="lblNotesTitle" style="color: #f87171; font-weight: 600; font-size:11px;">(ئەمڕۆ هیچ کێشەیەکت هەبوو؟ ئەگەر هەیە بینووسە)</label>
+                    <textarea id="c_notes" rows="2" placeholder="هۆکار..." oninput="saveDraftStateLocally()"></textarea>
+                </div>
+
+                <button class="btn-submit-main" id="btnSave" onclick="promptPinAndSave()">
+                    <span id="btnSubmitText">ناردن یان نوێکردنەوەی ڕاپۆرت</span>
+                </button>
+            </div>
+
+            <div class="btn-toolbar">
+                <button class="btn btn-myteam" onclick="shareMyTeamToWhatsApp()" id="btnMyTeamWA">ناردنی تیمی خۆم بۆ واتساپ</button>
+                <button class="btn btn-whatsapp" id="btnWhatsapp" onclick="shareToWhatsApp()">ناردنی تۆتەڵی گشتی بۆ واتساپ</button>
+                <button class="btn btn-image" onclick="exportAsImage()" id="btnImg">وێنە</button>
+                <button class="btn btn-pdf" onclick="window.print()" id="btnPdf">PDF</button>
+                <button class="btn btn-excel" onclick="adminExportExcel('daily')" id="btnExcel">Excel</button>
             </div>
         </div>
 
-        <div class="progress-container">
-            <div class="progress-bar" id="progressBar"></div>
-            <div class="progress-text" id="progressText">Submitted: 0%</div>
-        </div>
-
-        <div class="control-group">
-            <label for="teamSelect" id="lblSelectTeam">تیمەکەت هەڵبژێرە:</label>
-            <div style="display: flex; gap: 6px;">
-                <select id="teamSelect" onchange="loadTeamData()" style="flex: 2;">
-                    <option value="" id="optChooseTeam">-- تیم هەڵبژێرە --</option>
-                </select>
-                <button class="tool-btn" style="flex: 1; font-size: 10px; justify-content: center; background: rgba(16,185,129,0.15); border-color: #10b981; color: #34d399;" onclick="copyYesterdayDataToCurrent()" title="هێنانی داتای دوێنێ">📥 دوێنێ</button>
+        <!-- CHAT SECTION CONTAINER -->
+        <div id="chatSectionContainer" class="chat-section-container">
+            <div style="padding: 12px; background: rgba(17, 28, 46, 0.9); border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
+                <h3 style="font-size: 12px; color: var(--primary); font-weight: bold;">💬 چاتی گشتی تیمەکان</h3>
+                <span id="chatUserInfoDisplay" style="font-size: 10px; opacity: 0.8;"></span>
             </div>
-
-            <div id="teamPrivateMsgBox" class="admin-sub-box" style="background: rgba(56,189,248,0.08); border: 1px solid var(--primary); display: none; margin-top: 8px;">
-                <label style="font-size: 10px; color: var(--primary); font-weight: bold;">📢 پەیامی تایبەت بۆ تیمەکەت:</label>
-                <p id="teamPrivateMsgText" style="font-size: 11px; margin-top: 4px;"></p>
+            <div class="chat-messages-area" id="chatMessagesArea"></div>
+            <div class="chat-input-bar">
+                <input type="text" id="chatMessageInput" placeholder="پەیامەکەت بنووسە..." onkeydown="if(event.key==='Enter') sendChatMessage()">
+                <button class="btn" style="background: var(--primary); color: #090d16; padding: 8px 16px; font-size: 11px; font-weight: 700;" onclick="sendChatMessage()">ناردن</button>
             </div>
-
-            <div class="team-targets-info" id="teamTargetsBox" style="margin-top: 10px; display: none;">
-                <div><h5>ڕۆژانە</h5><p id="targetDailyVal">7</p></div>
-                <div><h5>هەفتانە</h5><p id="targetWeeklyVal">42</p></div>
-                <div><h5>مانگانە</h5><p id="targetMonthlyVal">180</p></div>
-            </div>
-
-            <button class="tool-btn" style="width: 100%; margin-top: 8px; justify-content: center; background: rgba(255,255,255,0.03);" onclick="openTeamHistoryModal()" id="btnTeamHistory" style="display: none;">
-                📈 مێژووی کارکردنی ۷ ڕۆژی ڕابردووی تیمەکەم
-            </button>
-
-            <div id="teamFileDownloadBox" class="admin-sub-box" style="border: 1px dashed var(--primary); margin-top: 10px; display: none;">
-                <label style="font-size: 10px; color: var(--primary); font-weight: bold;" id="lblTeamFileTitle">فایلی نەخشە / ڕێنمایی تایبەت بە تیمەکەت:</label>
-                <button class="btn" style="background: var(--primary); color: #090d16; width: 100%; padding: 8px; font-size: 11px; margin-top: 6px; font-weight: 700;" onclick="promptPinAndDownloadTeamFile()" id="btnDownloadTeamFile">داگرتنی فایلی تیمەکەم (بە پین کۆد)</button>
-            </div>
-
-            <div class="cases-grid" id="casesGridContainer"></div>
-
-            <div class="offday-container">
-                <input type="checkbox" id="c_offday" onchange="saveDraftStateLocally()">
-                <label for="c_offday" id="lblOffdayText" style="margin-bottom:0; cursor:pointer; font-weight:600; font-size:11px; color:#f59e0b;">مۆڵەت / پشوو (Off-Day)</label>
-            </div>
-
-            <div style="margin-top: 10px;">
-                <label for="c_notes" id="lblNotesTitle" style="color: #f87171; font-weight: 600; font-size:11px;">(ئەمڕۆ هیچ کێشەیەکت هەبوو؟ ئەگەر هەیە بینووسە)</label>
-                <textarea id="c_notes" rows="2" placeholder="هۆکار..." oninput="saveDraftStateLocally()"></textarea>
-            </div>
-
-            <button class="btn-submit-main" id="btnSave" onclick="promptPinAndSave()">
-                <span id="btnSubmitText">ناردن یان نوێکردنەوەی ڕاپۆرت</span>
-            </button>
-        </div>
-
-        <div class="btn-toolbar">
-            <button class="btn btn-myteam" onclick="shareMyTeamToWhatsApp()" id="btnMyTeamWA">ناردنی تیمی خۆم بۆ واتساپ</button>
-            <button class="btn btn-whatsapp" id="btnWhatsapp" onclick="shareToWhatsApp()">ناردنی تۆتەڵی گشتی بۆ واتساپ</button>
-            <button class="btn btn-image" onclick="exportAsImage()" id="btnImg">وێنە</button>
-            <button class="btn btn-pdf" onclick="window.print()" id="btnPdf">PDF</button>
-            <button class="btn btn-excel" onclick="adminExportExcel('daily')" id="btnExcel">Excel</button>
         </div>
 
         <div class="site-footer-copy">
@@ -619,6 +709,43 @@
                 toast.style.opacity = '0';
                 setTimeout(() => toast.remove(), 300);
             }, 4000);
+        }
+
+        // Account Management System
+        let currentUserAccount = JSON.parse(localStorage.getItem('bim_chat_user')) || null;
+
+        function checkUserAccountOnStartup() {
+            let allTeams = [...new Set([...lfdTeams, ...moveInTeams])];
+            let sel = document.getElementById('accTeamSelect');
+            sel.innerHTML = `<option value="">-- هەڵبژاردنی تیم --</option>`;
+            allTeams.forEach(t => { sel.innerHTML += `<option value="${t}">${t}</option>`; });
+
+            if (!currentUserAccount) {
+                document.getElementById('accountModalOverlay').style.display = 'flex';
+            } else {
+                document.getElementById('accountModalOverlay').style.display = 'none';
+                updateChatUserDisplay();
+            }
+        }
+
+        function saveUserAccount() {
+            let name = document.getElementById('accUsernameInput').value.trim();
+            let team = document.getElementById('accTeamSelect').value;
+            if (!name || !team) return alert("تکایە ناو و تیمەکەت هەڵبژێرە!");
+            currentUserAccount = { name, team };
+            localStorage.setItem('bim_chat_user', JSON.stringify(currentUserAccount));
+            document.getElementById('accountModalOverlay').style.display = 'none';
+            // Also auto-select team in the report tracker
+            document.getElementById('teamSelect').value = team;
+            loadTeamData();
+            updateChatUserDisplay();
+            showNotification("ئەکاونتەکەت بە سەرکەوتوویی دروستکرا!");
+        }
+
+        function updateChatUserDisplay() {
+            if (currentUserAccount) {
+                document.getElementById('chatUserInfoDisplay').innerText = `👤 ${currentUserAccount.name} (${currentUserAccount.team})`;
+            }
         }
 
         function copyYesterdayDataToCurrent() {
@@ -720,6 +847,7 @@
         let allDaysStore = {};
         let feedbacksStore = {};
         let auditLogsStore = {};
+        let chatMessagesStore = {};
         let broadcastMsg = "";
         let currentFilter = 'all';
         let currentSyncRef = null;
@@ -731,6 +859,7 @@
         let allDaysSyncRef = null;
         let feedbacksSyncRef = null;
         let auditSyncRef = null;
+        let chatSyncRef = null;
         let myChart = null;
         let previousBroadcast = null;
         let mapInstance = null;
@@ -823,20 +952,20 @@
             }
         }
 
-        // NEW: Open Audit Log Modal Function
+        // Open Audit Log Modal Function (Shows who submitted points and with which team in log)
         function openAuditLogModal() {
             let content = Object.keys(auditLogsStore).map(k => {
                 let log = auditLogsStore[k];
                 return `<div style="background:rgba(255,255,255,0.03); border:1px solid var(--border-color); padding:8px; border-radius:6px; margin-bottom:6px; font-size:10px;">
-                    <b>${log.teamName}</b> (${log.section}) - ${log.action} <br><span style="opacity:0.6;">🕒 ${log.timestamp}</span>
+                    <b>👤 بەکارهێنەر:</b> ${log.username || 'نەناسراو'} | <b>👥 تیم:</b> ${log.teamName} <br>
+                    <b>📌 بەش:</b> ${log.section} - ${log.action} <br><span style="opacity:0.6;">🕒 ${log.timestamp}</span>
                 </div>`;
             }).join('') || `<p style="text-align:center; opacity:0.6;">هیچ لۆگێک نییە</p>`;
 
-            let win = window.open("", "_blank", "width=400,height=500");
-            win.document.write(`<html dir="rtl"><head><title>Audit Logs</title><style>body{background:#090d16;color:#fff;font-family:sans-serif;padding:15px;}</style></head><body><h3>مێژووی لۆگی چالاکییەکان</h3>${content}</body></html>`);
+            let win = window.open("", "_blank", "width=450,height=600");
+            win.document.write(`<html dir="rtl"><head><title>Audit Logs</title><style>body{background:#090d16;color:#fff;font-family:sans-serif;padding:15px;}</style></head><body><h3>📋 مێژووی لۆگی چالاکییەکان (کێ پۆینتی ناردووە)</h3>${content}</body></html>`);
         }
 
-        // NEW: Open Live Map Modal Function
         function openLiveMapModal() {
             document.getElementById('liveMapModalOverlay').style.display = 'flex';
             setTimeout(() => {
@@ -849,7 +978,6 @@
             }, 300);
         }
 
-        // NEW: Date Range Export Function
         function exportRangeExcel() {
             let start = document.getElementById('rangeStart').value;
             let end = document.getElementById('rangeEnd').value;
@@ -931,8 +1059,23 @@
             currentSection = sec;
             document.getElementById('tabLFD').classList.remove('active');
             document.getElementById('tabMoveIn').classList.remove('active');
+            document.getElementById('tabChat').classList.remove('active');
+            
             let card = document.getElementById('totalPointsCard');
             let btnSubmit = document.getElementById('btnSave');
+            let mainWrapper = document.getElementById('operationsMainWrapper');
+            let chatContainer = document.getElementById('chatSectionContainer');
+
+            if (sec === 'chat') {
+                document.getElementById('tabChat').classList.add('active');
+                mainWrapper.style.display = 'none';
+                chatContainer.classList.add('active');
+                renderChatMessages();
+                return;
+            } else {
+                mainWrapper.style.display = 'block';
+                chatContainer.classList.remove('active');
+            }
 
             if (sec === 'lfd') {
                 document.getElementById('tabLFD').classList.add('active');
@@ -949,6 +1092,52 @@
             render();
         }
 
+        // Chat Functions
+        function sendChatMessage() {
+            let input = document.getElementById('chatMessageInput');
+            let text = input.value.trim();
+            if (!text) return;
+            if (!currentUserAccount) {
+                document.getElementById('accountModalOverlay').style.display = 'flex';
+                return;
+            }
+            let chatObj = {
+                username: currentUserAccount.name,
+                team: currentUserAccount.team,
+                text: text,
+                timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                date: todayFormatted
+            };
+            db.ref('chat_messages').push(chatObj).then(() => {
+                input.value = '';
+            });
+        }
+
+        function renderChatMessages() {
+            let area = document.getElementById('chatMessagesArea');
+            let keys = Object.keys(chatMessagesStore);
+            if (keys.length === 0) {
+                area.innerHTML = `<p style="text-align:center; opacity:0.6; margin-top: 20px; font-size: 11px;">هیچ پەیامێک لە چاتدا نییە. گفتوگۆ دەست پێبکە!</p>`;
+                return;
+            }
+            let html = '';
+            keys.forEach(key => {
+                let msg = chatMessagesStore[key];
+                let isMine = currentUserAccount && msg.username === currentUserAccount.name;
+                html += `
+                    <div class="chat-msg-bubble ${isMine ? 'my-msg' : ''}">
+                        <div class="chat-msg-header">
+                            <span>👤 ${msg.username} (${msg.team})</span>
+                            <span style="font-size: 8px; opacity: 0.6;">${msg.timestamp}</span>
+                        </div>
+                        <p style="word-break: break-word; white-space: pre-wrap;">${msg.text}</p>
+                    </div>
+                `;
+            });
+            area.innerHTML = html;
+            area.scrollTop = area.scrollHeight;
+        }
+
         function renderCasesGrid() {
             let container = document.getElementById('casesGridContainer');
             if (currentSection === 'lfd') {
@@ -963,7 +1152,7 @@
                     <div class="case-item">Not Found <input type="number" id="c_notfound" value="0" min="0" oninput="saveDraftStateLocally()"></div>
                     <div class="case-item">Denied <input type="number" id="c_denied" value="0" min="0" oninput="saveDraftStateLocally()"></div>
                 `;
-            } else {
+            } else if (currentSection === 'movein') {
                 container.innerHTML = `
                     <div class="case-item">Inst. Meter <input type="number" id="c_inst_meter" value="0" min="0" oninput="saveDraftStateLocally()"></div>
                     <div class="case-item">Inst. Encl <input type="number" id="c_inst_encl" value="0" min="0" oninput="saveDraftStateLocally()"></div>
@@ -1185,9 +1374,16 @@
                 auditSyncRef = db.ref('audit_logs');
                 auditSyncRef.on('value', (snap) => { auditLogsStore = snap.val() || {}; });
             }
+
+            if (!chatSyncRef) {
+                chatSyncRef = db.ref('chat_messages');
+                chatSyncRef.on('value', (snap) => {
+                    chatMessagesStore = snap.val() || {};
+                    if (currentSection === 'chat') renderChatMessages();
+                });
+            }
         }
 
-        // NEW: Offline Sync Handler (Online/Offline Listeners)
         window.addEventListener('online', () => {
             showNotification("هێڵی ئینتەرنێت گەڕایەوە، داتاکان سینک دەکرێنەوە...", "success");
             let pendingOffline = localStorage.getItem('pending_offline_save');
@@ -1356,7 +1552,7 @@
                     NotFound: parseInt(document.getElementById('c_notfound')?.value) || 0,
                     Denied: parseInt(document.getElementById('c_denied')?.value) || 0
                 };
-            } else {
+            } else if (currentSection === 'movein') {
                 return {
                     "Inst. Meter": parseInt(document.getElementById('c_inst_meter')?.value) || 0,
                     "Inst. Encl": parseInt(document.getElementById('c_inst_encl')?.value) || 0,
@@ -1365,6 +1561,7 @@
                     "Other Team": parseInt(document.getElementById('c_other_team')?.value) || 0
                 };
             }
+            return {};
         }
 
         function getUniqueTeamKey(teamName, section) {
@@ -1424,7 +1621,7 @@
                 if(document.getElementById('c_other')) document.getElementById('c_other').value = d.Other || d.closed || 0;
                 if(document.getElementById('c_notfound')) document.getElementById('c_notfound').value = d.NotFound || d.notfound || 0;
                 if(document.getElementById('c_denied')) document.getElementById('c_denied').value = d.Denied || d.denied || 0;
-            } else {
+            } else if (currentSection === 'movein') {
                 if(document.getElementById('c_inst_meter')) document.getElementById('c_inst_meter').value = d["Inst. Meter"] || d.inst_meter || 0;
                 if(document.getElementById('c_inst_encl')) document.getElementById('c_inst_encl').value = d["Inst. Encl"] || d.inst_encl || 0;
                 if(document.getElementById('c_inst_3p')) document.getElementById('c_inst_3p').value = d["3P Encl"] || d.inst_3p || 0;
@@ -1505,11 +1702,12 @@
             };
             cloudStore[uniqueKey] = teamData;
 
-            // Push Audit Log entry
+            // Push Audit Log entry with who submitted and which team
             db.ref('audit_logs').push({
+                username: currentUserAccount ? currentUserAccount.name : 'نەناسراو',
                 teamName: t,
                 section: currentSection,
-                action: 'ناردن یان نوێکردنەوەی ڕاپۆرت',
+                action: 'ناردن یان نوێکردنەوەی ڕاپۆرت (پۆینت)',
                 timestamp: new Date().toLocaleString()
             });
 
@@ -1653,44 +1851,53 @@
                                  item.submitted ? `<b>${item.total}</b>` : `<span style="opacity:0.5;">Pending</span>`;
                 let reasonHTML = item.submitted && item.notes?.trim() ? `<div class="leaderboard-reason">Reason: ${item.notes}</div>` : "";
                 let adminControlsHTML = isAdmin ? `<div style="display: flex; gap: 4px; margin-top: 6px;"><button class="tool-btn" style="font-size:9px;" onclick="moveTeamPosition('${sectionName}', ${item.originalIndex}, -1)">⬆️</button><button class="tool-btn" style="font-size:9px;" onclick="moveTeamPosition('${sectionName}', ${item.originalIndex}, 1)">⬇️</button></div>` : "";
-                return `<div class="leaderboard-item">
-                    <div class="leaderboard-row-top">
-                        <div style="display:flex; align-items:center;"><span class="rank-badge ${rankClass}">${index + 1}</span><span>${item.name}</span></div>
-                        <div>${statusText}</div>
+                return `
+                    <div class="leaderboard-item">
+                        <div class="leaderboard-row-top">
+                            <div style="display: flex; align-items: center; gap: 6px;">
+                                <span class="rank-badge ${rankClass}">${index + 1}</span>
+                                <span>${item.name}</span>
+                            </div>
+                            <div>${statusText}</div>
+                        </div>
+                        ${reasonHTML}
+                        ${adminControlsHTML}
                     </div>
-                    ${reasonHTML}
-                    ${adminControlsHTML}
-                </div>`;
+                `;
             }).join(''), total: sectionTotal };
         }
 
         function render() {
             let activeTeams = currentSection === 'lfd' ? lfdTeams : moveInTeams;
-            let renderedObj = renderList(activeTeams, currentSection);
-            document.getElementById('leaderboardContainer').innerHTML = renderedObj.html;
-            document.getElementById('adminSectionTotal').innerText = `Total: ${renderedObj.total}`;
-            document.getElementById('grandTotalPoints').innerText = renderedObj.total;
+            let res = renderList(activeTeams, currentSection);
+            document.getElementById('leaderboardContainer').innerHTML = res.html || `<p style="text-align:center; opacity:0.6;">هیچ تیمێک نییە</p>`;
+            document.getElementById('adminSectionTotal').innerText = `Total: ${res.total}`;
 
+            let grandTotal = 0;
+            let totalSubmittedCount = 0;
             let totalTeamsCount = activeTeams.length;
-            let submittedCount = activeTeams.filter(t => {
-                let d = cloudStore[getUniqueTeamKey(t, currentSection)];
-                return d && (d.submitted || d.offday);
-            }).length;
-            let percent = totalTeamsCount > 0 ? Math.round((submittedCount / totalTeamsCount) * 100) : 0;
+
+            activeTeams.forEach(t => {
+                let rec = cloudStore[getUniqueTeamKey(t, currentSection)];
+                if (rec && rec.submitted) {
+                    if (!rec.offday) grandTotal += (rec.total || 0);
+                    totalSubmittedCount++;
+                }
+            });
+
+            document.getElementById('grandTotalPoints').innerText = grandTotal;
+            let percent = totalTeamsCount > 0 ? Math.round((totalSubmittedCount / totalTeamsCount) * 100) : 0;
             document.getElementById('progressBar').style.width = percent + '%';
-            let lang = document.getElementById('langSelect').value;
-            document.getElementById('progressText').innerText = translations[lang].progressText + percent + '% (' + submittedCount + '/' + totalTeamsCount + ')';
+            document.getElementById('progressText').innerText = `Submitted: ${percent}% (${totalSubmittedCount}/${totalTeamsCount})`;
 
             updateChart(activeTeams, currentSection);
         }
 
         function updateChart(teamsArray, sectionName) {
-            let labels = [];
-            let dataVals = [];
-            teamsArray.forEach(t => {
-                let teamData = cloudStore[getUniqueTeamKey(t, sectionName)];
-                labels.push(t);
-                dataVals.push(teamData && teamData.submitted && !teamData.offday ? teamData.total : 0);
+            let labels = teamsArray;
+            let dataVals = teamsArray.map(t => {
+                let rec = cloudStore[getUniqueTeamKey(t, sectionName)];
+                return (rec && rec.submitted && !rec.offday) ? (rec.total || 0) : 0;
             });
 
             let ctx = document.getElementById('statsChart').getContext('2d');
@@ -1703,7 +1910,7 @@
                         label: 'Points',
                         data: dataVals,
                         backgroundColor: '#38bdf8',
-                        borderRadius: 4
+                        borderRadius: 6
                     }]
                 },
                 options: {
@@ -1711,22 +1918,11 @@
                     maintainAspectRatio: false,
                     plugins: { legend: { display: false } },
                     scales: {
-                        x: { ticks: { color: '#94a3b8', font: { size: 9 } }, grid: { display: false } },
-                        y: { ticks: { color: '#94a3b8', font: { size: 9 } }, grid: { color: 'rgba(255,255,255,0.05)' } }
+                        x: { ticks: { color: '#f8fafc', font: { size: 9 } }, grid: { display: false } },
+                        y: { ticks: { color: '#f8fafc', font: { size: 9 } }, grid: { color: 'rgba(255,255,255,0.05)' } }
                     }
                 }
             });
-        }
-
-        function exportAsImage() {
-            import('https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js').then(() => {
-                html2canvas(document.getElementById('reportArea')).then(canvas => {
-                    let link = document.createElement('a');
-                    link.download = `BIM_Report_${selectedAdminDate}.png`;
-                    link.href = canvas.toDataURL();
-                    link.click();
-                });
-            }).catch(() => { alert("هەڵە لە دروستکردنی وێنە."); });
         }
 
         window.onload = function() {
@@ -1734,9 +1930,10 @@
             let savedLang = localStorage.getItem('bim_lang') || 'ku';
             document.getElementById('langSelect').value = savedLang;
             applyLanguage(savedLang);
+            checkUserAccountOnStartup();
             initRealtimeSync();
             let savedTeam = localStorage.getItem('bim_selected_team');
-            if (savedTeam && document.getElementById('teamSelect')) {
+            if(savedTeam) {
                 document.getElementById('teamSelect').value = savedTeam;
                 loadTeamData();
             }
