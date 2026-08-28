@@ -1,128 +1,1432 @@
-            let path = getStorageKeyPath() + '/' + uniqueKey;
+<!DOCTYPE html>
+<html lang="ku" dir="rtl" id="htmlRoot">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bim Company - Operations Tracker</title>
+    
+    <link rel="manifest" id="dynamicManifest">
+    <meta name="theme-color" content="#090d16">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="BIM Operations">
+
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Leaflet.js for Live Map Feature -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800&display=swap');
+
+        :root {
+            --bg-color: #090d16;
+            --card-bg: rgba(17, 28, 46, 0.75);
+            --text-color: #f8fafc;
+            --border-color: rgba(255, 255, 255, 0.08);
+            --input-bg: rgba(11, 15, 25, 0.8);
+            --primary: #38bdf8;
+            --primary-hover: #0ea5e9;
+            --glass-shadow: 0 16px 32px 0 rgba(0, 0, 0, 0.4);
+            --backdrop-blur: blur(16px);
+        }
+
+        * { box-sizing: border-box; font-family: 'Vazirmatn', sans-serif; margin: 0; padding: 0; }
+        
+        body { 
+            background: radial-gradient(circle at 50% 0%, #1e1b4b 0%, #090d16 60%);
+            background-attachment: fixed;
+            color: var(--text-color); 
+            padding: 16px; 
+            min-height: 100vh;
+            transition: background 0.3s ease, color 0.3s ease; 
+        }
+
+        .app-container { 
+            max-width: 650px; 
+            margin: 0 auto; 
+            background: var(--card-bg); 
+            backdrop-filter: var(--backdrop-blur);
+            -webkit-backdrop-filter: var(--backdrop-blur);
+            border-radius: 20px; 
+            padding: 20px; 
+            box-shadow: var(--glass-shadow); 
+            border: 1px solid var(--border-color); 
+        }
+        
+        .app-header-bar { 
+            display: flex; 
+            flex-direction: column; 
+            border-bottom: 1px solid var(--border-color); 
+            padding-bottom: 16px; 
+            margin-bottom: 16px; 
+            gap: 14px; 
+        }
+        
+        .brand-box { 
+            display: flex; 
+            align-items: center; 
+            gap: 14px; 
+            cursor: pointer; 
+            user-select: none; 
+            width: 100%;
+            background: rgba(255, 255, 255, 0.02);
+            padding: 12px 16px;
+            border-radius: 14px;
+            border: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+        }
+        .brand-box:hover {
+            border-color: rgba(56, 189, 248, 0.3);
+            background: rgba(255, 255, 255, 0.04);
+        }
+        
+        .brand-logo { 
+            width: 50px; 
+            height: 50px; 
+            border-radius: 14px; 
+            flex-shrink: 0; 
+            background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            box-shadow: 0 4px 15px rgba(2, 132, 199, 0.4); 
+            border: 1px solid rgba(56, 189, 248, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+        .brand-logo::after {
+            content: '';
+            position: absolute;
+            top: -50%; left: -50%;
+            width: 200%; height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.2) 0%, transparent 60%);
+            pointer-events: none;
+        }
+        .brand-box div { min-width: 0; }
+        .brand-box h1 { font-size: 18px; color: var(--primary); font-weight: 800; letter-spacing: -0.5px; text-shadow: 0 0 20px rgba(56, 189, 248, 0.4); }
+        .brand-box p { font-size: 11px; opacity: 0.7; font-weight: 400; margin-top: 2px; }
+
+        .top-tools { 
+            display: flex; 
+            gap: 8px; 
+            align-items: center; 
+            width: 100%;
+            justify-content: space-between;
+        }
+        
+        .tools-left-group {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .tool-btn { 
+            background: rgba(255, 255, 255, 0.05); 
+            border: 1px solid var(--border-color); 
+            padding: 8px 12px; 
+            border-radius: 10px; 
+            cursor: pointer; 
+            color: var(--text-color); 
+            font-weight: 500; 
+            font-size: 11px; 
+            display: flex; 
+            align-items: center; 
+            gap: 6px; 
+            outline: none; 
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
+            backdrop-filter: blur(8px);
+            white-space: nowrap;
+        }
+        .tool-btn:hover { background: var(--primary); color: #090d16; border-color: var(--primary); box-shadow: 0 0 15px rgba(56, 189, 248, 0.5); transform: translateY(-1px); }
+        .install-btn { background: #10b981; color: white; border-color: #10b981; display: flex !important; }
+        
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .refresh-btn.spinning svg { animation: spin 0.6s linear; }
+
+        .total-points-card {
+            background: linear-gradient(135deg, rgba(79, 70, 229, 0.8) 0%, rgba(124, 58, 237, 0.8) 50%, rgba(219, 39, 119, 0.8) 100%);
+            backdrop-filter: blur(12px);
+            color: white;
+            padding: 20px 24px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            gap: 18px;
+            box-shadow: 0 15px 30px -5px rgba(124, 58, 237, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.3);
+            margin-bottom: 16px;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.4s ease;
+        }
+        .total-points-card::after {
+            content: '';
+            position: absolute;
+            top: -50%; right: -50%;
+            width: 200%; height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 60%);
+            pointer-events: none;
+        }
+        .total-points-card.movein-theme {
+            background: linear-gradient(135deg, rgba(4, 120, 87, 0.85) 0%, rgba(5, 150, 105, 0.85) 50%, rgba(16, 185, 129, 0.85) 100%);
+            box-shadow: 0 15px 30px -5px rgba(16, 185, 129, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.3);
+        }
+        .total-points-card .icon-container {
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(8px);
+            padding: 14px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: inset 0 1px 1px rgba(255,255,255,0.4);
+        }
+        .total-points-card h3 {
+            margin: 0 0 4px 0;
+            font-size: 13px;
+            font-weight: 600;
+            opacity: 0.95;
+            letter-spacing: 0.3px;
+        }
+        .total-points-card .counter {
+            font-size: 32px;
+            font-weight: 800;
+            line-height: 1;
+            text-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        }
+
+        .broadcast-ticker { background: rgba(220, 38, 38, 0.85); backdrop-filter: blur(8px); color: white; padding: 10px 14px; border-radius: 10px; font-size: 11px; margin-bottom: 14px; font-weight: 500; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 15px rgba(220,38,38,0.3); border: 1px solid rgba(255,255,255,0.15); }
+        .broadcast-ticker.active-new { background: rgba(16, 185, 129, 0.9) !important; box-shadow: 0 4px 15px rgba(16,185,129,0.4); }
+
+        .progress-container { margin-bottom: 16px; background: rgba(255, 255, 255, 0.05); border-radius: 10px; height: 16px; overflow: hidden; position: relative; border: 1px solid var(--border-color); }
+        .progress-bar { background: linear-gradient(90deg, #10b981, #34d399); height: 100%; width: 0%; transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 0 10px rgba(16, 185, 129, 0.5); }
+        .progress-text { position: absolute; width: 100%; text-align: center; font-size: 10px; font-weight: 700; line-height: 16px; color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,0.5); }
+
+        .control-group { background: rgba(17, 28, 46, 0.5); backdrop-filter: blur(10px); padding: 16px; border-radius: 16px; margin-bottom: 14px; border: 1px solid var(--border-color); box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2); }
+        label { font-size: 11px; font-weight: 600; display: block; margin-bottom: 6px; color: var(--text-color); opacity: 0.9; }
+        select, input, textarea { width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--border-color); font-size: 12px; outline: none; background: var(--input-bg); color: var(--text-color); transition: all 0.3s ease; backdrop-filter: blur(8px); }
+        select:focus, input:focus, textarea:focus { border-color: var(--primary); box-shadow: 0 0 15px rgba(56, 189, 248, 0.3); }
+
+        .section-tabs { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 14px; }
+        .section-tab-btn { background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border-color); padding: 10px; border-radius: 12px; font-weight: 700; font-size: 12px; cursor: pointer; color: var(--text-color); text-align: center; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); backdrop-filter: blur(8px); }
+        .section-tab-btn.active { background: linear-gradient(135deg, #0284c7, #0369a1); color: white; border-color: #38bdf8; box-shadow: 0 0 20px rgba(2, 132, 199, 0.5); transform: translateY(-1px); }
+
+        .cases-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 14px; margin-bottom: 14px; }
+        .case-item { background: rgba(255, 255, 255, 0.04); border: 1px solid var(--border-color); padding: 10px 8px; border-radius: 12px; font-size: 11px; text-align: center; font-weight: 600; backdrop-filter: blur(8px); box-shadow: 0 4px 10px rgba(0,0,0,0.1); transition: transform 0.2s; }
+        .case-item:hover { border-color: var(--primary); transform: translateY(-2px); }
+        .case-item input { text-align: center; font-weight: 700; padding: 8px; font-size: 14px; margin-top: 8px; background: rgba(11, 15, 25, 0.95); border: 1px solid rgba(255,255,255,0.12); }
+
+        .offday-container { display: flex; align-items: center; gap: 10px; margin-top: 14px; background: rgba(245, 158, 11, 0.08); padding: 12px 14px; border-radius: 12px; border: 1px solid rgba(245, 158, 11, 0.25); }
+        .offday-container input { width: 18px; height: 18px; cursor: pointer; accent-color: #f59e0b; }
+
+        .btn-submit-main { 
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8); 
+            color: white; width: 100%; padding: 14px; border: none; border-radius: 14px; 
+            font-size: 14px; font-weight: 700; cursor: pointer; margin-top: 14px; 
+            display: flex; align-items: center; justify-content: center; gap: 8px; 
+            box-shadow: 0 8px 20px rgba(37, 99, 235, 0.4); transition: all 0.3s ease;
+        }
+        .btn-submit-main.movein-theme {
+            background: linear-gradient(135deg, #059669, #047857);
+            box-shadow: 0 8px 20px rgba(5, 150, 105, 0.4);
+        }
+        .btn-submit-main:active { transform: scale(0.98); }
+        .btn-submit-main:hover { box-shadow: 0 0 25px rgba(59, 130, 246, 0.6); }
+
+        .btn-toolbar { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 14px; }
+        .btn-toolbar .btn:last-child:nth-child(odd) {
+            grid-column: span 2;
+        }
+
+        .btn { padding: 12px 10px; border: none; border-radius: 12px; font-size: 12px; font-weight: 700; cursor: pointer; color: white; text-align: center; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; gap: 6px; box-shadow: 0 4px 15px rgba(0,0,0,0.25); }
+        .btn:hover { opacity: 0.95; transform: translateY(-2px); }
+        .btn-whatsapp { background: linear-gradient(135deg, #10b981, #059669); }
+        .btn-myteam { background: linear-gradient(135deg, #059669, #047857); }
+        .btn-image { background: linear-gradient(135deg, #d97706, #b45309); }
+        .btn-pdf { background: linear-gradient(135deg, #7c3aed, #6d28d9); }
+        .btn-excel { background: linear-gradient(135deg, #0d9488, #0f766e); }
+
+        .admin-panel { display: none; background: rgba(17, 28, 46, 0.9); backdrop-filter: blur(16px); border: 2px solid var(--primary); border-radius: 16px; padding: 14px; margin-bottom: 14px; box-shadow: 0 15px 30px rgba(0,0,0,0.4); }
+        .admin-panel.active { display: block; }
+        
+        .filter-bar { display: flex; gap: 6px; margin-bottom: 10px; flex-wrap: wrap; }
+        .filter-btn { background: rgba(255,255,255,0.03); border: 1px solid var(--border-color); color: var(--text-color); font-size: 10px; font-weight: 600; padding: 6px 10px; border-radius: 8px; cursor: pointer; flex: 1; text-align: center; transition: all 0.2s; }
+        .filter-btn.active { background: var(--primary); color: #090d16; border-color: var(--primary); font-weight: 700; box-shadow: 0 0 15px rgba(56, 189, 248, 0.4); }
+
+        .admin-sub-box { background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border-color); padding: 10px; border-radius: 10px; margin-top: 10px; margin-bottom: 10px; }
+
+        .leaderboard-box { margin-top: 10px; background: rgba(11, 15, 25, 0.6); border-radius: 12px; padding: 10px; border: 1px solid var(--border-color); }
+        .leaderboard-title { font-size: 11px; font-weight: bold; color: var(--primary); margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 6px; }
+        .leaderboard-item { display: flex; flex-direction: column; padding: 8px; border-bottom: 1px solid var(--border-color); font-size: 11px; gap: 4px; transition: background 0.2s; }
+        .leaderboard-item:hover { background: rgba(255, 255, 255, 0.02); }
+        .leaderboard-item:last-child { border-bottom: none; }
+        .leaderboard-row-top { display: flex; justify-content: space-between; align-items: center; width: 100%; }
+        .leaderboard-reason { background: rgba(239, 68, 68, 0.1); color: #f87171; padding: 4px 8px; border-radius: 6px; font-size: 10px; width: 100%; margin-top: 4px; border: 1px solid rgba(239, 68, 68, 0.2); }
+
+        .rank-badge { width: 20px; height: 20px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-weight: bold; font-size: 10px; margin-left: 8px; }
+        html[dir="ltr"] .rank-badge { margin-left: 0; margin-right: 8px; }
+        .rank-1 { background: #f59e0b; color: #090d16; box-shadow: 0 0 10px rgba(245, 158, 11, 0.6); }
+        .rank-2 { background: #94a3b8; color: #090d16; }
+        .rank-3 { background: #d97706; color: white; }
+        .rank-other { background: rgba(255, 255, 255, 0.08); color: var(--text-color); }
+
+        .toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: #10b981; color: white; padding: 10px 20px; border-radius: 10px; font-weight: 600; font-size: 12px; display: none; z-index: 1000; box-shadow: 0 8px 20px rgba(16, 185, 129, 0.4); border: 1px solid rgba(255,255,255,0.2); }
+        
+        .live-alert-banner { background: rgba(239, 68, 68, 0.9); backdrop-filter: blur(8px); color: white; padding: 8px 12px; border-radius: 10px; font-size: 11px; margin-bottom: 10px; font-weight: bold; display: none; align-items: center; justify-content: space-between; border: 1px solid rgba(255,255,255,0.2); }
+
+        .team-targets-info { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 10px; background: rgba(255, 255, 255, 0.02); padding: 10px; border-radius: 10px; text-align: center; border: 1px solid var(--border-color); }
+        .team-targets-info div h5 { font-size: 10px; opacity: 0.7; }
+        .team-targets-info div p { font-size: 12px; font-weight: bold; color: var(--primary); }
+
+        .custom-modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(9, 13, 22, 0.85); backdrop-filter: blur(8px);
+            display: none; align-items: center; justify-content: center; z-index: 9999;
+        }
+        .custom-modal-box {
+            background: rgba(17, 28, 46, 0.95); backdrop-filter: blur(20px);
+            border: 1px solid var(--border-color);
+            width: 90%; max-width: 360px; padding: 20px; border-radius: 18px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); text-align: center;
+        }
+        .custom-modal-box h3 { font-size: 14px; margin-bottom: 8px; color: var(--primary); font-weight: 700; }
+        .custom-modal-box p { font-size: 11px; opacity: 0.8; margin-bottom: 12px; }
+        .custom-modal-box input, .custom-modal-box textarea {
+            text-align: right; font-size: 12px; padding: 10px; margin-bottom: 12px; border-radius: 10px; width: 100%;
+        }
+        .modal-btn-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .modal-btn { padding: 10px; border-radius: 10px; font-weight: 600; font-size: 11px; cursor: pointer; border: none; transition: all 0.2s; }
+        .modal-btn-confirm { background: var(--primary); color: #090d16; font-weight: 700; }
+        .modal-btn-cancel { background: rgba(255,255,255,0.05); color: var(--text-color); border: 1px solid var(--border-color); }
+
+        .site-footer-copy {
+            text-align: center;
+            font-size: 10px;
+            opacity: 0.6;
+            margin-top: 16px;
+            border-top: 1px dashed var(--border-color);
+            padding-top: 10px;
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+    <div id="toast" class="toast">Saved!</div>
+    <div id="toast-container" style="position: fixed; bottom: 20px; left: 20px; z-index: 9999;"></div>
+
+    <!-- Auth / Account Registration Modal -->
+    <div id="authModalOverlay" class="custom-modal-overlay" style="display: flex;">
+        <div class="custom-modal-box" style="max-width: 380px; text-align: right;">
+            <h3 id="authModalTitle">دروستکردنی ئەکاونت یان چوونەژوورەوە</h3>
+            <p id="authModalDesc">تکایە جیمێڵ و پاسوۆرد بنووسە بۆ پاراستنی ئەکاونتەکەت لەسەر تیم</p>
             
-            // Save audit log entry
-            let auditRef = db.ref('audit_logs').push();
-            auditRef.set({
-                username: currentUserAccount ? currentUserAccount.name : 'نەناسراو',
-                teamName: t,
-                section: currentSection,
-                action: `Updated points (Total: ${total})`,
-                timestamp: new Date().toLocaleString()
-            });
+            <div id="authRegisterFields">
+                <input type="email" id="authEmail" placeholder="جیمێڵ (Email)..." autocomplete="email">
+                <input type="password" id="authPassword" placeholder="پاسوۆرد (حەرف و ژمارە)..." autocomplete="current-password">
+                <input type="text" id="authPhone" placeholder="ژمارە مۆبایل بۆ سەلامەتی (بۆ کۆد)..." autocomplete="tel">
+            </div>
 
-            if (!navigator.onLine) {
-                localStorage.setItem('pending_offline_save', JSON.stringify({ uniqueKey, teamData }));
-                showNotification("ئاگاداری: ئینتەرنێت نییە، داتاکانت لە ناوخۆدا پاشەکەوت کران.", "error");
-                return;
+            <div class="modal-btn-row" style="margin-top: 10px;">
+                <button class="modal-btn modal-btn-cancel" onclick="switchAuthMode()" id="authModeSwitchBtn">هەموونییە؟ چوونەژوورەوە</button>
+                <button class="modal-btn modal-btn-confirm" onclick="submitAuthAction()" id="authSubmitBtn">دروستکردنی ئەکاونت</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- General Custom Modal -->
+    <div id="customModalOverlay" class="custom-modal-overlay">
+        <div class="custom-modal-box">
+            <h3 id="modalTitle">تەماشاكردنی پاراستن</h3>
+            <p id="modalDesc">زانیاری</p>
+            <input type="text" id="customModalInput" placeholder="..." autocomplete="off">
+            <div class="modal-btn-row">
+                <button class="modal-btn modal-btn-cancel" onclick="closeCustomModal(false)">پەشیمانبوونەوە</button>
+                <button class="modal-btn modal-btn-confirm" id="modalConfirmBtn">پشتڕاستکردنەوە</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="historyModalOverlay" class="custom-modal-overlay">
+        <div class="custom-modal-box" style="max-width: 380px; text-align: right;">
+            <h3 id="historyModalTitle" style="text-align: center; color: var(--primary); margin-bottom: 12px;">مێژووی ٧ ڕۆژی ڕابردوو</h3>
+            <div id="historyContentList" style="max-height: 250px; overflow-y: auto; font-size: 11px; margin-bottom: 14px;"></div>
+            <button class="modal-btn modal-btn-cancel" style="width: 100%;" onclick="document.getElementById('historyModalOverlay').style.display='none'">داخستن</button>
+        </div>
+    </div>
+
+    <div id="feedbackModalOverlay" class="custom-modal-overlay">
+        <div class="custom-modal-box" style="max-width: 380px; text-align: right;">
+            <h3 style="text-align: center; color: var(--primary); margin-bottom: 12px;">بەشی پێشنیار و گلەییەکان</h3>
+            <p style="margin-bottom: 8px;">ناو یان نیشانەی خۆت (ئارەزوومەندانە):</p>
+            <input type="text" id="feedbackAuthor" placeholder="ناوی تیم یان کارمەند..." style="margin-bottom: 10px;">
+            <p style="margin-bottom: 8px;">پێشنیار، کێشە یان تێبینییەکەت بنووسە:</p>
+            <textarea id="feedbackText" rows="4" placeholder="لێرە بنووسە..." style="background: var(--input-bg); color: var(--text-color); border: 1px solid var(--border-color); border-radius: 10px; padding: 10px; width: 100%; font-size: 12px; margin-bottom: 14px; outline: none; resize: vertical;"></textarea>
+            <div class="modal-btn-row">
+                <button class="modal-btn modal-btn-cancel" onclick="document.getElementById('feedbackModalOverlay').style.display='none'">پەشیمانبوونەوە</button>
+                <button class="modal-btn modal-btn-confirm" onclick="submitFeedbackFinal()">ناردن</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="adminFeedbackModalOverlay" class="custom-modal-overlay">
+        <div class="custom-modal-box" style="max-width: 440px; text-align: right;">
+            <h3 style="text-align: center; color: var(--primary); margin-bottom: 12px;">پێشنیار و گلەیییە نێردراوەکان</h3>
+            <div id="adminFeedbackListContent" style="max-height: 300px; overflow-y: auto; font-size: 11px; margin-bottom: 14px; display: flex; flex-direction: column; gap: 8px;"></div>
+            <button class="modal-btn modal-btn-cancel" style="width: 100%;" onclick="document.getElementById('adminFeedbackModalOverlay').style.display='none'">داخستن</button>
+        </div>
+    </div>
+
+    <div id="liveMapModalOverlay" class="custom-modal-overlay">
+        <div class="custom-modal-box" style="max-width: 500px; width: 95%; text-align: right;">
+            <h3 style="text-align: center; color: var(--primary); margin-bottom: 10px;">🗺️ نەخشەی ڕاستەوخۆی خاڵەکان</h3>
+            <div id="mapContainer" style="width: 100%; height: 300px; border-radius: 12px; margin-bottom: 14px; border: 1px solid var(--border-color);"></div>
+            <button class="modal-btn modal-btn-cancel" style="width: 100%;" onclick="document.getElementById('liveMapModalOverlay').style.display='none'">داخستن</button>
+        </div>
+    </div>
+
+    <div id="rangeExportModalOverlay" class="custom-modal-overlay">
+        <div class="custom-modal-box" style="max-width: 380px; text-align: right;">
+            <h3 style="text-align: center; color: var(--primary); margin-bottom: 12px;">📈 دەرکردنی ڕاپۆرت بە مەودای بەروار</h3>
+            <label style="font-size:10px;">لە بەرواری:</label>
+            <input type="date" id="rangeStart" style="margin-bottom:8px; font-size:11px;">
+            <label style="font-size:10px;">تا بەرواری:</label>
+            <input type="date" id="rangeEnd" style="margin-bottom:14px; font-size:11px;">
+            <div class="modal-btn-row">
+                <button class="modal-btn modal-btn-cancel" onclick="document.getElementById('rangeExportModalOverlay').style.display='none'">پەشیمانبوونەوە</button>
+                <button class="modal-btn modal-btn-confirm" onclick="exportRangeExcel()">داگرتنی Excel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- NEW: Global Chat Modal / Section -->
+    <div id="globalChatModalOverlay" class="custom-modal-overlay">
+        <div class="custom-modal-box" style="max-width: 440px; width: 95%; text-align: right;">
+            <h3 style="text-align: center; color: var(--primary); margin-bottom: 10px;">💬 چاتی گشتی تیمەکان</h3>
+            <div id="globalChatContainer" style="width: 100%; height: 260px; border-radius: 12px; margin-bottom: 10px; border: 1px solid var(--border-color); background: rgba(11,15,25,0.9); overflow-y: auto; padding: 10px; display: flex; flex-direction: column; gap: 8px;"></div>
+            <div style="display: flex; gap: 6px; margin-bottom: 10px;">
+                <input type="text" id="chatMessageInput" placeholder="پەیامەکەت بنووسە..." style="flex: 2; margin-bottom: 0;">
+                <button class="modal-btn modal-btn-confirm" style="flex: 1;" onclick="sendGlobalChatMessage()">ناردن</button>
+            </div>
+            <button class="modal-btn modal-btn-cancel" style="width: 100%;" onclick="document.getElementById('globalChatModalOverlay').style.display='none'">داخستن</button>
+        </div>
+    </div>
+
+    <div class="app-container" id="reportArea">
+        <div class="app-header-bar">
+            <div class="brand-box" onclick="handleHeaderClick()" title="چوونەژوورەوەی ئەدمین بە لۆگۆ">
+                <div class="brand-logo">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"></path>
+                    </svg>
+                </div>
+                <div>
+                    <h1 id="brandTitleHeading">BIM Operations</h1>
+                    <p id="lblSubHeader">سیستمی بەڕێوەبردنی ئامار</p>
+                </div>
+            </div>
+            
+            <div class="top-tools">
+                <div class="tools-left-group">
+                    <button id="installAppBtn" class="tool-btn install-btn" onclick="installPwaApp()">📲 داگرتنی ئەپ</button>
+                    <button class="tool-btn" onclick="openGlobalChatModal()" style="background: rgba(16,185,129,0.2); border-color:#10b981; color:#34d399;">💬 چاتی گشتی</button>
+                    <button class="tool-btn" onclick="openFeedbackModal()" title="پێشنیار و گلەییەکان">💬 پێشنیار</button>
+                </div>
+                <div style="display: flex; gap: 6px; align-items: center;">
+                    <button class="tool-btn refresh-btn" onclick="manualRefreshData()" id="btnRefreshMain" title="نوێکردنەوەی داتاکان">
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
+                        <span id="lblRefreshText">نوێکردنەوە</span>
+                    </button>
+                    <select id="langSelect" class="tool-btn" style="padding: 6px 10px;" onchange="changeLanguage()">
+                        <option value="ku" selected>کوردی</option>
+                        <option value="en">EN</option>
+                        <option value="ar">AR</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="section-tabs">
+            <button class="section-tab-btn active" id="tabLFD" onclick="switchSection('lfd')">بەشی LFD</button>
+            <button class="section-tab-btn" id="tabMoveIn" onclick="switchSection('movein')">بەشی Move-In</button>
+        </div>
+
+        <div class="total-points-card" id="totalPointsCard">
+            <div class="icon-container">
+                <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+            </div>
+            <div>
+                <h3 id="lblGrandTotalTitle">کۆی گشتی پۆینتەکانی ئەمڕۆ</h3>
+                <span id="grandTotalPoints" class="counter">0</span>
+            </div>
+        </div>
+
+        <div id="liveAlertBanner" class="live-alert-banner">
+            <span id="liveAlertText">ئاگاداری نوێ!</span>
+            <button onclick="document.getElementById('liveAlertBanner').style.display='none'" style="background:none; border:none; color:white; font-weight:bold; cursor:pointer;">✕</button>
+        </div>
+
+        <div id="broadcastTicker" class="broadcast-ticker" style="display:none;">
+            <span>ئاگاداری:</span> <span id="broadcastTextContent"></span>
+        </div>
+
+        <!-- Admin Panel -->
+        <div class="admin-panel" id="adminPanel">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                <h3 style="font-size:12px; color:var(--primary); font-weight: 700;" id="lblAdminTitle">بەشی بەڕێوەبەر و چاودێری ئەکاونتەکان</h3>
+                <div style="display: flex; gap: 6px;">
+                    <button class="tool-btn" onclick="openAdminFeedbackModal()" style="padding: 4px 8px; font-size: 10px; background: rgba(56,189,248,0.2); border-color: var(--primary);">💬 پێشنیارەکان (<span id="feedbackCounterBadge">0</span>)</button>
+                    <button class="tool-btn" onclick="manualRefreshData()" style="padding: 4px 8px; font-size: 10px;">نوێکردنەوە</button>
+                </div>
+            </div>
+
+            <div class="admin-sub-box" style="border: 1px solid var(--primary);">
+                <label style="font-size: 10px; color: var(--primary); font-weight: bold;">👥 چاودێری ئەکاونتە دروستکراوەکان و چ تیمی پڕکردۆتەوە:</label>
+                <div id="adminAccountsListContainer" style="max-height: 150px; overflow-y: auto; font-size: 11px; margin-top: 6px;"></div>
+            </div>
+
+            <div style="display: flex; gap: 6px; margin-bottom: 8px;">
+                <button class="btn" style="background: rgba(56,189,248,0.2); border:1px solid var(--primary); flex:1; font-size:10px;" onclick="openLiveMapModal()">🗺️ نەخشەی خاڵەکان</button>
+                <button class="btn" style="background: rgba(16,185,129,0.2); border:1px solid #10b981; flex:1; font-size:10px;" onclick="openAuditLogModal()">📋 مێژووی لۆگی چالاکییەکان</button>
+            </div>
+
+            <div class="admin-sub-box">
+                <label style="font-size: 10px; color: var(--primary); font-weight: bold;">ناردنی ئاگاداری گشتی بۆ هەمووان:</label>
+                <div style="display: flex; gap: 6px; margin-top: 6px;">
+                    <input type="text" id="adminBroadcastInput" placeholder="پەیام بنووسە..." style="flex: 2; font-size: 11px;">
+                    <button class="btn" style="background: var(--primary); color: #090d16; flex: 1; font-size: 10px; font-weight: 700;" onclick="saveBroadcastMessage()">بڵاوکردنەوە</button>
+                </div>
+            </div>
+
+            <div class="admin-sub-box">
+                <label style="font-size: 10px; color: var(--primary); font-weight: bold;" id="lblHistoryDate">دیاریکردنی بەروار (ڕۆژانی پێشوو):</label>
+                <input type="date" id="adminDateSelector" onchange="onAdminDateChange()" style="font-weight: bold; text-align: center; font-size: 11px; margin-top: 6px;">
+            </div>
+            
+            <div class="admin-sub-box">
+                <label style="color: var(--primary); font-weight: bold; margin-bottom: 6px; font-size: 10px;" id="lblAddTeamTitle">زیادکردنی تیمی نوێ:</label>
+                <div style="display: flex; gap: 6px; margin-bottom: 6px;">
+                    <select id="newTeamSection" style="flex: 1; font-size: 10px;">
+                        <option value="lfd">بەشی LFD</option>
+                        <option value="movein">بەشی Move-In</option>
+                    </select>
+                    <input type="text" id="newTeamNameInput" placeholder="ناوی تیم (Team 99)" style="flex: 2; font-size: 10px;">
+                </div>
+                <button class="btn" style="background: var(--primary); color: #090d16; width: 100%; padding: 6px; font-size: 10px; font-weight: 700;" onclick="addNewTeam()" id="btnAddTeamBtn">زیادکردنی تیم</button>
+            </div>
+
+            <div class="filter-bar">
+                <button class="filter-btn active" id="f_all" onclick="setFilter('all')">هەموو</button>
+                <button class="filter-btn" id="f_achieved" onclick="setFilter('achieved')">گەیشتوو (≥7)</button>
+                <button class="filter-btn" id="f_missed" onclick="setFilter('missed')">نەگەیشتوو (<7)</button>
+                <button class="filter-btn" id="f_offday" onclick="setFilter('offday')">پشوو</button>
+            </div>
+
+            <div style="display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap;">
+                <button class="btn" style="background:#10b981; flex:1; font-size: 10px;" onclick="adminExportExcel('daily')" id="btnExcelAdmin">Excel (ڕۆژانە)</button>
+                <button class="btn" style="background:#3b82f6; flex:1; font-size: 10px;" onclick="document.getElementById('rangeExportModalOverlay').style.display='flex'">مەودای بەروار</button>
+                <button class="btn" style="background:#7c3aed; flex:1; font-size: 10px;" onclick="window.print()" id="btnPdfAdmin">PDF</button>
+                <button class="btn" style="background:#ef4444; flex:1; font-size: 10px;" onclick="adminClearData()" id="btnClearCloud">سڕینەوە</button>
+            </div>
+
+            <div style="background:rgba(11,15,25,0.6); border:1px solid var(--border-color); border-radius:10px; padding:10px; margin-top:10px; height:140px; display:flex; align-items:center; justify-content:center;">
+                <canvas id="statsChart"></canvas>
+            </div>
+
+            <div class="leaderboard-box">
+                <div class="leaderboard-title" id="leaderboardBoxTitle">
+                    <span id="lblLeaderboardTitle">ڕیزبەندی تیمەکان</span>
+                    <span id="adminSectionTotal" style="font-size: 10px; background: var(--primary); color: #090d16; padding: 2px 6px; border-radius: 6px; font-weight: 700;">Total: 0</span>
+                </div>
+                <div id="leaderboardContainer"></div>
+            </div>
+        </div>
+
+        <div class="progress-container">
+            <div class="progress-bar" id="progressBar"></div>
+            <div class="progress-text" id="progressText">Submitted: 0%</div>
+        </div>
+
+        <div class="control-group">
+            <label for="teamSelect" id="lblSelectTeam">تیمەکەت هەڵبژێرە:</label>
+            <div style="display: flex; gap: 6px;">
+                <select id="teamSelect" onchange="loadTeamData()" style="flex: 2;">
+                    <option value="" id="optChooseTeam">-- تیم هەڵبژێرە --</option>
+                </select>
+                <button class="tool-btn" style="flex: 1; font-size: 10px; justify-content: center; background: rgba(16,185,129,0.15); border-color: #10b981; color: #34d399;" onclick="copyYesterdayDataToCurrent()" title="هێنانی داتای دوێنێ">📥 دوێنێ</button>
+            </div>
+
+            <div class="team-targets-info" id="teamTargetsBox" style="margin-top: 10px; display: none;">
+                <div><h5>ڕۆژانە</h5><p id="targetDailyVal">7</p></div>
+                <div><h5>هەفتانە</h5><p id="targetWeeklyVal">42</p></div>
+                <div><h5>مانگانە</h5><p id="targetMonthlyVal">180</p></div>
+            </div>
+
+            <button class="tool-btn" style="width: 100%; margin-top: 8px; justify-content: center; background: rgba(255,255,255,0.03);" onclick="openTeamHistoryModal()" id="btnTeamHistory" style="display: none;">
+                📈 مێژووی کارکردنی ۷ ڕۆژی ڕابردووی تیمەکەم
+            </button>
+
+            <div class="cases-grid" id="casesGridContainer"></div>
+
+            <div class="offday-container">
+                <input type="checkbox" id="c_offday" onchange="saveDraftStateLocally()">
+                <label for="c_offday" id="lblOffdayText" style="margin-bottom:0; cursor:pointer; font-weight:600; font-size:11px; color:#f59e0b;">مۆڵەت / پشوو (Off-Day)</label>
+            </div>
+
+            <div style="margin-top: 10px;">
+                <label for="c_notes" id="lblNotesTitle" style="color: #f87171; font-weight: 600; font-size:11px;">(ئەمڕۆ هیچ کێشەیەکت هەبوو؟ ئەگەر هەیە بینووسە)</label>
+                <textarea id="c_notes" rows="2" placeholder="هۆکار..." oninput="saveDraftStateLocally()"></textarea>
+            </div>
+
+            <button class="btn-submit-main" id="btnSave" onclick="saveDataFinal()">
+                <span id="btnSubmitText">ناردن یان نوێکردنەوەی ڕاپۆرت</span>
+            </button>
+        </div>
+
+        <div class="btn-toolbar">
+            <button class="btn btn-myteam" onclick="shareMyTeamToWhatsApp()" id="btnMyTeamWA">ناردنی تیمی خۆم بۆ واتساپ</button>
+            <button class="btn btn-whatsapp" id="btnWhatsapp" onclick="shareToWhatsApp()">ناردنی تۆتەڵی گشتی بۆ واتساپ</button>
+            <button class="btn btn-image" onclick="exportAsImage()" id="btnImg">وێنە</button>
+            <button class="btn btn-pdf" onclick="window.print()" id="btnPdf">PDF</button>
+            <button class="btn btn-excel" onclick="adminExportExcel('daily')" id="btnExcel">Excel</button>
+        </div>
+
+        <div class="site-footer-copy">
+            All rights reserved by Nihad Salih Hussain
+        </div>
+    </div>
+
+    <script>
+        function showNotification(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.style.cssText = `
+                background: ${type === 'success' ? '#10b981' : '#ef4444'};
+                color: white; padding: 10px 16px; margin-top: 8px; border-radius: 10px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.3); font-family: inherit; font-size: 12px;
+                transition: opacity 0.3s ease; opacity: 1; z-index: 99999; backdrop-filter: blur(8px);
+            `;
+            toast.innerText = message;
+            container.appendChild(toast);
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                setTimeout(() => toast.remove(), 300);
+            }, 4000);
+        }
+
+        function copyYesterdayDataToCurrent() {
+            let t = document.getElementById('teamSelect').value;
+            if (!t) return alert("تکایە سەرەتا تیمێک هەڵبژێرە!");
+            let uniqueKey = getUniqueTeamKey(t, currentSection);
+            let yDayRecord = yesterdayStore[uniqueKey];
+            if (yDayRecord && yDayRecord.details) {
+                fillInputsWithDetails(yDayRecord.details, yDayRecord.notes, yDayRecord.offday);
+                saveDraftStateLocally();
+                showNotification("داتای دوێنێ سەرکەوتووانە هێنرا!");
+            } else {
+                showNotification("هیچ داتایەک لە دوێنێ بۆ ئەم تیمە نەدۆزرایەوە.", 'error');
             }
+        }
 
-            db.ref(path).set(teamData).then(() => {
-                showToast(translations[lang].toastSaved);
-                localStorage.removeItem(`draft_${currentSection}_${t}`);
-                render();
-            }).catch(error => {
-                showNotification("هەڵە لە پاشەکەوتکردن: " + error.message, "error");
+        function setupPwaManifest() {
+            let manifestData = {
+                "name": "BIM Operations Management", "short_name": "BIM Operations",
+                "start_url": window.location.href, "display": "standalone",
+                "background_color": "#090d16", "theme_color": "#090d16", "icons": []
+            };
+            let stringManifest = JSON.stringify(manifestData);
+            let blob = new Blob([stringManifest], {type: 'application/json'});
+            let manifestURL = URL.createObjectURL(blob);
+            document.getElementById('dynamicManifest').setAttribute('href', manifestURL);
+        }
+
+        let deferredPrompt;
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+        });
+
+        function installPwaApp() {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                deferredPrompt.userChoice.then((choiceResult) => { deferredPrompt = null; });
+            } else {
+                alert("بۆ دامەزراندنی ئەپەکە، لە مێنوی بڕۆزەرەوە (Add to Home Screen) هەڵبژێرە!");
+            }
+        }
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDdX6iplyIuYevuh6Ceyd7SMRZWmZy8pqY",
+            authDomain: "bim-operations.firebaseapp.com",
+            databaseURL: "https://bim-operations-default-rtdb.firebaseio.com",
+            projectId: "bim-operations",
+            storageBucket: "bim-operations.firebasestorage.app",
+            messagingSenderId: "601649835431",
+            appId: "1:601649835431:web:da5fd50f5f6dfb330d5a82",
+            measurementId: "G-JKY20T7HDR"
+        };
+        
+        if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
+        const db = firebase.database();
+        const auth = firebase.auth();
+
+        let defaultLfdTeams = ["Team 16", "Team 17", "Team 24", "Team 28", "Team 29", "Team 31", "Team 37", "Team 39", "Team 40", "Team 45", "Team 73", "Team 76", "Team 83", "Team 87", "Team 88"];
+        let lfdTeams = JSON.parse(localStorage.getItem('bim_lfd_teams')) || defaultLfdTeams;
+        lfdTeams = [...new Set(lfdTeams)];
+
+        let defaultMoveInTeams = ["Team 28", "Team 29", "Team 31"];
+        let moveInTeams = JSON.parse(localStorage.getItem('bim_movein_teams')) || defaultMoveInTeams;
+        moveInTeams = [...new Set(moveInTeams)];
+
+        let currentSection = 'lfd';
+        const DAILY_TARGET = 7;
+        const WEEKLY_TARGET = 42;
+        const MONTHLY_TARGET = 180;
+        let isAdmin = false;
+        let isRegisterMode = true;
+        let currentUserAccount = null;
+        let cloudStore = {};
+        let yesterdayStore = {};
+        let allDaysStore = {};
+        let feedbacksStore = {};
+        let auditLogsStore = {};
+        let accountsRegistry = {};
+        let globalChatsStore = {};
+        let broadcastMsg = "";
+        let currentFilter = 'all';
+        let currentSyncRef = null;
+        let broadcastSyncRef = null;
+        let yesterdaySyncRef = null;
+        let teamsSyncRef = null;
+        let allDaysSyncRef = null;
+        let feedbacksSyncRef = null;
+        let auditSyncRef = null;
+        let accountsSyncRef = null;
+        let globalChatsSyncRef = null;
+        let myChart = null;
+        let mapInstance = null;
+
+        let todayFormatted = new Date().toISOString().split('T')[0];
+        let selectedAdminDate = todayFormatted;
+
+        function getDeviceFingerprint() {
+            let ua = navigator.userAgent;
+            let platform = navigator.platform;
+            let screenRes = `${window.screen.width}x${window.screen.height}`;
+            let deviceType = /mobile/i.test(ua) ? "Mobile Phone" : (/tablet/i.test(ua) ? "Tablet" : "Desktop/PC");
+            let browserName = (ua.indexOf("Firefox") > -1) ? "Firefox" : (ua.indexOf("Chrome") > -1 ? "Chrome" : "Safari/Other");
+            return `${deviceType} - ${browserName} (${platform}) [Res: ${screenRes}]`;
+        }
+
+        function switchAuthMode() {
+            isRegisterMode = !isRegisterMode;
+            let title = document.getElementById('authModalTitle');
+            let desc = document.getElementById('authModalDesc');
+            let phoneInput = document.getElementById('authPhone');
+            let submitBtn = document.getElementById('authSubmitBtn');
+            let switchBtn = document.getElementById('authModeSwitchBtn');
+
+            if (isRegisterMode) {
+                title.innerText = "دروستکردنی ئەکاونت";
+                desc.innerText = "تکایە جیمێڵ و پاسوۆرد بنووسە بۆ پاراستنی ئەکاونتەکەت";
+                phoneInput.style.display = 'block';
+                submitBtn.innerText = "دروستکردنی ئەکاونت";
+                switchBtn.innerText = "هەموونییە؟ چوونەژوورەوە";
+            } else {
+                title.innerText = "چوونەژوورەوە";
+                desc.innerText = "تکایە جیمێڵ و پاسوۆردەکەت بنووسە";
+                phoneInput.style.display = 'none';
+                submitBtn.innerText = "چوونەژوورەوە";
+                switchBtn.innerText = "ئەکاونتت نییە؟ دروستکردن";
+            }
+        }
+
+        function submitAuthAction() {
+            let email = document.getElementById('authEmail').value.trim();
+            let password = document.getElementById('authPassword').value.trim();
+            let phone = document.getElementById('authPhone').value.trim();
+            let selectedTeam = document.getElementById('teamSelect').value || "Team 16";
+            let deviceId = getDeviceFingerprint();
+
+            if (!email || !password) return alert("تکایە جیمێڵ و پاسوۆرد بنووسە!");
+
+            if (isRegisterMode) {
+                auth.createUserWithEmailAndPassword(email, password).then((userCredential) => {
+                    currentUserAccount = userCredential.user;
+                    let accountData = {
+                        email: email, phone: phone || "N/A", deviceId: deviceId,
+                        team: selectedTeam, createdAt: new Date().toISOString()
+                    };
+                    db.ref('accounts_registry/' + currentUserAccount.uid).set(accountData);
+                    document.getElementById('authModalOverlay').style.display = 'none';
+                    showToast("ئەکاونتەکەت بە سەرکەوتوویی دروستکرا!");
+                    initRealtimeSync();
+                }).catch((error) => {
+                    alert("هەڵە لە دروستکردنی ئەکاونت: " + error.message);
+                });
+            } else {
+                auth.signInWithEmailAndPassword(email, password).then((userCredential) => {
+                    currentUserAccount = userCredential.user;
+                    document.getElementById('authModalOverlay').style.display = 'none';
+                    showToast("بە سەرکەوتوویی چووە ژوورەوە!");
+                    initRealtimeSync();
+                }).catch((error) => {
+                    alert("هەڵە لە چوونەژوورەوە: " + error.message);
+                });
+            }
+        }
+
+        function getYesterdayDateStr() {
+            let d = new Date();
+            d.setDate(d.getDate() - 1);
+            return d.toISOString().split('T')[0];
+        }
+        let yesterdayFormatted = getYesterdayDateStr();
+        let modalResolveCallback = null;
+
+        function showCustomModal(title, desc, isPasswordType = false) {
+            return new Promise((resolve) => {
+                document.getElementById('modalTitle').innerText = title;
+                document.getElementById('modalDesc').innerText = desc;
+                let inputField = document.getElementById('customModalInput');
+                inputField.value = '';
+                inputField.type = isPasswordType ? 'password' : 'text';
+                document.getElementById('customModalOverlay').style.display = 'flex';
+                inputField.focus();
+                modalResolveCallback = resolve;
+                inputField.onkeydown = function(e) { if (e.key === 'Enter') confirmCustomModal(); };
+                document.getElementById('modalConfirmBtn').onclick = confirmCustomModal;
             });
         }
 
-        function render() {
-            let teamsList = currentSection === 'lfd' ? lfdTeams : moveInTeams;
-            let totalPoints = 0;
-            let submittedCount = 0;
-            let leaderboardHTML = "";
-            let sectionTotal = 0;
-            let achievementCounts = { achieved: 0, missed: 0, offday: 0, totalTeams: teamsList.length };
+        function confirmCustomModal() {
+            let val = document.getElementById('customModalInput').value;
+            document.getElementById('customModalOverlay').style.display = 'none';
+            if (modalResolveCallback) modalResolveCallback(val);
+        }
 
-            let filteredTeams = teamsList.filter(t => {
-                let uniqueKey = getUniqueTeamKey(t, currentSection);
-                let record = cloudStore[uniqueKey] || {};
-                let isOffday = record.offday === true;
-                let tot = record.total || 0;
+        function closeCustomModal(val) {
+            document.getElementById('customModalOverlay').style.display = 'none';
+            if (modalResolveCallback) modalResolveCallback(val);
+        }
 
-                if (currentFilter === 'achieved') return !isOffday && tot >= DAILY_TARGET;
-                if (currentFilter === 'missed') return !isOffday && tot < DAILY_TARGET;
-                if (currentFilter === 'offday') return isOffday;
-                return true;
+        function openFeedbackModal() {
+            document.getElementById('feedbackAuthor').value = document.getElementById('teamSelect').value || '';
+            document.getElementById('feedbackText').value = '';
+            document.getElementById('feedbackModalOverlay').style.display = 'flex';
+        }
+
+        function submitFeedbackFinal() {
+            let author = document.getElementById('feedbackAuthor').value.trim() || 'نەناسراو';
+            let text = document.getElementById('feedbackText').value.trim();
+            if (!text) return alert("تکایە پێشنیار یان کێشەکەت بنووسە!");
+            let feedbackObj = { author: author, text: text, timestamp: new Date().toISOString(), date: todayFormatted };
+            db.ref('feedbacks').push(feedbackObj).then(() => {
+                document.getElementById('feedbackModalOverlay').style.display = 'none';
+                showToast("پێشنیارەکەت بە سەرکەوتوویی نێردرا! سوپاس.");
             });
+        }
 
-            teamsList.forEach(t => {
-                let uniqueKey = getUniqueTeamKey(t, currentSection);
-                let record = cloudStore[uniqueKey] || {};
-                let isOffday = record.offday === true;
-                let tot = record.total || 0;
-
-                if (record.submitted) {
-                    submittedCount++;
-                    totalPoints += tot;
-                    sectionTotal += tot;
-                }
-
-                if (isOffday) achievementCounts.offday++;
-                else if (tot >= DAILY_TARGET) achievementCounts.achieved++;
-                else achievementCounts.missed++;
-            });
-
-            document.getElementById('grandTotalPoints').innerText = totalPoints;
-            let percent = teamsList.length > 0 ? Math.round((submittedCount / teamsList.length) * 100) : 0;
-            document.getElementById('progressBar').style.width = percent + '%';
-            let lang = document.getElementById('langSelect').value;
-            document.getElementById('progressText').innerText = translations[lang].progressText + percent + '% (' + submittedCount + '/' + teamsList.length + ')';
-            document.getElementById('adminSectionTotal').innerText = `Total: ${sectionTotal}`;
-
-            let sortedTeams = [...teamsList].sort((a, b) => {
-                let recA = cloudStore[getUniqueTeamKey(a, currentSection)] || {};
-                let recB = cloudStore[getUniqueTeamKey(b, currentSection)] || {};
-                return (recB.total || 0) - (recA.total || 0);
-            });
-
-            sortedTeams.forEach((t, index) => {
-                if (!filteredTeams.includes(t)) return;
-                let uniqueKey = getUniqueTeamKey(t, currentSection);
-                let record = cloudStore[uniqueKey] || {};
-                let tot = record.total || 0;
-                let isOffday = record.offday === true;
-                let notes = record.notes || "";
-                let rankClass = index === 0 ? 'rank-1' : (index === 1 ? 'rank-2' : (index === 2 ? 'rank-3' : 'rank-other'));
-
-                let statusBadge = isOffday ? `<span style="color:#f59e0b; font-weight:bold;">پشوو</span>` : 
-                                  (tot >= DAILY_TARGET ? `<span style="color:#10b981; font-weight:bold;">${tot} ✓</span>` : `<span style="color:#f87171; font-weight:bold;">${tot} ✗</span>`);
-
-                leaderboardHTML += `
-                    <div class="leaderboard-item">
-                        <div class="leaderboard-row-top">
-                            <div style="display:flex; align-items:center;">
-                                <span class="rank-badge ${rankClass}">${index + 1}</span>
-                                <span style="font-weight:700;">${t}</span>
+        function openAdminFeedbackModal() {
+            let container = document.getElementById('adminFeedbackListContent');
+            let keys = Object.keys(feedbacksStore);
+            if (keys.length === 0) {
+                container.innerHTML = `<p style="text-align:center; opacity:0.7; padding: 15px;">هیچ پێشنیارێک نەدۆزرایەوە.</p>`;
+            } else {
+                let html = '';
+                keys.reverse().forEach(key => {
+                    let item = feedbacksStore[key];
+                    html += `
+                        <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--border-color); padding: 10px; border-radius: 8px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; color: var(--primary); font-weight: bold;">
+                                <span>👤 ${item.author}</span>
+                                <span style="font-size: 9px; opacity: 0.6;">📅 ${item.date || ''}</span>
                             </div>
-                            <div>${statusBadge}</div>
+                            <p style="white-space: pre-wrap; font-size: 11px; margin-bottom: 6px;">${item.text}</p>
+                            <button class="tool-btn" style="font-size: 9px; padding: 2px 6px; background: rgba(239,68,68,0.15); border-color: #ef4444; color: #f87171;" onclick="deleteFeedbackItem('${key}')">سڕینەوە</button>
                         </div>
-                        ${notes ? `<div class="leaderboard-reason"><b>هۆکار/تێبینی:</b> ${notes}</div>` : ''}
+                    `;
+                });
+                container.innerHTML = html;
+            }
+            document.getElementById('adminFeedbackModalOverlay').style.display = 'flex';
+        }
+
+        function deleteFeedbackItem(key) {
+            if (confirm("دڵنیای لە سڕینەوەی ئەم پێشنیارە؟")) {
+                db.ref(`feedbacks/${key}`).remove().then(() => {
+                    openAdminFeedbackModal();
+                    showToast("سڕایەوە");
+                });
+            }
+        }
+
+        function openGlobalChatModal() {
+            document.getElementById('globalChatModalOverlay').style.display = 'flex';
+            renderGlobalChatMessages();
+        }
+
+        function sendGlobalChatMessage() {
+            let input = document.getElementById('chatMessageInput');
+            let text = input.value.trim();
+            if (!text) return;
+            let teamName = document.getElementById('teamSelect').value || "کارمەند";
+            let chatObj = { team: teamName, text: text, timestamp: new Date().toLocaleTimeString() };
+            db.ref('global_chat').push(chatObj).then(() => {
+                input.value = '';
+                renderGlobalChatMessages();
+            });
+        }
+
+        function renderGlobalChatMessages() {
+            let container = document.getElementById('globalChatContainer');
+            let keys = Object.keys(globalChatsStore);
+            if (keys.length === 0) {
+                container.innerHTML = `<p style="text-align:center; opacity:0.6; font-size:11px;">هیچ پەیامێک نییە لە چاتی گشتی.</p>`;
+                return;
+            }
+            let html = '';
+            keys.forEach(k => {
+                let msg = globalChatsStore[k];
+                html += `
+                    <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--border-color); padding: 8px; border-radius: 8px; font-size: 11px;">
+                        <div style="display: flex; justify-content: space-between; color: var(--primary); font-weight: bold; margin-bottom: 2px;">
+                            <span>${msg.team}</span>
+                            <span style="font-size: 9px; opacity: 0.6;">${msg.timestamp}</span>
+                        </div>
+                        <p>${msg.text}</p>
                     </div>
                 `;
             });
-
-            document.getElementById('leaderboardContainer').innerHTML = leaderboardHTML || `<p style="text-align:center; opacity:0.6; padding:10px;">هیچ تیمێک نییە</p>`;
-            updateChart(achievementCounts);
+            container.innerHTML = html;
+            container.scrollTop = container.scrollHeight;
         }
 
-        function updateChart(counts) {
-            let ctx = document.getElementById('statsChart').getContext('2d');
-            if (myChart) myChart.destroy();
-            myChart = new Chart(ctx, {
-                type: 'doughnut',
-                data: {
-                    labels: ['گەیشتوو (≥7)', 'نەگەیشتوو (<7)', 'پشوو'],
-                    datasets: [{
-                        data: [counts.achieved, counts.missed, counts.offday],
-                        backgroundColor: ['#10b981', '#ef4444', '#f59e0b'],
-                        borderWidth: 0
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 10, family: 'Vazirmatn' }, color: '#f8fafc' } } }
+        function openAuditLogModal() {
+            let content = Object.keys(auditLogsStore).map(k => {
+                let log = auditLogsStore[k];
+                return `<div style="background:rgba(255,255,255,0.03); border:1px solid var(--border-color); padding:8px; border-radius:6px; margin-bottom:6px; font-size:10px;">
+                    <b>${log.teamName}</b> (${log.section}) - ${log.action} <br><span style="opacity:0.6;">🕒 ${log.timestamp}</span>
+                </div>`;
+            }).join('') || `<p style="text-align:center; opacity:0.6;">هیچ لۆگێک نییە</p>`;
+
+            let win = window.open("", "_blank", "width=400,height=500");
+            win.document.write(`<html dir="rtl"><head><title>Audit Logs</title><style>body{background:#090d16;color:#fff;font-family:sans-serif;padding:15px;}</style></head><body><h3>مێژووی لۆگی چالاکییەکان</h3>${content}</body></html>`);
+        }
+
+        function openLiveMapModal() {
+            document.getElementById('liveMapModalOverlay').style.display = 'flex';
+            setTimeout(() => {
+                if (!mapInstance) {
+                    mapInstance = L.map('mapContainer').setView([36.5, 44.0], 10);
+                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(mapInstance);
+                } else {
+                    mapInstance.invalidateSize();
                 }
+            }, 300);
+        }
+
+        function exportRangeExcel() {
+            let start = document.getElementById('rangeStart').value;
+            let end = document.getElementById('rangeEnd').value;
+            if (!start || !end) return alert("تکایە هەردوو بەروار دیاری بکە!");
+            
+            db.ref('daily_reports').once('value').then(snapshot => {
+                let allData = snapshot.val() || {};
+                let csv = "Date,Team,Section,Total,OffDay\n";
+                Object.keys(allData).forEach(dateKey => {
+                    if (dateKey >= start && dateKey <= end) {
+                        let dayObj = allData[dateKey];
+                        Object.keys(dayObj).forEach(tKey => {
+                            let item = dayObj[tKey];
+                            if (item) csv += `${dateKey},${item.teamName},${item.section},${item.total},${item.offday ? 'Yes' : 'No'}\n`;
+                        });
+                    }
+                });
+                let blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' });
+                let link = document.createElement("a");
+                link.href = URL.createObjectURL(blob);
+                link.download = `Range_Report_${start}_to_${end}.csv`;
+                link.click();
+                document.getElementById('rangeExportModalOverlay').style.display = 'none';
+            });
+        }
+
+        const translations = {
+            ku: {
+                dir: "rtl", subHeader: "سیستمی بەڕێوەبردنی ئامار", grandTotalTitle: "کۆی گشتی پۆینتەکانی ئەمڕۆ",
+                adminTitle: "بەشی بەڕێوەبەر و چاودێری ئەکاونتەکان", historyDate: "دیاریکردنی بەروار:",
+                fAll: "هەموو", fAchieved: "گەیشتوو (≥7)", fMissed: "نەگەیشتوو (<7)", fOffday: "پشوو",
+                excelAdmin: "Excel (ڕۆژانە)", pdfAdmin: "PDF", clearCloud: "سڕینەوە",
+                progressText: "نێردراو: ", selectTeam: "تیمەکەت هەڵبژێرە:", chooseTeam: "-- تیم هەڵبژێرە --",
+                offdayText: "مۆڵەت / پشوو (Off-Day)", notesTitle: "(هیچ کێشەیەکت هەبوو؟)", notesPlaceholder: "هۆکار...",
+                submitText: "ناردن یان نوێکردنەوەی ڕاپۆرت", btnMyTeamWA: "ناردنی تیمی خۆم بۆ واتساپ", btnWhatsapp: "ناردنی تۆتەڵی گشتی بۆ واتساپ",
+                toastSaved: "تۆمارکرا!", refreshToast: "داتاکان نوێکرانەوە!",
+                selectTeamAlert: "تکایە سەرەتا تیمێک هەڵبژێرە!", cloudSuccess: "داتاکان سەرکەوتووانە پاشەکەوتکران!",
+                clearConfirm: "دڵنیای لە سڕینەوە؟", clearedToast: "داتاکان سڕانەوە", tabLFD: "بەشی LFD", tabMoveIn: "بەشی Move-In",
+                addTeamTitle: "زیادکردنی تیمی نوێ:", addTeamBtn: "زیادکردن", teamAdded: "تیمی نوێ زیادکرا!",
+                refreshText: "نوێکردنەوە", teamFileTitle: "فایلی نەخشە / ڕێنمایی:"
+            },
+            en: {
+                dir: "ltr", subHeader: "Operations Management", grandTotalTitle: "Today's Grand Total Points",
+                adminTitle: "Admin Panel & Accounts Tracker", historyDate: "Select Date:",
+                fAll: "All", fAchieved: "Target Met", fMissed: "Target Missed", fOffday: "Off-Day",
+                excelAdmin: "Excel (Daily)", pdfAdmin: "PDF", clearCloud: "Clear",
+                progressText: "Submitted: ", selectTeam: "Select Your Team:", chooseTeam: "-- Choose Team --",
+                offdayText: "Off-Day / Leave", notesTitle: "(Did you have any problems?)", notesPlaceholder: "Reason...",
+                submitText: "SUBMIT / UPDATE REPORT", btnMyTeamWA: "My Team Total to WhatsApp", btnWhatsapp: "General Total to WhatsApp",
+                toastSaved: "Saved!", refreshToast: "Refreshed!",
+                selectTeamAlert: "Please select your team first!", cloudSuccess: "Data saved successfully!",
+                clearConfirm: "Are you sure?", clearedToast: "Cleared", tabLFD: "LFD Section", tabMoveIn: "Move-In Section",
+                addTeamTitle: "Add Team:", addTeamBtn: "Add Team", teamAdded: "Team added!",
+                refreshText: "Refresh", teamFileTitle: "Team Specific Map:"
+            },
+            ar: {
+                dir: "rtl", subHeader: "إدارة العمليات", grandTotalTitle: "إجمالي النقاط الكلي اليوم",
+                adminTitle: "لوحة التحكم ومتابعة الحسابات", historyDate: "تحديد التاريخ:",
+                fAll: "الكل", fAchieved: "حقق الهدف", fMissed: "لم يحقق", fOffday: "إجازة",
+                excelAdmin: "إكسل (يومي)", pdfAdmin: "PDF", clearCloud: "مسح",
+                progressText: "المرسل: ", selectTeam: "اختر فريقك:", chooseTeam: "-- اختر الفريق --",
+                offdayText: "إجازة / عطلة", notesTitle: "(هل واجهت أي مشاكل؟)", notesPlaceholder: "السبب...",
+                submitText: "إرسال أو تحديث التقرير", btnMyTeamWA: "إجمالي فريقي لواتساب", btnWhatsapp: "الإجمالي العام لواتساب",
+                toastSaved: "تم الحفظ!", refreshToast: "تم التحديث!",
+                selectTeamAlert: "يرجى اختيار فريقك أولاً!", cloudSuccess: "تم الحفظ بنجاح!",
+                clearConfirm: "هل أنت متأكد؟", clearedToast: "تم المسح", tabLFD: "قسم LFD", tabMoveIn: "قسم Move-In",
+                addTeamTitle: "إضافة فريق:", addTeamBtn: "إضافة", teamAdded: "تمت الإضافة!",
+                refreshText: "تحديث", teamFileTitle: "ملف الخريطة:"
+            }
+        };
+
+        function switchSection(sec) {
+            currentSection = sec;
+            document.getElementById('tabLFD').classList.remove('active');
+            document.getElementById('tabMoveIn').classList.remove('active');
+            let card = document.getElementById('totalPointsCard');
+            let btnSubmit = document.getElementById('btnSave');
+
+            if (sec === 'lfd') {
+                document.getElementById('tabLFD').classList.add('active');
+                card.classList.remove('movein-theme');
+                btnSubmit.classList.remove('movein-theme');
+            } else {
+                document.getElementById('tabMoveIn').classList.add('active');
+                card.classList.add('movein-theme');
+                btnSubmit.classList.add('movein-theme');
+            }
+            renderCasesGrid();
+            populateTeamDropdown();
+            loadTeamData();
+            render();
+        }
+
+        function renderCasesGrid() {
+            let container = document.getElementById('casesGridContainer');
+            if (currentSection === 'lfd') {
+                container.innerHTML = `
+                    <div class="case-item">Paid <input type="number" id="c_paid" value="0" min="0" oninput="saveDraftStateLocally()"></div>
+                    <div class="case-item">Disc <input type="number" id="c_disc" value="0" min="0" oninput="saveDraftStateLocally()"></div>
+                    <div class="case-item">Reconn <input type="number" id="c_reconn" value="0" min="0" oninput="saveDraftStateLocally()"></div>
+                    <div class="case-item">Special <input type="number" id="c_special" value="0" min="0" oninput="saveDraftStateLocally()"></div>
+                    <div class="case-item">Dist <input type="number" id="c_dist" value="0" min="0" oninput="saveDraftStateLocally()"></div>
+                    <div class="case-item">Inaccess <input type="number" id="c_inaccess" value="0" min="0" oninput="saveDraftStateLocally()"></div>
+                    <div class="case-item">Other <input type="number" id="c_other" value="0" min="0" oninput="saveDraftStateLocally()"></div>
+                    <div class="case-item">Not Found <input type="number" id="c_notfound" value="0" min="0" oninput="saveDraftStateLocally()"></div>
+                    <div class="case-item">Denied <input type="number" id="c_denied" value="0" min="0" oninput="saveDraftStateLocally()"></div>
+                `;
+            } else {
+                container.innerHTML = `
+                    <div class="case-item">Inst. Meter <input type="number" id="c_inst_meter" value="0" min="0" oninput="saveDraftStateLocally()"></div>
+                    <div class="case-item">Inst. Encl <input type="number" id="c_inst_encl" value="0" min="0" oninput="saveDraftStateLocally()"></div>
+                    <div class="case-item">3P Encl <input type="number" id="c_inst_3p" value="0" min="0" oninput="saveDraftStateLocally()"></div>
+                    <div class="case-item">BIM Team <input type="number" id="c_bim_team" value="0" min="0" oninput="saveDraftStateLocally()"></div>
+                    <div class="case-item">Other Team <input type="number" id="c_other_team" value="0" min="0" oninput="saveDraftStateLocally()"></div>
+                `;
+            }
+        }
+
+        function populateTeamDropdown() {
+            let teamSelect = document.getElementById('teamSelect');
+            let lang = document.getElementById('langSelect').value;
+            let teamsList = currentSection === 'lfd' ? lfdTeams : moveInTeams;
+            let currentSelected = teamSelect.value;
+
+            let html = `<option value="">${translations[lang].chooseTeam}</option>`;
+            teamsList.forEach(t => { html += `<option value="${t}">${t}</option>`; });
+            teamSelect.innerHTML = html;
+            if (teamsList.includes(currentSelected)) teamSelect.value = currentSelected;
+        }
+
+        function addNewTeam() {
+            let section = document.getElementById('newTeamSection').value;
+            let teamName = document.getElementById('newTeamNameInput').value.trim();
+            let lang = document.getElementById('langSelect').value;
+            if (!teamName) return alert("ناوی تیم بنووسە!");
+            let numericPart = teamName.replace(/\D/g, '');
+            let formattedTeamName = numericPart ? `Team ${numericPart}` : teamName;
+
+            if (section === 'lfd') {
+                if (!lfdTeams.includes(formattedTeamName)) {
+                    lfdTeams.push(formattedTeamName);
+                    db.ref('settings/lfd_teams').set(lfdTeams);
+                }
+            } else {
+                if (!moveInTeams.includes(formattedTeamName)) {
+                    moveInTeams.push(formattedTeamName);
+                    db.ref('settings/movein_teams').set(moveInTeams);
+                }
+            }
+            document.getElementById('newTeamNameInput').value = '';
+            showToast(translations[lang].teamAdded);
+            populateTeamDropdown();
+            render();
+        }
+
+        function setFilter(filterType) {
+            currentFilter = filterType;
+            ['f_all', 'f_achieved', 'f_missed', 'f_offday'].forEach(id => document.getElementById(id).classList.remove('active'));
+            document.getElementById('f_' + filterType).classList.add('active');
+            render();
+        }
+
+        function onAdminDateChange() {
+            let dVal = document.getElementById('adminDateSelector').value;
+            if (dVal) { selectedAdminDate = dVal; initRealtimeSync(); }
+        }
+
+        function getStorageKeyPath() { return `daily_reports/${selectedAdminDate}`.replace(/[\.#$\/\[\]]/g, "_"); }
+
+        function saveBroadcastMessage() {
+            let msg = document.getElementById('adminBroadcastInput').value.trim();
+            db.ref('settings/broadcast').set(msg).then(() => {
+                showToast("بڵاوکرایەوە!");
+                document.getElementById('adminBroadcastInput').value = '';
+            });
+        }
+
+        function initRealtimeSync() {
+            if (currentSyncRef) currentSyncRef.off();
+            currentSyncRef = db.ref(getStorageKeyPath());
+            currentSyncRef.on('value', (snapshot) => {
+                cloudStore = snapshot.val() || {};
+                render();
+                let t = document.getElementById('teamSelect').value;
+                if(t) loadTeamData();
+            });
+
+            if (!broadcastSyncRef) {
+                broadcastSyncRef = db.ref('settings/broadcast');
+                broadcastSyncRef.on('value', (snap) => {
+                    broadcastMsg = snap.val() || "";
+                    let ticker = document.getElementById('broadcastTicker');
+                    let textSpan = document.getElementById('broadcastTextContent');
+                    if (broadcastMsg.trim() !== "") {
+                        ticker.style.display = 'flex';
+                        textSpan.innerText = broadcastMsg;
+                    } else {
+                        ticker.style.display = 'none';
+                    }
+                });
+            }
+
+            if (!teamsSyncRef) {
+                teamsSyncRef = db.ref('settings');
+                teamsSyncRef.on('value', (snap) => {
+                    let data = snap.val() || {};
+                    if (data.lfd_teams) { lfdTeams = data.lfd_teams; localStorage.setItem('bim_lfd_teams', JSON.stringify(lfdTeams)); }
+                    if (data.movein_teams) { moveInTeams = data.movein_teams; localStorage.setItem('bim_movein_teams', JSON.stringify(moveInTeams)); }
+                    populateTeamDropdown();
+                    render();
+                });
+            }
+
+            if (!yesterdaySyncRef) {
+                let yPath = `daily_reports/${yesterdayFormatted}`.replace(/[\.#$\/\[\]]/g, "_");
+                yesterdaySyncRef = db.ref(yPath);
+                yesterdaySyncRef.on('value', (snap) => { yesterdayStore = snap.val() || {}; render(); });
+            }
+
+            if (!accountsSyncRef) {
+                accountsSyncRef = db.ref('accounts_registry');
+                accountsSyncRef.on('value', (snap) => {
+                    accountsRegistry = snap.val() || {};
+                    renderAdminAccountsTracker();
+                });
+            }
+
+            if (!globalChatsSyncRef) {
+                globalChatsSyncRef = db.ref('global_chat');
+                globalChatsSyncRef.on('value', (snap) => {
+                    globalChatsStore = snap.val() || {};
+                    renderGlobalChatMessages();
+                });
+            }
+
+            if (!allDaysSyncRef) {
+                allDaysSyncRef = db.ref('daily_reports');
+                allDaysSyncRef.on('value', (snap) => { allDaysStore = snap.val() || {}; });
+            }
+
+            if (!feedbacksSyncRef) {
+                feedbacksSyncRef = db.ref('feedbacks');
+                feedbacksSyncRef.on('value', (snap) => {
+                    feedbacksStore = snap.val() || {};
+                    let count = Object.keys(feedbacksStore).length;
+                    let badge = document.getElementById('feedbackCounterBadge');
+                    if (badge) badge.innerText = count;
+                });
+            }
+
+            if (!auditSyncRef) {
+                auditSyncRef = db.ref('audit_logs');
+                auditSyncRef.on('value', (snap) => { auditLogsStore = snap.val() || {}; });
+            }
+        }
+
+        function renderAdminAccountsTracker() {
+            let container = document.getElementById('adminAccountsListContainer');
+            if (!container) return;
+            let keys = Object.keys(accountsRegistry);
+            if (keys.length === 0) {
+                container.innerHTML = `<p style="text-align:center; opacity:0.6;">هیچ ئەکاونتێک تۆمار نەکراوە.</p>`;
+                return;
+            }
+            let html = '';
+            keys.forEach(k => {
+                let acc = accountsRegistry[k];
+                html += `
+                    <div style="background:rgba(255,255,255,0.03); border:1px solid var(--border-color); padding:6px; border-radius:6px; margin-bottom:4px;">
+                        <b>📧 ${acc.email}</b><br>
+                        📱 جۆری مۆبایل/دێڤایس: ${acc.deviceId}<br>
+                        🎯 تیمەکەی هەڵیبژاردووە: <span style="color:var(--primary); font-weight:bold;">${acc.team}</span>
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+        }
+
+        function manualRefreshData() {
+            let lang = document.getElementById('langSelect').value;
+            db.ref(getStorageKeyPath()).once('value').then((snapshot) => {
+                cloudStore = snapshot.val() || {};
+                render();
+                showToast(translations[lang].refreshToast);
+            });
+        }
+
+        function handleHeaderClick() {
+            // Admin can click directly on the logo at the top without account creation
+            isAdmin = !isAdmin;
+            let panel = document.getElementById('adminPanel');
+            if (isAdmin) {
+                panel.classList.add('active');
+                document.getElementById('adminDateSelector').value = selectedAdminDate;
+                showToast("بەشی بەڕێوەبەر کرایەوە!");
+                render();
+            } else {
+                panel.classList.remove('active');
+                showToast("بەشی بەڕێوەبەر داخرا!");
+                render();
+            }
+        }
+
+        function changeLanguage() {
+            let lang = document.getElementById('langSelect').value;
+            localStorage.setItem('bim_lang', lang);
+            applyLanguage(lang);
+        }
+
+        function applyLanguage(lang) {
+            let t = translations[lang];
+            document.getElementById('htmlRoot').setAttribute('dir', t.dir);
+            document.getElementById('lblSubHeader').innerText = t.subHeader;
+            document.getElementById('lblGrandTotalTitle').innerText = t.grandTotalTitle;
+            document.getElementById('lblAdminTitle').innerText = t.adminTitle;
+            document.getElementById('lblHistoryDate').innerText = t.historyDate;
+            document.getElementById('lblRefreshText').innerText = t.refreshText;
+            document.getElementById('lblAddTeamTitle').innerText = t.addTeamTitle;
+            document.getElementById('btnAddTeamBtn').innerText = t.addTeamBtn;
+            document.getElementById('f_all').innerText = t.fAll;
+            document.getElementById('f_achieved').innerText = t.fAchieved;
+            document.getElementById('f_missed').innerText = t.fMissed;
+            document.getElementById('f_offday').innerText = t.fOffday;
+            document.getElementById('btnExcelAdmin').innerText = t.excelAdmin;
+            document.getElementById('btnPdfAdmin').innerText = t.pdfAdmin;
+            document.getElementById('btnClearCloud').innerText = t.clearCloud;
+            document.getElementById('lblSelectTeam').innerText = t.selectTeam;
+            document.getElementById('tabLFD').innerText = t.tabLFD;
+            document.getElementById('tabMoveIn').innerText = t.tabMoveIn;
+            document.getElementById('lblOffdayText').innerText = t.offdayText;
+            document.getElementById('lblNotesTitle').innerText = t.notesTitle;
+            document.getElementById('c_notes').placeholder = t.notesPlaceholder;
+            document.getElementById('btnSubmitText').innerText = t.submitText;
+            document.getElementById('btnMyTeamWA').innerText = t.btnMyTeamWA;
+            document.getElementById('btnWhatsapp').innerText = t.btnWhatsapp;
+            populateTeamDropdown();
+            render();
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            toast.innerText = msg;
+            toast.style.display = 'block';
+            setTimeout(() => { toast.style.display = 'none'; }, 2000);
+        }
+
+        function getDetailsFromInputs() {
+            if (currentSection === 'lfd') {
+                return {
+                    Paid: parseInt(document.getElementById('c_paid')?.value) || 0,
+                    Disconnected: parseInt(document.getElementById('c_disc')?.value) || 0,
+                    Reconnected: parseInt(document.getElementById('c_reconn')?.value) || 0,
+                    Special: parseInt(document.getElementById('c_special')?.value) || 0,
+                    Distributed: parseInt(document.getElementById('c_dist')?.value) || 0,
+                    Inaccessible: parseInt(document.getElementById('c_inaccess')?.value) || 0,
+                    Other: parseInt(document.getElementById('c_other')?.value) || 0,
+                    NotFound: parseInt(document.getElementById('c_notfound')?.value) || 0,
+                    Denied: parseInt(document.getElementById('c_denied')?.value) || 0
+                };
+            } else {
+                return {
+                    "Inst. Meter": parseInt(document.getElementById('c_inst_meter')?.value) || 0,
+                    "Inst. Encl": parseInt(document.getElementById('c_inst_encl')?.value) || 0,
+                    "3P Encl": parseInt(document.getElementById('c_inst_3p')?.value) || 0,
+                    "BIM Team": parseInt(document.getElementById('c_bim_team')?.value) || 0,
+                    "Other Team": parseInt(document.getElementById('c_other_team')?.value) || 0
+                };
+            }
+        }
+
+        function getUniqueTeamKey(teamName, section) {
+            return `${section}_${teamName.replace(/[\.#$\/\[\]]/g, "_")}`;
+        }
+
+        function saveDraftStateLocally() {
+            let t = document.getElementById('teamSelect').value;
+            if (!t) return;
+            let details = getDetailsFromInputs();
+            let notes = document.getElementById('c_notes')?.value || '';
+            let offday = document.getElementById('c_offday')?.checked || false;
+            localStorage.setItem(`draft_${currentSection}_${t}`, JSON.stringify({ details, notes, offday }));
+        }
+
+        function loadTeamData() {
+            let t = document.getElementById('teamSelect').value;
+            localStorage.setItem('bim_selected_team', t);
+            let targetsBox = document.getElementById('teamTargetsBox');
+            let historyBtn = document.getElementById('btnTeamHistory');
+            
+            if (t) {
+                targetsBox.style.display = 'grid';
+                historyBtn.style.display = 'flex';
+                document.getElementById('targetDailyVal').innerText = DAILY_TARGET;
+                document.getElementById('targetWeeklyVal').innerText = WEEKLY_TARGET;
+                document.getElementById('targetMonthlyVal').innerText = MONTHLY_TARGET;
+
+                let teamRecord = cloudStore[getUniqueTeamKey(t, currentSection)];
+                let draftSaved = localStorage.getItem(`draft_${currentSection}_${t}`);
+                if (teamRecord && teamRecord.details) {
+                    fillInputsWithDetails(teamRecord.details, teamRecord.notes, teamRecord.offday);
+                } else if (draftSaved) {
+                    let parsedDraft = JSON.parse(draftSaved);
+                    fillInputsWithDetails(parsedDraft.details, parsedDraft.notes, parsedDraft.offday);
+                } else {
+                    resetInputsLocally();
+                }
+            } else {
+                targetsBox.style.display = 'none';
+                historyBtn.style.display = 'none';
+                resetInputsLocally();
+            }
+        }
+
+        function fillInputsWithDetails(d, notes, offday) {
+            if (currentSection === 'lfd') {
+                if(document.getElementById('c_paid')) document.getElementById('c_paid').value = d.Paid || d.paid || 0;
+                if(document.getElementById('c_disc')) document.getElementById('c_disc').value = d.Disconnected || d.disc || 0;
+                if(document.getElementById('c_reconn')) document.getElementById('c_reconn').value = d.Reconnected || d.reconn || 0;
+                if(document.getElementById('c_special')) document.getElementById('c_special').value = d.Special || d.special || 0;
+                if(document.getElementById('c_dist')) document.getElementById('c_dist').value = d.Distributed || d.dist || 0;
+                if(document.getElementById('c_inaccess')) document.getElementById('c_inaccess').value = d.Inaccessible || d.inaccess || 0;
+                if(document.getElementById('c_other')) document.getElementById('c_other').value = d.Other || d.closed || 0;
+                if(document.getElementById('c_notfound')) document.getElementById('c_notfound').value = d.NotFound || d.notfound || 0;
+                if(document.getElementById('c_denied')) document.getElementById('c_denied').value = d.Denied || d.denied || 0;
+            } else {
+                if(document.getElementById('c_inst_meter')) document.getElementById('c_inst_meter').value = d["Inst. Meter"] || d.inst_meter || 0;
+                if(document.getElementById('c_inst_encl')) document.getElementById('c_inst_encl').value = d["Inst. Encl"] || d.inst_encl || 0;
+                if(document.getElementById('c_inst_3p')) document.getElementById('c_inst_3p').value = d["3P Encl"] || d.inst_3p || 0;
+                if(document.getElementById('c_bim_team')) document.getElementById('c_bim_team').value = d["BIM Team"] || d.bim_team || 0;
+                if(document.getElementById('c_other_team')) document.getElementById('c_other_team').value = d["Other Team"] || d.other_team || 0;
+            }
+            if(document.getElementById('c_notes')) document.getElementById('c_notes').value = notes || '';
+            if(document.getElementById('c_offday')) document.getElementById('c_offday').checked = offday || false;
+        }
+
+        function resetInputsLocally() {
+            document.querySelectorAll('.cases-grid input').forEach(inp => inp.value = 0);
+            if(document.getElementById('c_notes')) document.getElementById('c_notes').value = '';
+            if(document.getElementById('c_offday')) document.getElementById('c_offday').checked = false;
+        }
+
+        function openTeamHistoryModal() {
+            let t = document.getElementById('teamSelect').value;
+            if (!t) return;
+            let uniqueKey = getUniqueTeamKey(t, currentSection);
+            let container = document.getElementById('historyContentList');
+            let html = `<table style="width:100%; border-collapse:collapse; text-align:center;">
+                <tr style="background:rgba(255,255,255,0.05); font-size:10px;">
+                    <th style="padding:6px;">بەروار</th><th style="padding:6px;">کۆی گشتی</th><th style="padding:6px;">دۆخ</th>
+                </tr>`;
+            let foundAny = false;
+            for (let i = 0; i < 7; i++) {
+                let d = new Date();
+                d.setDate(d.getDate() - i);
+                let dateStr = d.toISOString().split('T')[0];
+                let dayKey = dateStr.replace(/[\.#$\/\[\]]/g, "_");
+                let dayData = allDaysStore[dayKey];
+                let teamDayRecord = dayData ? dayData[uniqueKey] : null;
+                let totalVal = teamDayRecord ? teamDayRecord.total : "-";
+                let statusVal = teamDayRecord?.offday ? "پشوو" : (teamDayRecord?.submitted ? "نێردراوە" : "نەبووە");
+                html += `<tr style="border-bottom:1px solid var(--border-color); font-size:10px;">
+                    <td style="padding:6px;">${dateStr}</td><td style="padding:6px; font-weight:bold;">${totalVal}</td><td style="padding:6px;">${statusVal}</td>
+                </tr>`;
+                if (teamDayRecord) foundAny = true;
+            }
+            html += `</table>`;
+            if (!foundAny) html = `<p style="text-align:center; opacity:0.7;">هیچ زانیارییەک نەدۆزرایەوە.</p>`;
+            container.innerHTML = html;
+            document.getElementById('historyModalOverlay').style.display = 'flex';
+        }
+
+        function saveDataFinal() {
+            let lang = document.getElementById('langSelect').value;
+            let t = document.getElementById('teamSelect').value;
+            if (!t) return alert(translations[lang].selectTeamAlert);
+
+            let details = getDetailsFromInputs();
+            let total = Object.values(details).reduce((a, b) => a + b, 0);
+            let notes = document.getElementById('c_notes').value;
+            let offday = document.getElementById('c_offday').checked;
+            let uniqueKey = getUniqueTeamKey(t, currentSection);
+            let existingRecord = cloudStore[uniqueKey] || {};
+            let teamData = {
+                ...existingRecord, teamName: t, section: currentSection, total: total,
+                submitted: true, offday: offday, notes: notes, details: details
+            };
+            cloudStore[uniqueKey] = teamData;
+
+            db.ref('audit_logs').push({
+                teamName: t, section: currentSection,
+                action: 'ناردن یان نوێکردنەوەی ڕاپۆرت',
+                timestamp: new Date().toLocaleString()
+            });
+
+            db.ref(getStorageKeyPath() + '/' + uniqueKey).set(teamData).then(() => {
+                localStorage.removeItem(`draft_${currentSection}_${t}`);
+                render();
+                showToast(translations[lang].cloudSuccess);
             });
         }
 
@@ -130,79 +1434,162 @@
             let lang = document.getElementById('langSelect').value;
             if (confirm(translations[lang].clearConfirm)) {
                 db.ref(getStorageKeyPath()).remove().then(() => {
-                    showToast(translations[lang].clearedToast);
+                    cloudStore = {};
                     render();
+                    resetInputsLocally();
+                    showToast(translations[lang].clearedToast);
                 });
             }
         }
 
-        function adminExportExcel(type) {
-            let csv = "Team,Section,Total,OffDay,Notes,Date\n";
-            let teamsList = [...new Set([...lfdTeams, ...moveInTeams])];
-            teamsList.forEach(t => {
-                ['lfd', 'movein'].forEach(sec => {
-                    let uniqueKey = `${sec}_${t.replace(/[\.#$\/\[\]]/g, "_")}`;
-                    let record = cloudStore[uniqueKey];
-                    if (record && record.submitted) {
-                        csv += `${t},${sec},${record.total},${record.offday ? 'Yes' : 'No'},"${record.notes || ''}",${selectedAdminDate}\n`;
-                    }
-                });
+        function adminExportExcel(mode = 'daily') {
+            let csv = "Team,Section,Details,Total,OffDay,Reason\n";
+            Object.keys(cloudStore).forEach(key => {
+                let item = cloudStore[key];
+                if (item && item.details) {
+                    let cleanNotes = (item.notes || "").replace(/(\r\n|\n|\r)/gm, " ");
+                    csv += `${item.teamName},${item.section},"${JSON.stringify(item.details).replace(/"/g, '""')}",${item.total},${item.offday ? 'Yes' : 'No'},"${cleanNotes}"\n`;
+                }
             });
             let blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' });
             let link = document.createElement("a");
             link.href = URL.createObjectURL(blob);
-            link.download = `BIM_Report_${selectedAdminDate}.csv`;
+            link.download = `Report_${selectedAdminDate}.csv`;
             link.click();
         }
 
+        function shareMyTeamToWhatsApp() {
+            let lang = document.getElementById('langSelect').value;
+            let selectedTeam = document.getElementById('teamSelect').value;
+            if (!selectedTeam) return alert(translations[lang].selectTeamAlert);
+            let details = getDetailsFromInputs();
+            let totalCases = Object.values(details).reduce((a, b) => a + b, 0);
+            let text = `📊 ڕاپۆرتی تیم ${selectedTeam} (${currentSection.toUpperCase()})\n📅 بەروار: ${selectedAdminDate}\n`;
+            if(document.getElementById('c_offday').checked) {
+                text += `📌 دۆخ: پشوو (Off-Day)\n`;
+            } else {
+                for (let [k, v] of Object.entries(details)) { if (v > 0) text += `🔹 ${k}: ${v}\n`; }
+                text += `✅ کۆی گشتی: *${totalCases}*\n`;
+                let notes = document.getElementById('c_notes').value;
+                if (notes.trim()) text += `📝 هۆکار: ${notes}\n`;
+            }
+            window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+        }
+
         function shareToWhatsApp() {
-            let total = document.getElementById('grandTotalPoints').innerText;
-            let text = `📊 *ڕاپۆرتی گشتی عملیاتی BIM*\n📅 بەروار: ${selectedAdminDate}\n📌 کۆی گشتی پۆینتەکان: ${total}\n\n`;
-            let teamsList = currentSection === 'lfd' ? lfdTeams : moveInTeams;
-            teamsList.forEach(t => {
-                let rec = cloudStore[getUniqueTeamKey(t, currentSection)] || {};
-                if (rec.submitted) {
-                    text += `🔹 ${t}: ${rec.offday ? 'پشوو' : rec.total + ' پۆینت'}\n`;
+            let activeTeams = currentSection === 'lfd' ? lfdTeams : moveInTeams;
+            let summaryData = {};
+            let grandTotalCases = 0;
+            activeTeams.forEach(teamName => {
+                let uniqueKey = getUniqueTeamKey(teamName, currentSection);
+                let teamData = cloudStore[uniqueKey];
+                if (teamData && teamData.submitted && !teamData.offday && teamData.details) {
+                    for (let [k, v] of Object.entries(teamData.details)) {
+                        let val = Number(v) || 0;
+                        if (val > 0) { summaryData[k] = (summaryData[k] || 0) + val; grandTotalCases += val; }
+                    }
                 }
             });
-            window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+            let report = `📋 تۆتەڵی گشتی (${currentSection.toUpperCase()})\n📅 بەروار: ${selectedAdminDate}\n`;
+            for (const [caseType, count] of Object.entries(summaryData)) { report += `${caseType}: ${count}\n`; }
+            report += `\nGrand total: ${grandTotalCases}`;
+            window.open(`https://wa.me/?text=${encodeURIComponent(report)}`, '_blank');
         }
 
-        function shareMyTeamToWhatsApp() {
-            let t = document.getElementById('teamSelect').value;
-            if (!t) return alert("تکایە سەرەتا تیمێک هەڵبژێرە!");
-            let rec = cloudStore[getUniqueTeamKey(t, currentSection)] || {};
-            let text = `📊 *ڕاپۆرتی (${t})* (${currentSection.toUpperCase()})\n📅 بەروار: ${selectedAdminDate}\n`;
-            if (rec.offday) {
-                text += `📌 دۆخ: مۆڵەت / پشوو (Off-Day)\n`;
-            } else {
-                text += `📌 کۆی پۆینت: ${rec.total || 0}\n`;
-                if (rec.details) {
-                    Object.keys(rec.details).forEach(k => {
-                        text += `• ${k}: ${rec.details[k]}\n`;
-                    });
-                }
+        function renderList(teamsArray, sectionName) {
+            let list = [], sectionTotal = 0;
+            teamsArray.forEach((t, originalIndex) => {
+                let teamData = cloudStore[getUniqueTeamKey(t, sectionName)];
+                let isSubmitted = teamData?.submitted || false;
+                let isOffday = teamData?.offday || false;
+                let val = teamData?.total || 0;
+                if (isSubmitted && !isOffday) sectionTotal += val;
+                list.push({ name: t, total: val, submitted: isSubmitted, offday: isOffday, notes: teamData?.notes || "", originalIndex: originalIndex });
+            });
+            let displayList = [...list];
+            if (currentFilter !== 'all') { displayList.sort((a, b) => b.total - a.total); }
+            let filtered = displayList.filter(item => {
+                if (currentFilter === 'achieved') return item.submitted && !item.offday && item.total >= DAILY_TARGET;
+                if (currentFilter === 'missed') return item.submitted && !item.offday && item.total < DAILY_TARGET;
+                if (currentFilter === 'offday') return item.offday;
+                return true;
+            });
+            return { html: filtered.map((item, index) => {
+                let rankClass = index === 0 && item.total > 0 ? "rank-1" : index === 1 && item.total > 0 ? "rank-2" : index === 2 && item.total > 0 ? "rank-3" : "rank-other";
+                let statusText = item.offday ? `<span style="color:#f59e0b; font-weight:600;">Off-Day</span>` :
+                                 item.submitted ? `<b>${item.total}</b> Pts` : `<span style="opacity:0.4;">نەنێردراوە</span>`;
+                return `
+                    <div class="leaderboard-item">
+                        <div class="leaderboard-row-top">
+                            <div style="display:flex; align-items:center;">
+                                <span class="rank-badge ${rankClass}">${index + 1}</span>
+                                <span>${item.name}</span>
+                            </div>
+                            <div>${statusText}</div>
+                        </div>
+                        ${item.notes ? `<div class="leaderboard-reason">📝 ${item.notes}</div>` : ''}
+                    </div>
+                `;
+            }).join(''), sectionTotal };
+        }
+
+        function render() {
+            let activeTeams = currentSection === 'lfd' ? lfdTeams : moveInTeams;
+            let { html, sectionTotal } = renderList(activeTeams, currentSection);
+            document.getElementById('leaderboardContainer').innerHTML = html || `<p style="text-align:center; opacity:0.6; padding:10px;">هیچ تیمێک نییە</p>`;
+            document.getElementById('adminSectionTotal').innerText = `Total: ${sectionTotal}`;
+            document.getElementById('grandTotalPoints').innerText = sectionTotal;
+
+            let submittedCount = 0;
+            activeTeams.forEach(t => {
+                let teamData = cloudStore[getUniqueTeamKey(t, currentSection)];
+                if (teamData && (teamData.submitted || teamData.offday)) submittedCount++;
+            });
+            let percent = activeTeams.length > 0 ? Math.round((submittedCount / activeTeams.length) * 100) : 0;
+            document.getElementById('progressBar').style.width = percent + '%';
+            document.getElementById('progressText').innerText = `Submitted: ${percent}% (${submittedCount}/${activeTeams.length})`;
+
+            if (myChart) {
+                myChart.data.labels = activeTeams;
+                myChart.data.datasets[0].data = activeTeams.map(t => cloudStore[getUniqueTeamKey(t, currentSection)]?.total || 0);
+                myChart.update();
             }
-            if (rec.notes) text += `💬 تێبینی: ${rec.notes}\n`;
-            window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
         }
 
-        function exportAsImage() {
-            showNotification("تکایە تایبەتمەندی وێنە لە ڕێگەی سکرینشۆتەوە بەکاربهێنە بۆ باشترین کوالێتی.");
+        function initChart() {
+            let activeTeams = currentSection === 'lfd' ? lfdTeams : moveInTeams;
+            let ctx = document.getElementById('statsChart').getContext('2d');
+            myChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: activeTeams,
+                    datasets: [{
+                        label: 'Points',
+                        data: activeTeams.map(t => cloudStore[getUniqueTeamKey(t, currentSection)]?.total || 0),
+                        backgroundColor: '#38bdf8',
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { ticks: { color: '#94a3b8', font: { size: 9 } }, grid: { display: false } },
+                        y: { ticks: { color: '#94a3b8', font: { size: 9 } }, grid: { color: 'rgba(255,255,255,0.05)' } }
+                    }
+                }
+            });
         }
 
         window.onload = function() {
             setupPwaManifest();
+            renderCasesGrid();
+            populateTeamDropdown();
+            initRealtimeSync();
+            initChart();
             let savedLang = localStorage.getItem('bim_lang') || 'ku';
             document.getElementById('langSelect').value = savedLang;
             applyLanguage(savedLang);
-            checkUserAccountOnStartup();
-            
-            let lastSelTeam = localStorage.getItem('bim_selected_team');
-            if (lastSelTeam) {
-                document.getElementById('teamSelect').value = lastSelTeam;
-            }
-            initRealtimeSync();
         };
     </script>
 </body>
