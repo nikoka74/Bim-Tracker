@@ -184,7 +184,7 @@
         }
         .trend-chart-container {
             position: relative;
-            height: 140px;
+            height: 90px;
             width: 100%;
         }
 
@@ -1155,23 +1155,23 @@
             let container = document.getElementById('casesGridContainer');
             if (currentSection === 'lfd') {
                 container.innerHTML = `
-                    <div class="case-item">Paid <input type="number" id="c_paid" min="0" oninput="saveDraftStateLocally()"></div>
-                    <div class="case-item">Disc <input type="number" id="c_disc" min="0" oninput="saveDraftStateLocally()"></div>
-                    <div class="case-item">Reconn <input type="number" id="c_reconn" min="0" oninput="saveDraftStateLocally()"></div>
-                    <div class="case-item">Special <input type="number" id="c_special" min="0" oninput="saveDraftStateLocally()"></div>
-                    <div class="case-item">Dist <input type="number" id="c_dist" min="0" oninput="saveDraftStateLocally()"></div>
-                    <div class="case-item">Inaccess <input type="number" id="c_inaccess" min="0" oninput="saveDraftStateLocally()"></div>
-                    <div class="case-item">Other <input type="number" id="c_other" min="0" oninput="saveDraftStateLocally()"></div>
-                    <div class="case-item">Not Found <input type="number" id="c_notfound" min="0" oninput="saveDraftStateLocally()"></div>
-                    <div class="case-item">Denied <input type="number" id="c_denied" min="0" oninput="saveDraftStateLocally()"></div>
+                    <div class="case-item">Paid <input type="number" id="c_paid" value="0" min="0" oninput="saveDraftStateLocally()"></div>
+                    <div class="case-item">Disc <input type="number" id="c_disc" value="0" min="0" oninput="saveDraftStateLocally()"></div>
+                    <div class="case-item">Reconn <input type="number" id="c_reconn" value="0" min="0" oninput="saveDraftStateLocally()"></div>
+                    <div class="case-item">Special <input type="number" id="c_special" value="0" min="0" oninput="saveDraftStateLocally()"></div>
+                    <div class="case-item">Dist <input type="number" id="c_dist" value="0" min="0" oninput="saveDraftStateLocally()"></div>
+                    <div class="case-item">Inaccess <input type="number" id="c_inaccess" value="0" min="0" oninput="saveDraftStateLocally()"></div>
+                    <div class="case-item">Other <input type="number" id="c_other" value="0" min="0" oninput="saveDraftStateLocally()"></div>
+                    <div class="case-item">Not Found <input type="number" id="c_notfound" value="0" min="0" oninput="saveDraftStateLocally()"></div>
+                    <div class="case-item">Denied <input type="number" id="c_denied" value="0" min="0" oninput="saveDraftStateLocally()"></div>
                 `;
             } else if (currentSection === 'movein') {
                 container.innerHTML = `
-                    <div class="case-item">Inst. Meter <input type="number" id="c_inst_meter" min="0" oninput="saveDraftStateLocally()"></div>
-                    <div class="case-item">Inst. Encl <input type="number" id="c_inst_encl" min="0" oninput="saveDraftStateLocally()"></div>
-                    <div class="case-item">3P Encl <input type="number" id="c_inst_3p" min="0" oninput="saveDraftStateLocally()"></div>
-                    <div class="case-item">BIM Team <input type="number" id="c_bim_team" min="0" oninput="saveDraftStateLocally()"></div>
-                    <div class="case-item">Other Team <input type="number" id="c_other_team" min="0" oninput="saveDraftStateLocally()"></div>
+                    <div class="case-item">Inst. Meter <input type="number" id="c_inst_meter" value="0" min="0" oninput="saveDraftStateLocally()"></div>
+                    <div class="case-item">Inst. Encl <input type="number" id="c_inst_encl" value="0" min="0" oninput="saveDraftStateLocally()"></div>
+                    <div class="case-item">3P Encl <input type="number" id="c_inst_3p" value="0" min="0" oninput="saveDraftStateLocally()"></div>
+                    <div class="case-item">BIM Team <input type="number" id="c_bim_team" value="0" min="0" oninput="saveDraftStateLocally()"></div>
+                    <div class="case-item">Other Team <input type="number" id="c_other_team" value="0" min="0" oninput="saveDraftStateLocally()"></div>
                 `;
             }
         }
@@ -1569,21 +1569,21 @@
             document.getElementById('c_offday').checked = offday;
             document.getElementById('c_notes').value = notes || "";
             if (currentSection === 'lfd') {
-                if(document.getElementById('c_paid')) document.getElementById('c_paid').value = details.Paid || '';
-                if(document.getElementById('c_disc')) document.getElementById('c_disc').value = details.Disconnected || '';
-                if(document.getElementById('c_reconn')) document.getElementById('c_reconn').value = details.Reconnected || '';
-                if(document.getElementById('c_special')) document.getElementById('c_special').value = details.Special || '';
-                if(document.getElementById('c_dist')) document.getElementById('c_dist').value = details.Distributed || '';
-                if(document.getElementById('c_inaccess')) document.getElementById('c_inaccess').value = details.Inaccessible || '';
-                if(document.getElementById('c_other')) document.getElementById('c_other').value = details.Other || '';
-                if(document.getElementById('c_notfound')) document.getElementById('c_notfound').value = details.NotFound || '';
-                if(document.getElementById('c_denied')) document.getElementById('c_denied').value = details.Denied || '';
+                if(document.getElementById('c_paid')) document.getElementById('c_paid').value = details.Paid || 0;
+                if(document.getElementById('c_disc')) document.getElementById('c_disc').value = details.Disconnected || 0;
+                if(document.getElementById('c_reconn')) document.getElementById('c_reconn').value = details.Reconnected || 0;
+                if(document.getElementById('c_special')) document.getElementById('c_special').value = details.Special || 0;
+                if(document.getElementById('c_dist')) document.getElementById('c_dist').value = details.Distributed || 0;
+                if(document.getElementById('c_inaccess')) document.getElementById('c_inaccess').value = details.Inaccessible || 0;
+                if(document.getElementById('c_other')) document.getElementById('c_other').value = details.Other || 0;
+                if(document.getElementById('c_notfound')) document.getElementById('c_notfound').value = details.NotFound || 0;
+                if(document.getElementById('c_denied')) document.getElementById('c_denied').value = details.Denied || 0;
             } else if (currentSection === 'movein') {
-                if(document.getElementById('c_inst_meter')) document.getElementById('c_inst_meter').value = details["Inst. Meter"] || '';
-                if(document.getElementById('c_inst_encl')) document.getElementById('c_inst_encl').value = details["Inst. Encl"] || '';
-                if(document.getElementById('c_inst_3p')) document.getElementById('c_inst_3p').value = details["3P Encl"] || '';
-                if(document.getElementById('c_bim_team')) document.getElementById('c_bim_team').value = details["BIM Team"] || '';
-                if(document.getElementById('c_other_team')) document.getElementById('c_other_team').value = details["Other Team"] || '';
+                if(document.getElementById('c_inst_meter')) document.getElementById('c_inst_meter').value = details["Inst. Meter"] || 0;
+                if(document.getElementById('c_inst_encl')) document.getElementById('c_inst_encl').value = details["Inst. Encl"] || 0;
+                if(document.getElementById('c_inst_3p')) document.getElementById('c_inst_3p').value = details["3P Encl"] || 0;
+                if(document.getElementById('c_bim_team')) document.getElementById('c_bim_team').value = details["BIM Team"] || 0;
+                if(document.getElementById('c_other_team')) document.getElementById('c_other_team').value = details["Other Team"] || 0;
             }
         }
 
@@ -1596,7 +1596,6 @@
             let total = Object.values(details).reduce((a,b)=>a+b, 0);
             let draft = { teamName: t, section: currentSection, details, total, offday, notes };
             localStorage.setItem(`bim_draft_${currentSection}_${t}`, JSON.stringify(draft));
-            updateTrendChart(details);
         }
 
         function loadTeamData() {
@@ -1611,16 +1610,13 @@
             let record = cloudStore[uniqueKey];
             if (record) {
                 fillInputsWithDetails(record.details, record.notes, record.offday);
-                updateTrendChart(record.details);
             } else {
                 let localDraft = localStorage.getItem(`bim_draft_${currentSection}_${t}`);
                 if (localDraft) {
                     let d = JSON.parse(localDraft);
                     fillInputsWithDetails(d.details, d.notes, d.offday);
-                    updateTrendChart(d.details);
                 } else {
                     resetInputsToZero();
-                    updateTrendChart({});
                 }
             }
         }
@@ -1629,7 +1625,7 @@
             document.getElementById('c_offday').checked = false;
             document.getElementById('c_notes').value = '';
             let inputs = document.querySelectorAll('.cases-grid input');
-            inputs.forEach(inp => inp.value = '');
+            inputs.forEach(inp => inp.value = 0);
         }
 
         function getUniqueTeamKey(teamName, sec) { return `${sec}_${teamName}`.replace(/[\.#$\/\[\]]/g, "_"); }
@@ -1656,15 +1652,12 @@
         function saveReportDataFinal() {
             let lang = document.getElementById('langSelect').value;
             let t = document.getElementById('teamSelect').value;
-            if (!t) return alert(translations[lang].selectTeamAlert);
-
             let details = getDetailsFromInputs();
-            let total = Object.values(details).reduce((a, b) => a + b, 0);
             let offday = document.getElementById('c_offday').checked;
             let notes = document.getElementById('c_notes').value;
+            let total = Object.values(details).reduce((a, b) => a + b, 0);
 
-            let uniqueKey = getUniqueTeamKey(t, currentSection);
-            let recordObj = {
+            let teamData = {
                 teamName: t,
                 section: currentSection,
                 details: details,
@@ -1674,260 +1667,257 @@
                 timestamp: new Date().toLocaleTimeString()
             };
 
-            db.ref(`${getStorageKeyPath()}/${uniqueKey}`).set(recordObj).then(() => {
+            let uniqueKey = getUniqueTeamKey(t, currentSection);
+            db.ref(getStorageKeyPath() + '/' + uniqueKey).set(teamData).then(() => {
                 showToast(translations[lang].toastSaved);
                 localStorage.removeItem(`bim_draft_${currentSection}_${t}`);
                 
-                let logObj = {
-                    username: currentUserAccount ? currentUserAccount.name : "نەناسراو",
+                let auditObj = {
+                    username: currentUserAccount ? currentUserAccount.name : 'نەناسراو',
                     teamName: t,
                     section: currentSection,
-                    action: "ناردنی ڕاپۆرت",
+                    action: `ناردنی ڕاپۆرت (${total} پۆینت)`,
                     timestamp: new Date().toLocaleString()
                 };
-                db.ref('audit_logs').push(logObj);
+                db.ref('audit_logs').push(auditObj);
             }).catch(err => {
-                alert("هەڵە لە پاشەکەوتکردن: " + err.message);
+                let offlineObj = { uniqueKey, teamData };
+                localStorage.setItem('pending_offline_save', JSON.stringify(offlineObj));
+                showNotification("ئینتەرنێت نییە، لە ناوخۆدا پاشەکەوت کرا و کاتێک هێڵ هات دەنێردرێت.", "error");
             });
         }
 
-        function updateTrendChart(details) {
-            let labels = Object.keys(details);
-            let dataVals = Object.values(details);
-            let totalSum = dataVals.reduce((a, b) => a + b, 0);
+        function openTeamHistoryModal() {
+            let t = document.getElementById('teamSelect').value;
+            if (!t) return;
+            let listDiv = document.getElementById('historyContentList');
+            let html = '';
+            let dates = Object.keys(allDaysStore).sort().reverse();
+            let foundCount = 0;
 
-            document.getElementById('grandTotalPoints').innerText = totalSum;
-
-            let ctx = document.getElementById('trendChartCanvas').getContext('2d');
-            if (trendChartInstance) {
-                trendChartInstance.data.labels = labels;
-                trendChartInstance.data.datasets[0].data = dataVals;
-                trendChartInstance.update();
-            } else {
-                trendChartInstance = new Chart(ctx, {
-                    type: 'bar',
-                    data: {
-                        labels: labels,
-                        datasets: [{
-                            label: 'ئاماری ئەمڕۆ',
-                            data: dataVals,
-                            backgroundColor: '#38bdf8',
-                            borderRadius: 6
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: { legend: { display: false } },
-                        scales: {
-                            x: { ticks: { color: '#f8fafc', font: { size: 9 } }, grid: { display: false } },
-                            y: { ticks: { color: '#f8fafc', font: { size: 9 } }, grid: { color: 'rgba(255,255,255,0.05)' } }
-                        }
-                    }
-                });
-            }
-        }
-
-        function updateStatsChart(teamsList, totalsList) {
-            let ctx = document.getElementById('statsChart');
-            if (!ctx) return;
-            ctx = ctx.getContext('2d');
-            if (myChart) {
-                myChart.data.labels = teamsList;
-                myChart.data.datasets[0].data = totalsList;
-                myChart.update();
-            } else {
-                myChart = new Chart(ctx, {
-                    type: 'line',
-                    data: {
-                        labels: teamsList,
-                        datasets: [{
-                            label: 'کۆی گشتی تیمەکان',
-                            data: totalsList,
-                            borderColor: '#38bdf8',
-                            backgroundColor: 'rgba(56,189,248,0.1)',
-                            fill: true,
-                            tension: 0.3
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: { legend: { display: false } },
-                        scales: {
-                            x: { ticks: { color: '#f8fafc', font: { size: 9 } }, grid: { display: false } },
-                            y: { ticks: { color: '#f8fafc', font: { size: 9 } }, grid: { color: 'rgba(255,255,255,0.05)' } }
-                        }
-                    }
-                });
-            }
-        }
-
-        function render() {
-            let teamsList = currentSection === 'lfd' ? lfdTeams : moveInTeams;
-            let container = document.getElementById('leaderboardContainer');
-            let totalSubmittedCount = 0;
-            let grandSectionTotal = 0;
-            let chartLabels = [];
-            let chartDataVals = [];
-
-            let itemsHtml = "";
-            let sortedTeams = [...teamsList].map(t => {
+            dates.forEach(dateKey => {
+                let dayData = allDaysStore[dateKey];
                 let uniqueKey = getUniqueTeamKey(t, currentSection);
-                let rec = cloudStore[uniqueKey];
-                return { team: t, record: rec };
-            }).sort((a, b) => (b.record?.total || 0) - (a.record?.total || 0));
-
-            let filteredTeams = sortedTeams.filter(item => {
-                let rec = item.record;
-                if (currentFilter === 'achieved') return rec && !rec.offday && rec.total >= DAILY_TARGET;
-                if (currentFilter === 'missed') return (!rec || (!rec.offday && rec.total < DAILY_TARGET));
-                if (currentFilter === 'offday') return rec && rec.offday;
-                return true;
-            });
-
-            filteredTeams.forEach((item, index) => {
-                let t = item.team;
-                let rec = item.record;
-                let total = rec ? rec.total : 0;
-                let offday = rec ? rec.offday : false;
-                let notes = rec ? rec.notes : "";
-
-                if (rec) grandSectionTotal += total;
-                if (rec) totalSubmittedCount++;
-
-                chartLabels.push(t);
-                chartDataVals.push(total);
-
-                let badgeClass = index === 0 ? 'rank-1' : (index === 1 ? 'rank-2' : (index === 2 ? 'rank-3' : 'rank-other'));
-                let statusText = offday ? '🏖️ پشوو' : (total >= DAILY_TARGET ? '✅ گەیشتوو' : '⏳ نەگەیشتوو');
-
-                itemsHtml += `
-                    <div class="leaderboard-item">
-                        <div class="leaderboard-row-top">
-                            <div style="display: flex; align-items: center; gap: 6px;">
-                                <span class="rank-badge ${badgeClass}">${index + 1}</span>
-                                <b>${t}</b>
+                if (dayData && dayData[uniqueKey]) {
+                    let record = dayData[uniqueKey];
+                    foundCount++;
+                    html += `
+                        <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--border-color); padding: 8px; border-radius: 8px; margin-bottom: 6px;">
+                            <div style="display: flex; justify-content: space-between; color: var(--primary); font-weight: bold;">
+                                <span>📅 ${dateKey}</span>
+                                <span>Total: ${record.total}</span>
                             </div>
-                            <div style="display: flex; gap: 8px; align-items: center;">
-                                <span style="font-size: 10px; opacity: 0.8;">${statusText}</span>
-                                <span style="color: #34d399; font-weight: bold;">${total}</span>
+                            <div style="font-size: 10px; opacity: 0.8; margin-top: 2px;">
+                                ${record.offday ? '<b>پشوو / مۆڵەت</b>' : JSON.stringify(record.details)}
                             </div>
                         </div>
-                        ${notes ? `<div class="leaderboard-reason"><b>تێبینی:</b> ${notes}</div>` : ''}
-                    </div>
-                `;
+                    `;
+                }
             });
 
-            container.innerHTML = itemsHtml || `<p style="text-align:center; opacity:0.6; padding:10px;">هیچ تیمێک نەدۆزرایەوە</p>`;
-            document.getElementById('adminSectionTotal').innerText = `Total: ${grandSectionTotal}`;
-
-            let progressPercent = Math.round((totalSubmittedCount / teamsList.length) * 100) || 0;
-            document.getElementById('progressBar').style.width = progressPercent + '%';
-            document.getElementById('progressText').innerText = `Submitted: ${progressPercent}% (${totalSubmittedCount}/${teamsList.length})`;
-
-            updateStatsChart(chartLabels, chartDataVals);
+            if (foundCount === 0) html = `<p style="text-align:center; opacity:0.6;">هیچ مێژوویەک نەدۆزرایەوە.</p>`;
+            listDiv.innerHTML = html;
+            document.getElementById('historyModalOverlay').style.display = 'flex';
         }
 
-        function shareToWhatsApp() {
-            let teamsList = currentSection === 'lfd' ? lfdTeams : moveInTeams;
-            let text = `📊 ڕاپۆرتی گشتی BIM Operations (${currentSection.toUpperCase()})\n📅 بەروار: ${selectedAdminDate}\n\n`;
-            let grand = 0;
-            teamsList.forEach(t => {
-                let rec = cloudStore[getUniqueTeamKey(t, currentSection)];
-                let tot = rec ? rec.total : 0;
-                grand += tot;
-                let status = rec?.offday ? ' (پشوو)' : '';
-                text += `• ${t}: ${tot}${status}\n`;
-            });
-            text += `\n📌 کۆی گشتی: ${grand}`;
-            window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, '_blank');
-        }
-
+        // Updated Share My Team to WhatsApp (Shows ONLY achieved cases for that team)
         function shareMyTeamToWhatsApp() {
             let t = document.getElementById('teamSelect').value;
             if (!t) return alert("تکایە سەرەتا تیمێک هەڵبژێرە!");
-            let details = getDetailsFromInputs();
-            let total = Object.values(details).reduce((a, b) => a + b, 0);
-            let offday = document.getElementById('c_offday').checked;
-            let notes = document.getElementById('c_notes').value;
+            let uniqueKey = getUniqueTeamKey(t, currentSection);
+            let record = cloudStore[uniqueKey];
+            if (!record) return alert("هیچ ڕاپۆرتێک بۆ ئەم تیمە نییە ئەمڕۆ!");
 
-            let text = `👥 ڕاپۆرتی تیمی (${t}) - ${currentSection.toUpperCase()}\n📅 بەروار: ${todayFormatted}\n\n`;
-            Object.keys(details).forEach(k => {
-                text += `• ${k}: ${details[k]}\n`;
-            });
-            text += `\n📌 کۆی گشتی: ${total}`;
-            if (offday) text += `\n🏖️ مۆڵەت / پشوو`;
-            if (notes) text += `\n⚠️ تێبینی: ${notes}`;
+            let detailsStr = Object.keys(record.details)
+                .filter(k => record.details[k] > 0)
+                .map(k => `▫️ ${k}: *${record.details[k]}*`)
+                .join('\n');
+
+            let text = `📊 *ڕاپۆرتی تیمی (${t})*\n` +
+                       `📌 بەش: ${currentSection.toUpperCase()}\n` +
+                       `━━━━━━━━━━━━━━━\n` +
+                       (record.offday ? `🏖️ دۆخ: مۆڵەت / پشوو\n` : detailsStr + `\n━━━━━━━━━━━━━━━\n⭐ *کۆی گشتی: ${record.total}*`) +
+                       (record.notes ? `\n⚠️ تێبینی: ${record.notes}` : '') +
+                       `\n📅 بەروار: ${selectedAdminDate}`;
 
             window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, '_blank');
         }
 
-        function adminExportExcel(type) {
+        // Updated General Share to WhatsApp (NO TEAM NAMES, ONLY CASE TYPES AND TOTALS)
+        function shareToWhatsApp() {
             let teamsList = currentSection === 'lfd' ? lfdTeams : moveInTeams;
-            let csv = "Team,Section,Total,OffDay,Notes\n";
+            let grandTotal = 0;
+            let aggDetails = {};
+
             teamsList.forEach(t => {
-                let rec = cloudStore[getUniqueTeamKey(t, currentSection)];
-                if (rec) {
-                    csv += `${t},${currentSection},${rec.total},${rec.offday ? 'Yes' : 'No'},"${rec.notes || ''}"\n`;
-                } else {
-                    csv += `${t},${currentSection},0,No,""\n`;
+                let uniqueKey = getUniqueTeamKey(t, currentSection);
+                let record = cloudStore[uniqueKey];
+                if (record && !record.offday && record.details) {
+                    grandTotal += record.total || 0;
+                    Object.keys(record.details).forEach(k => {
+                        aggDetails[k] = (aggDetails[k] || 0) + (record.details[k] || 0);
+                    });
                 }
             });
-            let blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' });
-            let link = document.createElement("a");
-            link.href = URL.createObjectURL(blob);
-            link.download = `BIM_Report_${currentSection}_${selectedAdminDate}.csv`;
-            link.click();
-        }
 
-        function adminClearData() {
-            if (confirm("دڵنیای لە سڕینەوەی سەرجەم داتاکانی ئەم ڕۆژە؟")) {
-                db.ref(getStorageKeyPath()).remove().then(() => {
-                    showToast("داتاکان سڕانەوە");
-                });
-            }
+            let detailsStr = Object.keys(aggDetails)
+                .map(k => `▫️ ${k}: *${aggDetails[k]}*`)
+                .join('\n');
+
+            let text = `📊 *تۆتەڵی گشتی ئامارەکانی ئەمڕۆ*\n` +
+                       `📌 بەش: ${currentSection.toUpperCase()}\n` +
+                       `━━━━━━━━━━━━━━━\n` +
+                       detailsStr + `\n` +
+                       `━━━━━━━━━━━━━━━\n` +
+                       `⭐ *کۆی گشتی کامڵ: ${grandTotal}*\n` +
+                       `📅 بەروار: ${selectedAdminDate}`;
+
+            window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, '_blank');
         }
 
         function exportAsImage() {
             window.print();
         }
 
-        function openTeamHistoryModal() {
-            let t = document.getElementById('teamSelect').value;
-            if (!t) return alert("تکایە تیمێک هەڵبژێرە!");
-            let container = document.getElementById('historyContentList');
-            let html = '';
-            
-            let days = Object.keys(allDaysStore).sort().reverse().slice(0, 7);
-            if (days.length === 0) {
-                container.innerHTML = `<p style="text-align:center; opacity:0.7;">هیچ مێژوویەک نەدۆزرایەوە.</p>`;
-            } else {
-                days.forEach(dKey => {
-                    let dayObj = allDaysStore[dKey] || {};
-                    let rec = dayObj[getUniqueTeamKey(t, currentSection)];
-                    let tot = rec ? rec.total : 0;
-                    html += `
-                        <div style="display: flex; justify-content: space-between; padding: 6px 10px; border-bottom: 1px solid var(--border-color);">
-                            <span>📅 ${dKey}</span>
-                            <span style="color: #34d399; font-weight: bold;">${tot} خال</span>
-                        </div>
-                    `;
-                });
-                container.innerHTML = html;
+        function adminExportExcel(type) {
+            let csv = "Team,Section,Total,OffDay,Notes,Date\n";
+            let teamsList = currentSection === 'lfd' ? lfdTeams : moveInTeams;
+            teamsList.forEach(t => {
+                let uniqueKey = getUniqueTeamKey(t, currentSection);
+                let record = cloudStore[uniqueKey];
+                if (record) {
+                    csv += `${t},${currentSection},${record.total},${record.offday?'Yes':'No'},"${record.notes||''}",${selectedAdminDate}\n`;
+                }
+            });
+            let blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' });
+            let link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.download = `Report_${currentSection}_${selectedAdminDate}.csv`;
+            link.click();
+        }
+
+        function adminClearData() {
+            if (confirm("دڵنیای لە سڕینەوەی داتاکانی ئەم ڕۆژە؟")) {
+                db.ref(getStorageKeyPath()).remove().then(() => { showToast("سڕایەوە"); });
             }
-            document.getElementById('historyModalOverlay').style.display = 'flex';
+        }
+
+        function render() {
+            let container = document.getElementById('leaderboardContainer');
+            let teamsList = currentSection === 'lfd' ? lfdTeams : moveInTeams;
+            let filteredTeams = [];
+            let totalSubmittedCount = 0;
+            let sectionGrandTotal = 0;
+            let aggDetails = {};
+
+            teamsList.forEach(t => {
+                let uniqueKey = getUniqueTeamKey(t, currentSection);
+                let record = cloudStore[uniqueKey];
+                let isOff = record ? record.offday : false;
+                let tot = record ? (record.total || 0) : 0;
+
+                if (record) totalSubmittedCount++;
+                if (record && !isOff) {
+                    sectionGrandTotal += tot;
+                    Object.keys(record.details || {}).forEach(k => {
+                        aggDetails[k] = (aggDetails[k] || 0) + (record.details[k] || 0);
+                    });
+                }
+
+                let match = false;
+                if (currentFilter === 'all') match = true;
+                else if (currentFilter === 'achieved') match = (record && !isOff && tot >= DAILY_TARGET);
+                else if (currentFilter === 'missed') match = (record && !isOff && tot < DAILY_TARGET);
+                else if (currentFilter === 'offday') match = (record && isOff);
+
+                if (match) filteredTeams.push({ teamName: t, record, total: tot, offday: isOff });
+            });
+
+            // Update Trend / Line Chart and Grand Total
+            document.getElementById('grandTotalPoints').innerText = sectionGrandTotal;
+            updateTrendChart(aggDetails);
+
+            filteredTeams.sort((a, b) => b.total - a.total);
+
+            let html = '';
+            filteredTeams.forEach((item, index) => {
+                let rClass = index === 0 ? 'rank-1' : (index === 1 ? 'rank-2' : (index === 2 ? 'rank-3' : 'rank-other'));
+                let badge = `<span class="rank-badge ${rClass}">${index + 1}</span>`;
+                let detailsText = item.record && item.record.details ? JSON.stringify(item.record.details) : 'هیچ نییە';
+                let notesText = item.record && item.record.notes ? `<div class="leaderboard-reason">⚠️ ${item.record.notes}</div>` : '';
+
+                html += `
+                    <div class="leaderboard-item">
+                        <div class="leaderboard-row-top">
+                            <div style="display: flex; align-items: center; font-weight: bold;">
+                                ${badge} ${item.teamName}
+                            </div>
+                            <div style="font-weight: bold; color: ${item.offday ? '#f59e0b' : 'var(--primary)'};">
+                                ${item.offday ? '🏖️ پشوو' : `Total: ${item.total}`}
+                            </div>
+                        </div>
+                        <div style="font-size: 10px; opacity: 0.7; margin-top: 2px;">
+                            ${item.offday ? 'مۆڵەت / پشوو' : detailsText}
+                        </div>
+                        ${notesText}
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html || `<p style="text-align:center; opacity:0.6; padding:10px;">هیچ تیمێک نەدۆزرایەوە</p>`;
+            document.getElementById('adminSectionTotal').innerText = `Total: ${sectionGrandTotal}`;
+
+            let percent = teamsList.length > 0 ? Math.round((totalSubmittedCount / teamsList.length) * 100) : 0;
+            document.getElementById('progressBar').style.width = percent + '%';
+            document.getElementById('progressText').innerText = `Submitted: ${percent}% (${totalSubmittedCount}/${teamsList.length})`;
+        }
+
+        function updateTrendChart(aggDetails) {
+            let canvasCtx = document.getElementById('trendChartCanvas').getContext('2d');
+            let labels = Object.keys(aggDetails);
+            let dataVals = Object.values(aggDetails);
+
+            if (trendChartInstance) {
+                trendChartInstance.data.labels = labels;
+                trendChartInstance.data.datasets[0].data = dataVals;
+                trendChartInstance.update();
+                return;
+            }
+
+            trendChartInstance = new Chart(canvasCtx, {
+                type: 'line',
+                data: {
+                    labels: labels.length ? labels : ['No Data'],
+                    datasets: [{
+                        label: 'جۆرەکان',
+                        data: dataVals.length ? dataVals : [0],
+                        borderColor: '#38bdf8',
+                        backgroundColor: 'rgba(56, 189, 248, 0.15)',
+                        borderWidth: 2,
+                        tension: 0.3,
+                        fill: true,
+                        pointBackgroundColor: '#34d399'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { ticks: { color: '#94a3b8', font: { size: 9 } }, grid: { display: false } },
+                        y: { ticks: { color: '#94a3b8', font: { size: 9 } }, grid: { color: 'rgba(255,255,255,0.05)' } }
+                    }
+                }
+            });
         }
 
         window.onload = function() {
-            setupPwaManifest();
-            checkUserAccountOnStartup();
             let savedLang = localStorage.getItem('bim_lang') || 'ku';
             document.getElementById('langSelect').value = savedLang;
             applyLanguage(savedLang);
-            renderCasesGrid();
-            populateTeamDropdown();
+            setupPwaManifest();
             initRealtimeSync();
+            checkUserAccountOnStartup();
         };
     </script>
 </body>
