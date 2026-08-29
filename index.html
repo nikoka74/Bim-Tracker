@@ -316,7 +316,7 @@
     <!-- Account Setup / Login Modal -->
     <div id="accountModalOverlay" class="custom-modal-overlay" style="display: flex;">
         <div class="custom-modal-box" style="max-width: 380px; text-align: right;">
-            <h3 id="authModalTitle">🔐 چوونەژوورەوە یان دروستکردنی ئەکاونت</h3>
+            <h3 id="authModalTitle">🔐 چوژوورەوە یان دروستکردنی ئەکاونت</h3>
             <p id="authModalDesc">تکایە بۆ بەشداریکردن لە سیستم و چات، لۆگین بکە یان ئەکاونت دروست بکە:</p>
             
             <div class="auth-tabs">
@@ -1690,16 +1690,252 @@
 
             let uniqueKey = getUniqueTeamKey(t, currentSection);
             db.ref(`${getStorageKeyPath()}/${uniqueKey}`).set(record).then(() => {
-                db.ref('audit_logs').push({
+                let logObj = {
                     username: currentUserAccount ? currentUserAccount.name : "نەناسراو",
                     teamName: t,
                     section: currentSection,
-                    action: `Submitted report with total ${total}`,
+                    action: `ناردنی ڕاپۆرت (کۆی گشتی: ${total})`,
                     timestamp: new Date().toLocaleString()
-                });
-                showToast(translations[document.getElementById('langSelect').value].toastSaved);
+                };
+                db.ref('audit_logs').push(logObj);
+
+                showToast("ڕاپۆرتەکەت بە سەرکەوتوویی پاشەکەوتکرا!");
+                localStorage.removeItem(`bim_draft_${currentSection}_${t}`);
+            }).catch((error) => {
+                alert("کێشە لە پاشەکەوتکردن: " + error.message);
             });
         }
+
+        function render() {
+            let teamsList = currentSection === 'lfd' ? lfdTeams : moveInTeams;
+            let leaderboardContainer = document.getElementById('leaderboardContainer');
+            let submittedCount = 0;
+            let totalTeams = teamsList.length;
+            let sectionTotalSum = 0;
+
+            let html = '';
+            let filteredTeams = teamsList.filter(t => {
+                let uniqueKey = getUniqueTeamKey(t, currentSection);
+                let rec = cloudStore[uniqueKey];
+                let isOff = rec && rec.offday;
+                let tot = rec ? rec.total : 0;
+
+                if (currentFilter === 'achieved') return !isOff && tot >= DAILY_TARGET;
+                if (currentFilter === 'missed') return !isOff && tot < DAILY_TARGET;
+                if (currentFilter === 'offday') return isOff;
+                return true;
+            });
+
+            filteredTeams.sort((a, b) => {
+                let recA = cloudStore[getUniqueTeamKey(a, currentSection)];
+                let recB = cloudStore[getUniqueTeamKey(b, currentSection)];
+                let totA = recA ? recA.total : 0;
+                let totB = recB ? recB.total : 0;
+                return totB - totA;
+            });
+
+            filteredTeams.forEach((t, index) => {
+                let uniqueKey = getUniqueTeamKey(t, currentSection);
+                let rec = cloudStore[uniqueKey];
+                let tot = rec ? rec.total : 0;
+                let isOff = rec && rec.offday;
+                let note = rec && rec.notes ? rec.notes : "";
+
+                if (rec) submittedCount++;
+                sectionTotalSum += tot;
+
+                let rankClass = index === 0 ? 'rank-1' : (index === 1 ? 'rank-2' : (index === 2 ? 'rank-3' : 'rank-other'));
+                let statusBadge = isOff ? `<span style="color:#f59e0b; font-weight:bold;">پشوو</span>` : (tot >= DAILY_TARGET ? `<span style="color:#34d399; font-weight:bold;">✓ ${tot}</span>` : `<span style="color:#f87171; font-weight:bold;">✗ ${tot}</span>`);
+
+                html += `
+                    <div class="leaderboard-item">
+                        <div class="leaderboard-row-top">
+                            <div style="display: flex; align-items: center;">
+                                <span class="rank-badge ${rankClass}">${index + 1}</span>
+                                <b>${t}</b>
+                            </div>
+                            <div>${statusBadge}</div>
+                        </div>
+                        ${note ? `<div class="leaderboard-reason"><b>هۆکار/تێبینی:</b> ${note}</div>` : ''}
+                    </div>
+                `;
+            });
+
+            leaderboardContainer.innerHTML = html || `<p style="text-align:center; opacity:0.6; padding:10px;">هیچ تیمێک نەدۆزرایەوە</p>`;
+            document.getElementById('adminSectionTotal').innerText = `Total: ${sectionTotalSum}`;
+            document.getElementById('grandTotalPoints').innerText = sectionTotalSum;
+
+            let pct = totalTeams > 0 ? Math.round((submittedCount / totalTeams) * 100) : 0;
+            document.getElementById('progressBar').style.width = pct + '%';
+            document.getElementById('progressText').innerText = (translations[document.getElementById('langSelect').value].progressText || "Submitted: ") + pct + '% (' + submittedCount + '/' + totalTeams + ')';
+            
+            updateStatsChart(submittedCount, totalTeams - submittedCount);
+        }
+
+        function updateTrendChart(details) {
+            let ctx = document.getElementById('trendChartCanvas').getContext('2d');
+            let labels = Object.keys(details);
+            let dataVals = Object.values(details);
+
+            if (trendChartInstance) {
+                trendChartInstance.data.labels = labels;
+                trendChartInstance.data.datasets[0].data = dataVals;
+                trendChartInstance.update();
+            } else {
+                trendChartInstance = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Cases',
+                            data: dataVals,
+                            backgroundColor: '#38bdf8',
+                            borderRadius: 6
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { display: false } },
+                        scales: {
+                            x: { ticks: { color: '#94a3b8', font: { size: 9 } }, grid: { display: false } },
+                            y: { ticks: { color: '#94a3b8', font: { size: 9 } }, grid: { color: 'rgba(255,255,255,0.05)' } }
+                        }
+                    }
+                });
+            }
+        }
+
+        function updateStatsChart(submitted, pending) {
+            let ctx = document.getElementById('statsChart').getContext('2d');
+            if (myChart) {
+                myChart.data.datasets[0].data = [submitted, pending];
+                myChart.update();
+            } else {
+                myChart = new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Submitted', 'Pending'],
+                        datasets: [{
+                            data: [submitted, pending],
+                            backgroundColor: ['#10b981', '#ef4444'],
+                            borderWidth: 0
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { position: 'right', labels: { color: '#fff', font: { size: 10 } } } }
+                    }
+                });
+            }
+        }
+
+        function shareToWhatsApp() {
+            let teamsList = currentSection === 'lfd' ? lfdTeams : moveInTeams;
+            let text = `📊 *ڕاپۆرتی گشتی BIM Operations* (${selectedAdminDate})\n*بەشی:* ${currentSection.toUpperCase()}\n\n`;
+            let totalSum = 0;
+
+            teamsList.forEach(t => {
+                let rec = cloudStore[getUniqueTeamKey(t, currentSection)];
+                let tot = rec ? rec.total : 0;
+                let isOff = rec && rec.offday;
+                totalSum += tot;
+                let status = isOff ? "مۆڵەت/پشوو" : `${tot} خاڵ`;
+                text += `• ${t}: ${status}\n`;
+            });
+
+            text += `\n*کۆی گشتی تیمەکان:* ${totalSum} خاڵ`;
+            let url = `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`;
+            window.open(url, '_blank');
+        }
+
+        function shareMyTeamToWhatsApp() {
+            let t = document.getElementById('teamSelect').value;
+            if (!t) return alert("تکایە سەرەتا تیمێک هەڵبژێرە!");
+            let rec = cloudStore[getUniqueTeamKey(t, currentSection)];
+            let tot = rec ? rec.total : 0;
+            let details = rec ? rec.details : getDetailsFromInputs();
+            let isOff = rec && rec.offday;
+
+            let text = `📊 *ڕاپۆرتی تیم (${t})* - ${selectedAdminDate}\n*بەشی:* ${currentSection.toUpperCase()}\n*دۆخ:* ${isOff ? 'پشوو' : 'کارا'}\n\n*وردەکاری:* \n`;
+            Object.keys(details).forEach(k => {
+                text += `- ${k}: ${details[k]}\n`;
+            });
+            text += `\n*کۆی گشتی:* ${tot} خاڵ`;
+            let url = `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`;
+            window.open(url, '_blank');
+        }
+
+        function exportAsImage() {
+            alert("بۆ وەرگرتنی وێنە دەتوانیت سکرینشۆت (Screenshot) بگریت یان دوگمەی PDF بەکاربهێنیت.");
+        }
+
+        function adminExportExcel(type) {
+            let csv = "Team,Section,Total,OffDay,Notes,Date\n";
+            let teamsList = [...new Set([...lfdTeams, ...moveInTeams])];
+            teamsList.forEach(t => {
+                ['lfd', 'movein'].forEach(sec => {
+                    let uniqueKey = getUniqueTeamKey(t, sec);
+                    let rec = cloudStore[uniqueKey];
+                    if (rec) {
+                        csv += `${t},${sec},${rec.total},${rec.offday ? 'Yes' : 'No'},"${rec.notes || ''}",${selectedAdminDate}\n`;
+                    }
+                });
+            });
+            let blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' });
+            let link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.download = `BIM_Report_${selectedAdminDate}.csv`;
+            link.click();
+        }
+
+        function adminClearData() {
+            if (confirm("دڵنیای لە سڕینەوەی هەموو داتاکانی ئەم ڕۆژە؟")) {
+                db.ref(getStorageKeyPath()).remove().then(() => {
+                    showToast("سڕایەوە");
+                });
+            }
+        }
+
+        function openTeamHistoryModal() {
+            let t = document.getElementById('teamSelect').value;
+            if(!t) return;
+            let container = document.getElementById('historyContentList');
+            let html = '';
+            
+            for(let i=0; i<7; i++) {
+                let d = new Date();
+                d.setDate(d.getDate() - i);
+                let dStr = d.toISOString().split('T')[0];
+                let dayKey = dStr.replace(/[\.#$\/\[\]]/g, "_");
+                let dayData = allDaysStore[dayKey];
+                let uniqueKey = getUniqueTeamKey(t, currentSection);
+                let rec = dayData ? dayData[uniqueKey] : null;
+                let tot = rec ? rec.total : 0;
+                let isOff = rec && rec.offday;
+
+                html += `
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 6px 0; border-bottom: 1px solid var(--border-color);">
+                        <span>📅 ${dStr}</span>
+                        <span>${isOff ? 'پشوو' : tot + ' خاڵ'}</span>
+                    </div>
+                `;
+            }
+            container.innerHTML = html;
+            document.getElementById('historyModalOverlay').style.display = 'flex';
+        }
+
+        window.onload = function() {
+            setupPwaManifest();
+            let savedLang = localStorage.getItem('bim_lang') || 'ku';
+            document.getElementById('langSelect').value = savedLang;
+            applyLanguage(savedLang);
+            initRealtimeSync();
+            checkUserAccountOnStartup();
+            renderCasesGrid();
+            populateTeamDropdown();
+        };
     </script>
 </body>
 </html>
