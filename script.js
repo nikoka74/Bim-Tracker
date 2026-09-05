@@ -1,11 +1,13 @@
-// Toast Notification
+// Global Toast Notification
 function showNotification(message, type = 'success') {
     const container = document.getElementById('toast-container');
+    if (!container) return;
     const toast = document.createElement('div');
     toast.style.cssText = `
         background: ${type === 'success' ? '#10b981' : '#ef4444'};
         color: white; padding: 10px 16px; margin-top: 8px; border-radius: 10px;
         box-shadow: 0 4px 12px rgba(0,0,0,0.3); font-size: 12px; z-index: 99999;
+        font-family: inherit; direction: rtl;
     `;
     toast.innerText = message;
     container.appendChild(toast);
@@ -25,47 +27,116 @@ const firebaseConfig = {
 
 if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
 const db = firebase.database();
-const auth = firebase.auth();
 
-let currentUserAccount = JSON.parse(localStorage.getItem('bim_chat_user')) || null;
 let currentSection = 'lfd';
 let headerClickCount = 0;
 let mapInstance = null;
+let currentFilter = 'all';
 
-function populateRegisterTeamSelect() {
+// 🔑 🔑 🔑 بەشی دیاریکردنی پین کۆدەکان 🔑 🔑 🔑
+const ADMIN_PIN = "Razwan"; // 👈 پین کۆدی نوێی بەڕێوەبەر (Admin)
+
+// لیستەی کۆدی تایبەت بە هەر تیمێک (دەتوانیت زیادیان بکەیت یان کۆدەکان بگۆڕیت)
+const TEAM_PINS = {
+    "team_1": "1111",
+    "team_2": "2222",
+    "team_3": "3333",
+    "team_4": "4444",
+    "team_5": "5555",
+    "team_6": "6666",
+    "team_7": "7777",
+    "team_8": "8888",
+    "team_9": "9999",
+    "team_10": "1010"
+};
+
+// Populate Team Dropdowns
+function populateTeamDropdowns() {
     const adminSelect = document.getElementById('privateMsgTeam');
-    if(!adminSelect) return;
-    
-    adminSelect.innerHTML = '<option value="">-- تیم --</option>';
+    const kmlSelect = document.getElementById('kmlTargetTeam');
+    const mainSelect = document.getElementById('teamSelect');
+
+    if (adminSelect) adminSelect.innerHTML = '<option value="">-- تیم --</option>';
+    if (kmlSelect) kmlSelect.innerHTML = '<option value="">-- هەڵبژاردنی تیم --</option>';
+    if (mainSelect) mainSelect.innerHTML = '<option value="">-- تیم هەڵبژێرە --</option>';
 
     db.ref('teams').once('value', (snapshot) => {
         const teams = snapshot.val() || {};
         Object.keys(teams).forEach(teamKey => {
-            const option = document.createElement('option');
-            option.value = teamKey;
-            option.textContent = teams[teamKey].name || teamKey;
-            adminSelect.appendChild(option);
+            const teamName = teams[teamKey].name || teamKey;
+            
+            if (mainSelect) {
+                const opt = document.createElement('option');
+                opt.value = teamKey;
+                opt.textContent = teamName;
+                mainSelect.appendChild(opt);
+            }
+            if (adminSelect) {
+                const opt = document.createElement('option');
+                opt.value = teamKey;
+                opt.textContent = teamName;
+                adminSelect.appendChild(opt);
+            }
+            if (kmlSelect) {
+                const opt = document.createElement('option');
+                opt.value = teamKey;
+                opt.textContent = teamName;
+                kmlSelect.appendChild(opt);
+            }
         });
     });
 }
 
-// Navigation & Admin Controls
+// 🔐 چوونەژوورەوە بۆ بەشی ئەدمین بە کۆدی تایبەتی ئەدمین
 function handleHeaderClick() {
     headerClickCount++;
     if (headerClickCount >= 3) {
         document.getElementById('customModalOverlay').style.display = 'flex';
+        document.getElementById('modalTitle').innerText = "پشتڕاستکردنەوەی ئەدمین";
+        document.getElementById('modalDesc').innerText = "تکایە پین کۆدی بەڕێوەبەر (Admin) بنووسە:";
+        
         document.getElementById('modalConfirmBtn').onclick = () => {
             const pin = document.getElementById('customModalInput').value;
-            if (pin === '1234') { 
-                document.getElementById('adminPanel').classList.toggle('active');
+            if (pin === ADMIN_PIN) { 
+                const adminPanel = document.getElementById('adminPanel');
+                adminPanel.classList.toggle('active');
                 showNotification('بەشی ئەدمین بە سەرکەوتوویی کرایەوە');
                 closeCustomModal(true);
             } else {
-                showNotification('پین کۆد هەڵەیە', 'error');
+                showNotification('کۆدی ئەدمین هەڵەیە!', 'error');
             }
         };
         headerClickCount = 0;
     }
+}
+
+// 🔐 ناردنی ڕاپۆرت بە کۆدی تایبەت بە تیمی هەڵبژێردراو
+function promptPinAndSave() {
+    const selectedTeam = document.getElementById('teamSelect')?.value;
+    if (!selectedTeam) {
+        return showNotification('تکایە سەرەتا تیمەکەت هەڵبژێرە!', 'error');
+    }
+
+    document.getElementById('customModalOverlay').style.display = 'flex';
+    document.getElementById('modalTitle').innerText = "پشتڕاستکردنەوەی تیم";
+    document.getElementById('modalDesc').innerText = `تکایە پین کۆدی تایبەت بە ${selectedTeam} بنووسە:`;
+
+    document.getElementById('modalConfirmBtn').onclick = () => {
+        const inputPin = document.getElementById('customModalInput').value;
+        const correctPin = TEAM_PINS[selectedTeam];
+
+        // ئەگەر تیمەکە لە لیستەکە بوو و کۆدەکە دروست بوو یان کۆدی ئەدمین لێدرا
+        if ((correctPin && inputPin === correctPin) || inputPin === ADMIN_PIN) {
+            closeCustomModal(true);
+            submitReportData(selectedTeam);
+        } else {
+            showNotification('پین کۆدی ئەم تیمە هەڵەیە! ڕێگەت پێ نادڕێت ناردن بکەیت.', 'error');
+        }
+    };
+}
+
+function submitReportData(teamKey) {
+    showNotification(`ڕاپۆرتی ${teamKey} بە سەرکەوتوویی نێردرا.`);
 }
 
 function closeCustomModal(clear) {
@@ -73,33 +144,59 @@ function closeCustomModal(clear) {
     if(clear) document.getElementById('customModalInput').value = '';
 }
 
+// Section Switching
 function switchSection(sec) {
     currentSection = sec;
-    document.getElementById('tabLFD').classList.remove('active');
-    document.getElementById('tabMoveIn').classList.remove('active');
-    document.getElementById('tabChat').classList.remove('active');
+    document.getElementById('tabLFD')?.classList.remove('active');
+    document.getElementById('tabMoveIn')?.classList.remove('active');
+    document.getElementById('tabChat')?.classList.remove('active');
     
     document.getElementById('operationsMainWrapper').style.display = 'block';
     document.getElementById('chatSectionContainer').classList.remove('active');
 
-    if(sec === 'lfd') {
-        document.getElementById('tabLFD').classList.add('active');
-    } else if(sec === 'movein') {
-        document.getElementById('tabMoveIn').classList.add('active');
-    } else if(sec === 'chat') {
-        document.getElementById('tabChat').classList.add('active');
+    if (sec === 'lfd') {
+        document.getElementById('tabLFD')?.classList.add('active');
+    } else if (sec === 'movein') {
+        document.getElementById('tabMoveIn')?.classList.add('active');
+    } else if (sec === 'chat') {
+        document.getElementById('tabChat')?.classList.add('active');
         document.getElementById('operationsMainWrapper').style.display = 'none';
         document.getElementById('chatSectionContainer').classList.add('active');
         loadChatMessages();
     }
+    renderCasesGrid();
 }
 
-// Admin Operations
+// Render Input Cases Dynamic Grid
+function renderCasesGrid() {
+    const container = document.getElementById('casesGridContainer');
+    if (!container) return;
+
+    if (currentSection === 'lfd') {
+        container.innerHTML = `
+            <div class="case-item">Paid <input type="number" id="c_paid" min="0" placeholder="0"></div>
+            <div class="case-item">Disconnected <input type="number" id="c_disc" min="0" placeholder="0"></div>
+            <div class="case-item">Reconnected <input type="number" id="c_reconn" min="0" placeholder="0"></div>
+            <div class="case-item">Distribution <input type="number" id="c_dist" min="0" placeholder="0"></div>
+            <div class="case-item">Special <input type="number" id="c_special" min="0" placeholder="0"></div>
+            <div class="case-item">Tampered <input type="number" id="c_tampered" min="0" placeholder="0"></div>
+        `;
+    } else {
+        container.innerHTML = `
+            <div class="case-item">Inst. Meter <input type="number" id="c_inst_meter" min="0" placeholder="0"></div>
+            <div class="case-item">Inst. Encl <input type="number" id="c_inst_encl" min="0" placeholder="0"></div>
+            <div class="case-item">3P Encl <input type="number" id="c_inst_3p" min="0" placeholder="0"></div>
+            <div class="case-item">BIM Team <input type="number" id="c_bim_team" min="0" placeholder="0"></div>
+        `;
+    }
+}
+
+// Admin Panel Functions
 function saveBroadcastMessage() {
     const msg = document.getElementById('adminBroadcastInput').value;
-    if(!msg.trim()) return showNotification('دەق بنووسە', 'error');
+    if(!msg.trim()) return showNotification('تکایە پەیام بنووسە', 'error');
     db.ref('broadcastMessage').set({ text: msg, timestamp: Date.now() }).then(() => {
-        showNotification('پەیامەکە بڵاوکرایەوە');
+        showNotification('پەیامەکە بە سەرکەوتوویی بڵاوکرایەوە');
         document.getElementById('adminBroadcastInput').value = '';
     });
 }
@@ -107,9 +204,9 @@ function saveBroadcastMessage() {
 function sendPrivateTeamMessage() {
     const team = document.getElementById('privateMsgTeam').value;
     const msg = document.getElementById('privateMsgInput').value;
-    if(!team || !msg) return showNotification('زانیارییەکان بەتاڵن', 'error');
+    if(!team || !msg.trim()) return showNotification('تکایە تیم و دەقی پەیامەکە دیاری بکە', 'error');
     db.ref(`privateMessages/${team}`).set({ text: msg, timestamp: Date.now() }).then(() => {
-        showNotification('پەیامی تایبەت نێردرا');
+        showNotification('پەیامی تایبەت بۆ تیمەکە نێردرا');
         document.getElementById('privateMsgInput').value = '';
     });
 }
@@ -121,9 +218,9 @@ function addNewTeam() {
 
     const key = name.toLowerCase().replace(/\s+/g, '_');
     db.ref(`teams/${key}`).set({ name, section, createdAt: Date.now() }).then(() => {
-        showNotification('تیم بە سەرکەوتوویی زیادکرا');
+        showNotification('تیمی نوێ زیادکرا');
         document.getElementById('newTeamNameInput').value = '';
-        populateRegisterTeamSelect();
+        populateTeamDropdowns();
     });
 }
 
@@ -152,9 +249,9 @@ function convertExcelToKml() {
         const blob = new Blob([kmlContent], { type: 'application/vnd.google-earth.kml+xml' });
         const a = document.createElement('a');
         a.href = URL.createObjectURL(blob);
-        a.download = 'points.kml';
+        a.download = 'map_points.kml';
         a.click();
-        showNotification('فایلی KML بە سەرکەوتوویی دروستکرا');
+        showNotification('فایلی KML دروستکرا');
     };
     reader.readAsText(fileInput.files[0]);
 }
@@ -169,15 +266,20 @@ function openLiveMapModal() {
     }
 }
 
-// Chat Functionality
+function setFilter(filterType) {
+    currentFilter = filterType;
+    document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+    document.getElementById(`f_${filterType}`)?.classList.add('active');
+}
+
+// Chat System Functions
 function sendChatMessage() {
     const input = document.getElementById('chatMessageInput');
     const msg = input.value.trim();
     if (!msg) return;
 
-    const sender = currentUserAccount ? (currentUserAccount.name || currentUserAccount.email) : 'میوان';
     db.ref('chats').push({
-        sender: sender,
+        sender: 'کارمەند',
         text: msg,
         timestamp: Date.now()
     }).then(() => {
@@ -188,14 +290,13 @@ function sendChatMessage() {
 function loadChatMessages() {
     db.ref('chats').limitToLast(30).on('value', (snapshot) => {
         const area = document.getElementById('chatMessagesArea');
+        if (!area) return;
         area.innerHTML = '';
         const data = snapshot.val() || {};
         Object.keys(data).forEach(key => {
             const item = data[key];
             const div = document.createElement('div');
-            const myName = currentUserAccount ? (currentUserAccount.name || currentUserAccount.email) : 'میوان';
-            const isMe = item.sender === myName;
-            div.className = `chat-msg-bubble ${isMe ? 'my-msg' : ''}`;
+            div.className = 'chat-msg-bubble';
             div.innerHTML = `<strong>${item.sender}</strong>: <div>${item.text}</div>`;
             area.appendChild(div);
         });
@@ -203,15 +304,17 @@ function loadChatMessages() {
     });
 }
 
-// Initialize Chart
+// Chart.js Setup
 function initChart() {
-    const ctx = document.getElementById('trendChartCanvas').getContext('2d');
+    const canvas = document.getElementById('trendChartCanvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
     new Chart(ctx, {
         type: 'line',
         data: {
             labels: ['شەممە', 'یەکشەممە', 'دووشەممە', 'سێشەممە', 'چوارشەممە', 'پێنجشەممە'],
             datasets: [{
-                label: 'کۆی گشتی خاڵەکان',
+                label: 'ئاماری خاڵەکان',
                 data: [12, 19, 15, 25, 22, 30],
                 borderColor: '#38bdf8',
                 backgroundColor: 'rgba(56, 189, 248, 0.1)',
@@ -227,20 +330,27 @@ function initChart() {
     });
 }
 
-// Real-time Listeners
+// Listen for Realtime Broadcast Ticker
 db.ref('broadcastMessage').on('value', (snapshot) => {
     const data = snapshot.val();
     const ticker = document.getElementById('broadcastTicker');
     const content = document.getElementById('broadcastTextContent');
-    if (data && data.text) {
+    if (data && data.text && ticker && content) {
         content.innerText = data.text;
         ticker.style.display = 'flex';
-    } else {
+    } else if (ticker) {
         ticker.style.display = 'none';
     }
 });
 
+// App Refresh Functions
+function manualRefreshData() {
+    showNotification('داتاکان نوێکرانەوە');
+}
+
+// Startup Listener
 window.onload = function() {
-    populateRegisterTeamSelect();
+    renderCasesGrid();
+    populateTeamDropdowns();
     initChart();
 };
