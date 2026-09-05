@@ -5,11 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bim Company - Operations Tracker</title>
 
-    <link rel="manifest" id="dynamicManifest">
+    <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#090d16">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="BIM Operations">
+    <meta name="apple-mobile-web-app-title" content="BIM Ops">
 
     <!-- Firebase & External Libraries -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
@@ -122,7 +122,7 @@
 
             <div class="top-tools">
                 <div class="tools-left-group">
-                    <button id="installAppBtn" class="tool-btn install-btn" onclick="installPwaApp()">📲 داگرتنی ئەپ</button>
+                    <button id="installAppBtn" class="tool-btn install-btn" style="display:flex;">📲 داگرتنی ئەپ</button>
                     <button class="tool-btn" onclick="openFeedbackModal()" title="پێشنیار و گلەییەکان">💬 پێشنیار</button>
                 </div>
                 <div style="display: flex; gap: 6px; align-items: center;">
@@ -139,7 +139,7 @@
             </div>
         </div>
 
-        <!-- ========== DASHBOARD SUMMARY ========== -->
+        <!-- Dashboard Summary -->
         <div class="dashboard-summary" id="dashboardSummary">
             <div class="dash-card" id="dashTotal">
                 <span class="dash-icon">📊</span>
@@ -171,7 +171,7 @@
             </div>
         </div>
 
-        <!-- ========== HEATMAP ========== -->
+        <!-- Heatmap -->
         <div class="heatmap-container" id="heatmapContainer">
             <h4 style="font-size:11px; color:var(--primary); margin-bottom:8px;">🔥 پێشکەوتنی ڕۆژانەی تیمەکان</h4>
             <div id="heatmapGrid" style="display:grid; grid-template-columns:repeat(7,1fr); gap:4px;"></div>
@@ -302,7 +302,7 @@
                 </div>
             </div>
 
-            <!-- ========== GREETING MESSAGE ========== -->
+            <!-- Greeting -->
             <div id="greetingMessage" style="margin-bottom:12px; font-size:14px; font-weight:700; color:var(--primary);">
                 👋 سڵاو! تیمەکەت هەڵبژێرە بۆ دەستپێکردن
             </div>
