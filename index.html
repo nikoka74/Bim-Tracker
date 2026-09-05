@@ -77,6 +77,15 @@
         </div>
     </div>
 
+    <!-- Audit Log Modal -->
+    <div id="auditLogModalOverlay" class="custom-modal-overlay">
+        <div class="custom-modal-box" style="max-width: 480px; width: 95%; text-align: right;">
+            <h3 style="text-align: center; color: var(--primary); margin-bottom: 10px;">📋 مێژووی لۆگی چالاکییەکان</h3>
+            <div id="auditLogContainer" style="max-height: 300px; overflow-y: auto; font-size: 11px; margin-bottom: 14px; display: flex; flex-direction: column; gap: 6px;"></div>
+            <button class="modal-btn modal-btn-cancel" style="width: 100%;" onclick="document.getElementById('auditLogModalOverlay').style.display='none'">داخستن</button>
+        </div>
+    </div>
+
     <div id="rangeExportModalOverlay" class="custom-modal-overlay">
         <div class="custom-modal-box" style="max-width: 380px; text-align: right;">
             <h3 style="text-align: center; color: var(--primary); margin-bottom: 12px;">📈 دەرکردنی ڕاپۆرت بە مەودای بەروار</h3>
