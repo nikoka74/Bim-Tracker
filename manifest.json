@@ -7,7 +7,11 @@
   "background_color": "#090d16",
   "theme_color": "#090d16",
   "orientation": "portrait",
-  "categories": ["business", "productivity", "utilities"],
+  "categories": [
+    "business",
+    "productivity",
+    "utilities"
+  ],
   "lang": "ku",
   "dir": "rtl",
   "prefer_related_applications": false,
@@ -61,4 +65,3 @@
       "purpose": "any maskable"
     }
   ]
-}
