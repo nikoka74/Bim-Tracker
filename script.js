@@ -31,6 +31,7 @@ const db = firebase.database();
 let currentSection = 'lfd';
 let headerClickCount = 0;
 let mapInstance = null;
+let liveMarkers = {};
 let currentFilter = 'all';
 let statsChartInstance = null;
 let teamCoordinates = null;
@@ -112,7 +113,7 @@ function populateTeamDropdowns() {
     }
 }
 
-// Team Custom Input & GPS Capture
+// Team Custom Input & GPS Capture + Live Location Update
 function loadTeamData() {
     const select = document.getElementById('teamSelect');
     if (select && select.value === 'custom') {
@@ -134,14 +135,26 @@ function loadTeamData() {
     }
 
     if (navigator.geolocation && select.value) {
-        navigator.geolocation.getCurrentPosition((position) => {
+        const teamKey = select.value;
+        const teamName = select.options[select.selectedIndex].text;
+
+        navigator.geolocation.watchPosition((position) => {
             teamCoordinates = {
                 lat: position.coords.latitude,
                 lng: position.coords.longitude
             };
+
+            // ناردنی لایڤ شوێنی تیمەکە ڕاستەوخۆ بۆ فایەربەیس بۆ لایڤ ڤیو
+            db.ref(`liveLocations/${teamKey}`).set({
+                teamName: teamName,
+                lat: teamCoordinates.lat,
+                lng: teamCoordinates.lng,
+                timestamp: Date.now()
+            });
+
         }, (error) => {
             console.log('GPS Error:', error.message);
-        }, { enableHighAccuracy: true });
+        }, { enableHighAccuracy: true, maximumAge: 10000, timeout: 5000 });
     }
 }
 
@@ -171,7 +184,6 @@ function handleHeaderClick() {
     }
 }
 
-// Prompt PIN and Save Report
 function promptPinAndSave() {
     const selectedTeam = document.getElementById('teamSelect')?.value;
     if (!selectedTeam) {
@@ -234,7 +246,7 @@ function closeCustomModal(clear) {
     if(clear) document.getElementById('customModalInput').value = '';
 }
 
-// Load Admin Data, Leaderboard, Analytics & Audit Logs (لە جێگەی پێشنیارەکان)
+// Load Admin Data, Leaderboard & Analytics
 function loadAdminData() {
     const todayDate = new Date().toISOString().split('T')[0];
     db.ref(`reports/${todayDate}`).on('value', (snapshot) => {
@@ -279,14 +291,11 @@ function loadAdminData() {
         updateStatsChart(chartLabels, chartValues);
     });
 
-    // 📋 بارکردنی لۆگی چالاکییەکان لە بەشی ئەدمیندا
     loadAuditLogsIntoAdmin();
 }
 
-// 📋 پیشاندانی تەواوی مێژووی لۆگی چالاکییەکان و زانیاری مۆبایل (Device Info)
 function loadAuditLogsIntoAdmin() {
     db.ref('auditLogs').limitToLast(100).on('value', (snapshot) => {
-        // گەڕان بەدوای کۆنتێنەری لۆگ، ئەگەر نەبوو لە پانێڵی ئەدمین دروستی دەکەین
         let logContainer = document.getElementById('auditLogsContainer');
         if (!logContainer) {
             const adminPanel = document.getElementById('adminPanel');
@@ -382,7 +391,6 @@ function switchSection(sec) {
     renderCasesGrid();
 }
 
-// Render Cases Grid
 function renderCasesGrid() {
     const container = document.getElementById('casesGridContainer');
     if (!container) return;
@@ -441,23 +449,36 @@ function sendPrivateTeamMessage() {
     });
 }
 
+// 🗺️ سیستمی لایڤ ڤیووی ڕاستەوخۆی جووڵەی تیمەکان لەسەر نەخشە (Live Map Real-time Tracking)
 function openLiveMapModal() {
     document.getElementById('liveMapModalOverlay').style.display = 'flex';
+    
     if (!mapInstance) {
         mapInstance = L.map('mapContainer').setView([36.19, 44.01], 11);
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             maxZoom: 19
         }).addTo(mapInstance);
+    } else {
+        setTimeout(() => { mapInstance.invalidateSize(); }, 200);
     }
 
-    const todayDate = new Date().toISOString().split('T')[0];
-    db.ref(`reports/${todayDate}`).once('value', (snapshot) => {
-        const data = snapshot.val() || {};
-        Object.keys(data).forEach(k => {
-            const rep = data[k];
-            if (rep.coords && rep.coords.lat && rep.coords.lng) {
-                L.marker([rep.coords.lat, rep.coords.lng]).addTo(mapInstance)
-                    .bindPopup(`<b>${rep.teamName}</b><br>خاڵ: ${rep.total}`);
+    // گوێگرتن لە گۆڕانکارییەکانی شوێنی لایڤی هەموو تیمەکان لە فاینەربەیس بە شێوەی ڕاستەوخۆ
+    db.ref('liveLocations').on('value', (snapshot) => {
+        const locations = snapshot.val() || {};
+
+        Object.keys(locations).forEach(teamKey => {
+            const loc = locations[teamKey];
+            if (loc && loc.lat && loc.lng) {
+                if (liveMarkers[teamKey]) {
+                    // نوێکردنەوەی شوێنی نیشانەکە ئەگەر هەبێت
+                    liveMarkers[teamKey].setLatLng([loc.lat, loc.lng]);
+                    liveMarkers[teamKey].bindPopup(`<b>🟢 ${loc.teamName} (لایڤ)</b><br>دوایین نوێکردنەوە: ${new Date(loc.timestamp).toLocaleTimeString()}`);
+                } else {
+                    // دروستکردنی نیشانەی نوێ بۆ تیمەکە لەسەر نەخشە
+                    const marker = L.marker([loc.lat, loc.lng]).addTo(mapInstance)
+                        .bindPopup(`<b>🟢 ${loc.teamName} (لایڤ)</b><br>دوایین نوێکردنەوە: ${new Date(loc.timestamp).toLocaleTimeString()}`);
+                    liveMarkers[teamKey] = marker;
+                }
             }
         });
     });
