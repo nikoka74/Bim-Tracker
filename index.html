@@ -11,18 +11,20 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="BIM Operations">
 
-    <!-- Firebase Compat Libraries -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <!-- Firebase Compat Libraries (Loaded with defer for performance) -->
+    <script defer src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script defer src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <script defer src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
     
-    <!-- Chart.js & Leaflet.js -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Leaflet.js (Lightweight Maps) -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script defer src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
     <!-- Custom CSS -->
     <link rel="stylesheet" href="style.css">
+    
+    <!-- Custom JS (Loaded with defer) -->
+    <script defer src="script.js"></script>
 </head>
 <body>
     <div id="toast" class="toast">Saved!</div>
@@ -31,7 +33,7 @@
     <!-- Account Setup / Login Modal -->
     <div id="accountModalOverlay" class="custom-modal-overlay" style="display: flex;">
         <div class="custom-modal-box" style="max-width: 380px; text-align: right;">
-            <h3 id="authModalTitle">🔐 چوژوورەوە یان دروستکردنی ئەکاونت</h3>
+            <h3 id="authModalTitle">🔐 چوونەژوورەوە یان دروستکردنی ئەکاونت</h3>
             <p id="authModalDesc">تکایە بۆ بەشداریکردن لە سیستم و چات، لۆگین بکە یان ئەکاونت دروست بکە:</p>
             
             <div class="auth-tabs">
@@ -170,8 +172,18 @@
                     <h3 id="lblGrandTotalTitle">جۆرەکان و کۆی گشتی ئەمڕۆ</h3>
                     <span id="grandTotalPoints" class="counter">0</span>
                 </div>
-                <div class="trend-chart-container">
-                    <canvas id="trendChartCanvas"></canvas>
+                <!-- Lightweight Performance Stats Dashboard -->
+                <div id="lightweightStatsContainer" class="lightweight-stats-grid">
+                    <div class="stat-box">
+                        <span class="stat-label">تیمە بەشداربووەکان</span>
+                        <div class="stat-value" id="statActiveTeams">0 / 0</div>
+                        <div class="progress-bg"><div class="progress-fill" id="fillActiveTeams" style="width: 0%;"></div></div>
+                    </div>
+                    <div class="stat-box">
+                        <span class="stat-label">ڕێژەی ئامانج (Target)</span>
+                        <div class="stat-value" id="statTargetPercent">0%</div>
+                        <div class="progress-bg"><div class="progress-fill highlight" id="fillTargetPercent" style="width: 0%;"></div></div>
+                    </div>
                 </div>
             </div>
 
@@ -269,11 +281,7 @@
                     <button class="btn" style="background:#ef4444; flex:1; font-size: 10px;" onclick="adminClearData()" id="btnClearCloud">سڕینەوە</button>
                 </div>
 
-                <div style="background:rgba(11,15,25,0.6); border:1px solid var(--border-color); border-radius:10px; padding:10px; margin-top:10px; height:140px; display:flex; align-items:center; justify-content:center;">
-                    <canvas id="statsChart"></canvas>
-                </div>
-
-                <div class="leaderboard-box">
+                <div class="leaderboard-box" style="margin-top: 12px;">
                     <div class="leaderboard-title" id="leaderboardBoxTitle">
                         <span id="lblLeaderboardTitle">ڕیزبەندی تیمەکان</span>
                         <span id="adminSectionTotal" style="font-size: 10px; background: var(--primary); color: #090d16; padding: 2px 6px; border-radius: 6px; font-weight: 700;">Total: 0</span>
@@ -359,8 +367,5 @@
             All rights reserved by Nihad Salih Hussain
         </div>
     </div>
-
-    <!-- Custom JS -->
-    <script src="script.js"></script>
 </body>
 </html>
