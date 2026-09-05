@@ -281,6 +281,10 @@ function saveReportToDatabase(teamKey, teamName) {
         timestamp: Date.now()
     }).then(() => {
         showNotification(`ڕاپۆرتی ${teamName} بە سەرکەوتوویی نێردرا.`);
+        
+        // 🔔 نۆتفیکەیشن بۆ ڕاپۆرتی نوێ
+        sendLocalNotification('📊 ڕاپۆرتی نوێ!', `${teamName} ڕاپۆرتی خۆی نارد (${totalPoints} خاڵ)`);
+        
         logActivity("Report Submitted", `ڕاپۆرت نێردرا لەلایەن ${teamName} - کۆی خاڵ: ${totalPoints}`);
         document.getElementById('c_notes').value = '';
         inputs.forEach(inp => inp.value = '');
@@ -511,6 +515,9 @@ db.ref('broadcastMessage').on('value', (snapshot) => {
     if (data && data.text) {
         if(content) content.innerText = data.text;
         if(ticker) ticker.style.display = 'flex';
+        
+        // 🔔 نۆتفیکەیشن بۆ پەیامی گشتی
+        sendLocalNotification('📢 ئاگاداری گشتی!', data.text);
     } else {
         if(ticker) ticker.style.display = 'none';
     }
@@ -533,10 +540,15 @@ function sendPrivateTeamMessage() {
     const team = document.getElementById('privateMsgTeam').value;
     const msg = document.getElementById('privateMsgInput').value;
     if(!team || !msg.trim()) return showNotification('تکایە تیم و دەقی پەیامەکە دیاری بکە', 'error');
+    
     db.ref(`privateMessages/${team}`).set({ text: msg, timestamp: Date.now() }).then(() => {
         showNotification('پەیامی تایبەت نێردرا');
         logActivity("Private Msg", `پەیامی تایبەت نێردرا بۆ ${team}`);
         document.getElementById('privateMsgInput').value = '';
+        
+        // 🔔 نۆتفیکەیشن بۆ تیمەکە
+        const teamName = document.getElementById('privateMsgTeam').options[document.getElementById('privateMsgTeam').selectedIndex].text;
+        sendLocalNotification(`📩 پەیام بۆ ${teamName}`, msg);
     });
 }
 
@@ -1278,6 +1290,70 @@ function addNewTeam() {
 }
 
 // ============================================================
+// 🔔 سیستمی نۆتفیکەیشن (Notification System)
+// ============================================================
+
+// داوای مۆڵەتی نۆتفیکەیشن لە بەکارهێنەر
+function requestNotificationPermission() {
+    if (!('Notification' in window)) {
+        console.log('ئەم وێبگەڕە پشتیوانی لە نۆتفیکەیشن ناکات');
+        return;
+    }
+
+    if (Notification.permission === 'granted') {
+        console.log('مۆڵەتی نۆتفیکەیشن هەیە ✅');
+        return;
+    }
+
+    if (Notification.permission === 'denied') {
+        console.log('مۆڵەتی نۆتفیکەیشن ڕەتکراوە ❌');
+        return;
+    }
+
+    // داوای مۆڵەت
+    Notification.requestPermission().then(permission => {
+        if (permission === 'granted') {
+            console.log('مۆڵەتی نۆتفیکەیشن درا ✅');
+            sendLocalNotification('BIM Operations', 'ئەپەکە بە سەرکەوتوویی چالاک بوو! 👋');
+        } else {
+            console.log('مۆڵەتی نۆتفیکەیشن ڕەتکرا ❌');
+        }
+    });
+}
+
+// ناردنی نۆتفیکەیشنی ناوخۆیی (لە JSـەوە)
+function sendLocalNotification(title, body, icon = 'https://via.placeholder.com/192x192/38bdf8/ffffff?text=BIM') {
+    if (!('Notification' in window)) {
+        console.log('پشتیوانی نۆتفیکەیشن نییە');
+        return;
+    }
+
+    if (Notification.permission !== 'granted') {
+        console.log('مۆڵەتی نۆتفیکەیشن نییە');
+        return;
+    }
+
+    // ئەگەر ئەپەکە لە پشتەوە کاردەکات، نۆتفیکەیشن بنێرە
+    const options = {
+        body: body,
+        icon: icon,
+        badge: icon,
+        vibrate: [200, 100, 200],
+        tag: Date.now(),
+        data: {
+            url: window.location.href,
+            date: new Date().toISOString()
+        },
+        actions: [
+            { action: 'open', title: 'کردنەوە' },
+            { action: 'close', title: 'داخستن' }
+        ]
+    };
+
+    new Notification(title, options);
+}
+
+// ============================================================
 // PWA Installation (زیادکراو بۆ داگرتنی ئەپ)
 // ============================================================
 let deferredPrompt;
@@ -1305,10 +1381,15 @@ function installPwaApp() {
             deferredPrompt = null;
         });
     } else {
-        showNotification('ئەم وێبگەڕە پشتیوانی لە داگرتنی ئەپ ناکات', 'error');
+        // 🔧 پێشنیار بۆ مۆبایل: ڕێنمایی بۆ زیادکردن بە شاشەی سەرەکی
+        showNotification('📱 بۆ دابەزاندن: لە وێبگەڕەکەدا "Add to Home Screen" هەڵبژێرە', 'success');
+        
+        // ڕێنمایی بۆ بەکارهێنەر
+        alert('📱 بۆ دابەزاندنی ئەپەکە لەسەر مۆبایل:\n\n• لە Chrome/Edge: کلیک لەسەر "Add to Home Screen"\n• لە Safari (iPhone): کلیک لەسەر Share > Add to Home Screen\n• لە Samsung Browser: کلیک لەسەر داونلۆد');
     }
 }
 
+// تۆمارکردنی Service Worker
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
         navigator.serviceWorker.register('/sw.js')
@@ -1326,4 +1407,9 @@ window.onload = function() {
     initChart();
     loadAdminData();
     logActivity("App Launch", "سیستمەکە کرایەوە لەسەر ئامێر");
+    
+    // 🔔 داوای مۆڵەتی نۆتفیکەیشن
+    setTimeout(() => {
+        requestNotificationPermission();
+    }, 2000);
 };
