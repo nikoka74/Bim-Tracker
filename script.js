@@ -32,11 +32,11 @@ let currentSection = 'lfd';
 let headerClickCount = 0;
 let mapInstance = null;
 let currentFilter = 'all';
+let statsChartInstance = null;
+let teamCoordinates = null; // برای GPS
 
-// پین کۆدی ئەدمین
 const ADMIN_PIN = "Razwan";
 
-// دروستکردنی پین کۆد بۆ تیمەکانی 1 تا 150
 const TEAM_PINS = {};
 for (let i = 1; i <= 150; i++) {
     TEAM_PINS[`team_${i}`] = String(1000 + i);
@@ -77,7 +77,7 @@ function populateTeamDropdowns() {
     }
 }
 
-// Team Custom Input Handler
+// Team Custom Input & GPS Capture
 function loadTeamData() {
     const select = document.getElementById('teamSelect');
     if (select && select.value === 'custom') {
@@ -96,6 +96,19 @@ function loadTeamData() {
             select.value = "";
         }
     }
+
+    // وەرگرتنی GPS بۆ تیمەکەی هەڵیبژاردووە
+    if (navigator.geolocation && select.value) {
+        navigator.geolocation.getCurrentPosition((position) => {
+            teamCoordinates = {
+                lat: position.coords.latitude,
+                lng: position.coords.longitude
+            };
+            showNotification('شوێنی جوگرافی (GPS) بە سەرکەوتوویی وەرگیرا');
+        }, (error) => {
+            console.log('GPS Error:', error.message);
+        }, { enableHighAccuracy: true });
+    }
 }
 
 // Admin Panel Trigger (3 Clicks)
@@ -113,7 +126,7 @@ function handleHeaderClick() {
                 adminPanel.classList.toggle('active');
                 showNotification('بەشی ئەدمین بە سەرکەوتوویی کرایەوە');
                 closeCustomModal(true);
-                loadAdminData(); // هێنانی داتای ئەدمین و لیدەربۆرد
+                loadAdminData();
             } else {
                 showNotification('کۆدی ئەدمین هەڵەیە!', 'error');
             }
@@ -122,7 +135,7 @@ function handleHeaderClick() {
     }
 }
 
-// Prompt PIN and Save Report to Firebase
+// Prompt PIN and Save Report with GPS
 function promptPinAndSave() {
     const selectedTeam = document.getElementById('teamSelect')?.value;
     if (!selectedTeam) {
@@ -165,15 +178,16 @@ function saveReportToDatabase(teamKey, teamName) {
         total: totalPoints,
         offday: isOffday,
         notes: notes,
+        coords: teamCoordinates || { lat: 36.19, lng: 44.01 }, // GPS coordinates
         timestamp: Date.now()
     }).then(() => {
-        showNotification(`ڕاپۆرتی ${teamName} بە سەرکەوتوویی نێردرا و پاشەکەوت کرا.`);
+        showNotification(`ڕاپۆرتی ${teamName} بە سەرکەوتوویی نێردرا.`);
         document.getElementById('c_notes').value = '';
         inputs.forEach(inp => inp.value = '');
         if(document.getElementById('c_offday')) document.getElementById('c_offday').checked = false;
         loadAdminData();
     }).catch(err => {
-        showNotification('هەڵە ڕوویدا لە ناردنی داتا: ' + err.message, 'error');
+        showNotification('هەڵە لە ناردنی داتا: ' + err.message, 'error');
     });
 }
 
@@ -197,11 +211,11 @@ function submitFeedbackFinal() {
         text: text,
         timestamp: Date.now()
     }).then(() => {
-        showNotification('پێشنیارەکەت بە سەرکەوتوویی نێردرا');
+        showNotification('پێشنیارەکەت نێردرا');
         document.getElementById('feedbackText').value = '';
         document.getElementById('feedbackAuthor').value = '';
         document.getElementById('feedbackModalOverlay').style.display = 'none';
-        loadAdminData();
+        loadAdminFeedbacksList();
     });
 }
 
@@ -230,7 +244,7 @@ function loadAdminFeedbacksList() {
     });
 }
 
-// Load Admin Data & Leaderboard
+// Load Admin Data, Leaderboard & Analytics Chart
 function loadAdminData() {
     const todayDate = new Date().toISOString().split('T')[0];
     db.ref(`reports/${todayDate}`).on('value', (snapshot) => {
@@ -243,16 +257,25 @@ function loadAdminData() {
         let sortedTeams = Object.keys(data).map(k => ({ key: k, ...data[k] }));
         sortedTeams.sort((a, b) => b.total - a.total);
 
+        let chartLabels = [];
+        let chartValues = [];
+
         sortedTeams.forEach((item, index) => {
             grandTotal += item.total || 0;
+            if(index < 7) { // بۆ گرافیک
+                chartLabels.push(item.teamName);
+                chartValues.push(item.total);
+            }
+
             const div = document.createElement('div');
             div.className = 'leaderboard-item';
+            div.style.cssText = "background:rgba(11,15,25,0.8); padding:8px 12px; border-radius:8px; margin-bottom:6px; border:1px solid rgba(255,255,255,0.05); font-size:11px;";
             div.innerHTML = `
-                <div class="leaderboard-row-top">
-                    <span><span class="rank-badge rank-${index+1 || 'other'}">${index+1}</span> ${item.teamName}</span>
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <span><strong>#${index+1}</strong> ${item.teamName}</span>
                     <span style="font-weight:bold; color:#34d399;">${item.total} خاڵ</span>
                 </div>
-                ${item.notes ? `<div class="leaderboard-reason">تێبینی: ${item.notes}</div>` : ''}
+                ${item.notes ? `<div style="color:#f87171; margin-top:2px;">تێبینی: ${item.notes}</div>` : ''}
             `;
             container.appendChild(div);
         });
@@ -262,8 +285,43 @@ function loadAdminData() {
         
         const grandCounter = document.getElementById('grandTotalPoints');
         if(grandCounter) grandCounter.innerText = grandTotal;
+
+        // نوێکردنەوەی گرافیکی ئاماری (Analytics Dashboard)
+        updateStatsChart(chartLabels, chartValues);
     });
     loadAdminFeedbacksList();
+}
+
+function updateStatsChart(labels, dataValues) {
+    const canvas = document.getElementById('statsChart');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    
+    if (statsChartInstance) {
+        statsChartInstance.destroy();
+    }
+
+    statsChartInstance = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels.length ? labels : ['هیچ داتایەک نییە'],
+            datasets: [{
+                label: 'خاڵی تیمەکان ئەمڕۆ',
+                data: dataValues.length ? dataValues : [0],
+                backgroundColor: '#38bdf8',
+                borderRadius: 6
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                y: { ticks: { color: '#f8fafc', font: { size: 10 } } },
+                x: { ticks: { color: '#f8fafc', font: { size: 10 } } }
+            }
+        }
+    });
 }
 
 // Section Switching
@@ -313,12 +371,31 @@ function renderCasesGrid() {
     }
 }
 
-// Broadcast & Admin Actions
+// Live Push Notifications & Broadcast (بێ پێویستی بە ڕێفرێش)
+db.ref('broadcastMessage').on('value', (snapshot) => {
+    const data = snapshot.val();
+    const ticker = document.getElementById('broadcastTicker');
+    const content = document.getElementById('broadcastTextContent');
+    const alertBanner = document.getElementById('liveAlertBanner');
+    const alertText = document.getElementById('liveAlertText');
+
+    if (data && data.text) {
+        if(content) content.innerText = data.text;
+        if(ticker) ticker.style.display = 'flex';
+        
+        // Live Push Notification Banner نیشان دەدات
+        if(alertText) alertText.innerText = "📢 ئاگاداری نوێ: " + data.text;
+        if(alertBanner) alertBanner.style.display = 'flex';
+    } else {
+        if(ticker) ticker.style.display = 'none';
+    }
+});
+
 function saveBroadcastMessage() {
     const msg = document.getElementById('adminBroadcastInput').value;
     if(!msg.trim()) return showNotification('تکایە پەیام بنووسە', 'error');
     db.ref('broadcastMessage').set({ text: msg, timestamp: Date.now() }).then(() => {
-        showNotification('پەیامەکە بە سەرکەوتوویی بڵاوکرایەوە');
+        showNotification('پەیامی گشتی بە سەرکەوتوویی بڵاوکرایەوە');
         document.getElementById('adminBroadcastInput').value = '';
     });
 }
@@ -328,56 +405,12 @@ function sendPrivateTeamMessage() {
     const msg = document.getElementById('privateMsgInput').value;
     if(!team || !msg.trim()) return showNotification('تکایە تیم و دەقی پەیامەکە دیاری بکە', 'error');
     db.ref(`privateMessages/${team}`).set({ text: msg, timestamp: Date.now() }).then(() => {
-        showNotification('پەیامی تایبەت بۆ تیمەکە نێردرا');
+        showNotification('پەیامی تایبەت نێردرا');
         document.getElementById('privateMsgInput').value = '';
     });
 }
 
-function addNewTeam() {
-    const section = document.getElementById('newTeamSection').value;
-    const name = document.getElementById('newTeamNameInput').value;
-    if(!name.trim()) return showNotification('ناوی تیم بنووسە', 'error');
-
-    const key = name.toLowerCase().replace(/\s+/g, '_');
-    db.ref(`teams/${key}`).set({ name, section, createdAt: Date.now() }).then(() => {
-        showNotification('تیمی نوێ زیادکرا');
-        document.getElementById('newTeamNameInput').value = '';
-        populateTeamDropdowns();
-    });
-}
-
-function convertExcelToKml() {
-    const fileInput = document.getElementById('csvFileForKml');
-    if (!fileInput.files.length) return showNotification('تکایە فایلی CSV هەڵبژێرە', 'error');
-
-    const reader = new FileReader();
-    reader.onload = function (e) {
-        const text = e.target.result;
-        const lines = text.split('\n');
-        let kmlContent = `<?xml version="1.0" encoding="UTF-8"?>\n<kml xmlns="http://www.opengis.net/kml/2.2"><Document>\n`;
-
-        lines.forEach((line, idx) => {
-            if (idx === 0 || !line.trim()) return;
-            const cols = line.split(',');
-            if (cols.length >= 3) {
-                const name = cols[0].trim();
-                const lat = cols[1].trim();
-                const lng = cols[2].trim();
-                kmlContent += `<Placemark><name>${name}</name><Point><coordinates>${lng},${lat},0</coordinates></Point></Placemark>\n`;
-            }
-        });
-        kmlContent += `</Document></kml>`;
-
-        const blob = new Blob([kmlContent], { type: 'application/vnd.google-earth.kml+xml' });
-        const a = document.createElement('a');
-        a.href = URL.createObjectURL(blob);
-        a.download = 'map_points.kml';
-        a.click();
-        showNotification('فایلی KML دروستکرا');
-    };
-    reader.readAsText(fileInput.files[0]);
-}
-
+// نیشاندانی نەخشەی خاڵەکان بە GPSی تیمەکان لە بەشی ئەدمین
 function openLiveMapModal() {
     document.getElementById('liveMapModalOverlay').style.display = 'flex';
     if (!mapInstance) {
@@ -386,6 +419,18 @@ function openLiveMapModal() {
             maxZoom: 19
         }).addTo(mapInstance);
     }
+
+    const todayDate = new Date().toISOString().split('T')[0];
+    db.ref(`reports/${todayDate}`).once('value', (snapshot) => {
+        const data = snapshot.val() || {};
+        Object.keys(data).forEach(k => {
+            const rep = data[k];
+            if (rep.coords && rep.coords.lat && rep.coords.lng) {
+                L.marker([rep.coords.lat, rep.coords.lng]).addTo(mapInstance)
+                    .bindPopup(`<b>${rep.teamName}</b><br>خاڵ: ${rep.total}`);
+            }
+        });
+    });
 }
 
 function setFilter(filterType) {
@@ -436,7 +481,7 @@ function initChart() {
         data: {
             labels: ['شەممە', 'یەکشەممە', 'دووشەممە', 'سێشەممە', 'چوارشەممە', 'پێنجشەممە'],
             datasets: [{
-                label: 'ئاماری خاڵەکان',
+                label: 'کۆی گشتی خاڵەکان',
                 data: [12, 19, 15, 25, 22, 30],
                 borderColor: '#38bdf8',
                 backgroundColor: 'rgba(56, 189, 248, 0.1)',
@@ -451,19 +496,6 @@ function initChart() {
         }
     });
 }
-
-// Broadcast Ticker Listener
-db.ref('broadcastMessage').on('value', (snapshot) => {
-    const data = snapshot.val();
-    const ticker = document.getElementById('broadcastTicker');
-    const content = document.getElementById('broadcastTextContent');
-    if (data && data.text && ticker && content) {
-        content.innerText = data.text;
-        ticker.style.display = 'flex';
-    } else if (ticker) {
-        ticker.style.display = 'none';
-    }
-});
 
 function manualRefreshData() {
     loadAdminData();
