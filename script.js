@@ -33,16 +33,16 @@ let headerClickCount = 0;
 let mapInstance = null;
 let currentFilter = 'all';
 
-// 🔑 بەشی دیاریکردنی پین کۆدی ئەدمین
+// پین کۆدی ئەدمین
 const ADMIN_PIN = "Razwan";
 
-// 🔑 دروستکردنی دروستکراوی پین کۆد بۆ تیمەکانی 1 تا 150
+// دروستکردنی پین کۆد بۆ تیمەکانی 1 تا 150
 const TEAM_PINS = {};
 for (let i = 1; i <= 150; i++) {
-    TEAM_PINS[`team_${i}`] = String(1000 + i); // نموونە: team_1 -> 1001, team_150 -> 1150
+    TEAM_PINS[`team_${i}`] = String(1000 + i);
 }
 
-// Populate Team Dropdowns (تیمەکانی 1 تا 150)
+// Populate Team Dropdowns
 function populateTeamDropdowns() {
     const adminSelect = document.getElementById('privateMsgTeam');
     const kmlSelect = document.getElementById('kmlTargetTeam');
@@ -52,7 +52,6 @@ function populateTeamDropdowns() {
     if (kmlSelect) kmlSelect.innerHTML = '<option value="">-- هەڵبژاردنی تیم --</option>';
     if (mainSelect) mainSelect.innerHTML = '<option value="">-- تیم هەڵبژێرە --</option><option value="custom">✍️ نووسینی ناوی تیم بەدەست...</option>';
 
-    // زیادکردنی 150 تیمەکە بۆ لیستەکان
     for (let i = 1; i <= 150; i++) {
         const teamKey = `team_${i}`;
         const teamName = `Team ${i}`;
@@ -76,25 +75,9 @@ function populateTeamDropdowns() {
             kmlSelect.appendChild(opt);
         }
     }
-
-    // هێنانی تیمە دەستکردە زیادکراوەکانی ناو بنکەداتەش ئەگەر هەبن
-    db.ref('teams').once('value', (snapshot) => {
-        const teams = snapshot.val() || {};
-        Object.keys(teams).forEach(teamKey => {
-            if (!TEAM_PINS[teamKey]) {
-                const teamName = teams[teamKey].name || teamKey;
-                if (mainSelect) {
-                    const opt = document.createElement('option');
-                    opt.value = teamKey;
-                    opt.textContent = teamName;
-                    mainSelect.appendChild(opt);
-                }
-            }
-        });
-    });
 }
 
-// مامەڵەکردن لەگەڵ هەڵبژاردنی تیمی دەستکرد
+// Team Custom Input Handler
 function loadTeamData() {
     const select = document.getElementById('teamSelect');
     if (select && select.value === 'custom') {
@@ -115,7 +98,7 @@ function loadTeamData() {
     }
 }
 
-// 🔐 چوونەژوورەوە بۆ بەشی ئەدمین
+// Admin Panel Trigger (3 Clicks)
 function handleHeaderClick() {
     headerClickCount++;
     if (headerClickCount >= 3) {
@@ -130,6 +113,7 @@ function handleHeaderClick() {
                 adminPanel.classList.toggle('active');
                 showNotification('بەشی ئەدمین بە سەرکەوتوویی کرایەوە');
                 closeCustomModal(true);
+                loadAdminData(); // هێنانی داتای ئەدمین و لیدەربۆرد
             } else {
                 showNotification('کۆدی ئەدمین هەڵەیە!', 'error');
             }
@@ -138,7 +122,7 @@ function handleHeaderClick() {
     }
 }
 
-// 🔐 ناردنی ڕاپۆرت بە پین کۆدی تیم
+// Prompt PIN and Save Report to Firebase
 function promptPinAndSave() {
     const selectedTeam = document.getElementById('teamSelect')?.value;
     if (!selectedTeam) {
@@ -155,23 +139,131 @@ function promptPinAndSave() {
         const inputPin = document.getElementById('customModalInput').value;
         const correctPin = TEAM_PINS[selectedTeam];
 
-        // ئەگەر تیمەکە نوێ بوو یان کۆدەکەی لە لیستەکەدا هەبوو یان پینی ئەدمین لێدرا
         if ((correctPin && inputPin === correctPin) || inputPin === ADMIN_PIN || !correctPin) {
             closeCustomModal(true);
-            submitReportData(teamLabel);
+            saveReportToDatabase(selectedTeam, teamLabel);
         } else {
             showNotification('پین کۆدی ئەم تیمە هەڵەیە!', 'error');
         }
     };
 }
 
-function submitReportData(teamName) {
-    showNotification(`ڕاپۆرتی ${teamName} بە سەرکەوتوویی نێردرا.`);
+function saveReportToDatabase(teamKey, teamName) {
+    const isOffday = document.getElementById('c_offday')?.checked || false;
+    const notes = document.getElementById('c_notes')?.value || '';
+    
+    let totalPoints = 0;
+    const inputs = document.querySelectorAll('#casesGridContainer input');
+    inputs.forEach(inp => {
+        totalPoints += Number(inp.value) || 0;
+    });
+
+    const todayDate = new Date().toISOString().split('T')[0];
+
+    db.ref(`reports/${todayDate}/${teamKey}`).set({
+        teamName: teamName,
+        total: totalPoints,
+        offday: isOffday,
+        notes: notes,
+        timestamp: Date.now()
+    }).then(() => {
+        showNotification(`ڕاپۆرتی ${teamName} بە سەرکەوتوویی نێردرا و پاشەکەوت کرا.`);
+        document.getElementById('c_notes').value = '';
+        inputs.forEach(inp => inp.value = '');
+        if(document.getElementById('c_offday')) document.getElementById('c_offday').checked = false;
+        loadAdminData();
+    }).catch(err => {
+        showNotification('هەڵە ڕوویدا لە ناردنی داتا: ' + err.message, 'error');
+    });
 }
 
 function closeCustomModal(clear) {
     document.getElementById('customModalOverlay').style.display = 'none';
     if(clear) document.getElementById('customModalInput').value = '';
+}
+
+// Feedback Modals
+function openFeedbackModal() {
+    document.getElementById('feedbackModalOverlay').style.display = 'flex';
+}
+
+function submitFeedbackFinal() {
+    const author = document.getElementById('feedbackAuthor').value.trim() || 'نەناسراو';
+    const text = document.getElementById('feedbackText').value.trim();
+    if(!text) return showNotification('تکایە تێبینی یان پێشنیارەکەت بنووسە', 'error');
+
+    db.ref('feedbacks').push({
+        author: author,
+        text: text,
+        timestamp: Date.now()
+    }).then(() => {
+        showNotification('پێشنیارەکەت بە سەرکەوتوویی نێردرا');
+        document.getElementById('feedbackText').value = '';
+        document.getElementById('feedbackAuthor').value = '';
+        document.getElementById('feedbackModalOverlay').style.display = 'none';
+        loadAdminData();
+    });
+}
+
+function openAdminFeedbackModal() {
+    document.getElementById('adminFeedbackModalOverlay').style.display = 'flex';
+    loadAdminFeedbacksList();
+}
+
+function loadAdminFeedbacksList() {
+    db.ref('feedbacks').once('value', (snapshot) => {
+        const container = document.getElementById('adminFeedbackListContent');
+        if(!container) return;
+        container.innerHTML = '';
+        const data = snapshot.val() || {};
+        let count = 0;
+        Object.keys(data).forEach(key => {
+            count++;
+            const item = data[key];
+            const div = document.createElement('div');
+            div.style.cssText = "background:rgba(255,255,255,0.03); padding:8px; border-radius:8px; border:1px solid rgba(255,255,255,0.08);";
+            div.innerHTML = `<strong style="color:var(--primary);">${item.author}:</strong> <p style="margin-top:4px;">${item.text}</p>`;
+            container.appendChild(div);
+        });
+        const badge = document.getElementById('feedbackCounterBadge');
+        if(badge) badge.innerText = count;
+    });
+}
+
+// Load Admin Data & Leaderboard
+function loadAdminData() {
+    const todayDate = new Date().toISOString().split('T')[0];
+    db.ref(`reports/${todayDate}`).on('value', (snapshot) => {
+        const container = document.getElementById('leaderboardContainer');
+        if(!container) return;
+        container.innerHTML = '';
+        const data = snapshot.val() || {};
+        
+        let grandTotal = 0;
+        let sortedTeams = Object.keys(data).map(k => ({ key: k, ...data[k] }));
+        sortedTeams.sort((a, b) => b.total - a.total);
+
+        sortedTeams.forEach((item, index) => {
+            grandTotal += item.total || 0;
+            const div = document.createElement('div');
+            div.className = 'leaderboard-item';
+            div.innerHTML = `
+                <div class="leaderboard-row-top">
+                    <span><span class="rank-badge rank-${index+1 || 'other'}">${index+1}</span> ${item.teamName}</span>
+                    <span style="font-weight:bold; color:#34d399;">${item.total} خاڵ</span>
+                </div>
+                ${item.notes ? `<div class="leaderboard-reason">تێبینی: ${item.notes}</div>` : ''}
+            `;
+            container.appendChild(div);
+        });
+
+        const totalBadge = document.getElementById('adminSectionTotal');
+        if(totalBadge) totalBadge.innerText = `Total: ${grandTotal}`;
+        
+        const grandCounter = document.getElementById('grandTotalPoints');
+        if(grandCounter) grandCounter.innerText = grandTotal;
+    });
+    loadAdminFeedbacksList();
 }
 
 // Section Switching
@@ -197,7 +289,7 @@ function switchSection(sec) {
     renderCasesGrid();
 }
 
-// Render Input Cases Dynamic Grid
+// Render Cases Grid
 function renderCasesGrid() {
     const container = document.getElementById('casesGridContainer');
     if (!container) return;
@@ -221,7 +313,7 @@ function renderCasesGrid() {
     }
 }
 
-// Admin Panel Functions
+// Broadcast & Admin Actions
 function saveBroadcastMessage() {
     const msg = document.getElementById('adminBroadcastInput').value;
     if(!msg.trim()) return showNotification('تکایە پەیام بنووسە', 'error');
@@ -360,7 +452,7 @@ function initChart() {
     });
 }
 
-// Listen for Realtime Broadcast Ticker
+// Broadcast Ticker Listener
 db.ref('broadcastMessage').on('value', (snapshot) => {
     const data = snapshot.val();
     const ticker = document.getElementById('broadcastTicker');
@@ -373,8 +465,8 @@ db.ref('broadcastMessage').on('value', (snapshot) => {
     }
 });
 
-// App Refresh Functions
 function manualRefreshData() {
+    loadAdminData();
     showNotification('داتاکان نوێکرانەوە');
 }
 
@@ -383,4 +475,5 @@ window.onload = function() {
     renderCasesGrid();
     populateTeamDropdowns();
     initChart();
+    loadAdminData();
 };
