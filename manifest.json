@@ -1,60 +1,33 @@
 {
-  "name": "BIM Operations",
-  "short_name": "BIM Ops",
-  "description": "سیستەمی بەڕێوەبردنی ئاماری تیمەکان",
-  "start_url": "/",
-  "display": "standalone",
   "background_color": "#090d16",
-  "theme_color": "#090d16",
+  "dir": "rtl",
+  "display": "standalone",
+  "display_override": [
+    "minimal-ui",
+    "browser",
+    "fullscreen",
+    "standalone",
+    "window-controls-overlay"
+  ],
+  "name": "BIM Operations",
   "orientation": "portrait",
+  "scope": "https://bim-tracker.vercel.app/",
+  "short_name": "BIM Ops",
+  "start_url": "https://bim-tracker.vercel.app/",
+  "theme_color": "#090d16",
+  "id": "BIM",
+  "description": "سیستەمی بەڕێوەبردنی ئاماری تیمەکان",
+  "lang": "ku",
   "categories": [
     "business",
     "productivity",
     "utilities"
   ],
-  "lang": "ku",
-  "dir": "rtl",
   "prefer_related_applications": false,
   "icons": [
     {
-      "src": "images/icon-72.png",
-      "sizes": "72x72",
-      "type": "image/png",
-      "purpose": "any maskable"
-    },
-    {
-      "src": "images/icon-96.png",
-      "sizes": "96x96",
-      "type": "image/png",
-      "purpose": "any maskable"
-    },
-    {
-      "src": "images/icon-128.png",
-      "sizes": "128x128",
-      "type": "image/png",
-      "purpose": "any maskable"
-    },
-    {
-      "src": "images/icon-144.png",
-      "sizes": "144x144",
-      "type": "image/png",
-      "purpose": "any maskable"
-    },
-    {
-      "src": "images/icon-152.png",
-      "sizes": "152x152",
-      "type": "image/png",
-      "purpose": "any maskable"
-    },
-    {
       "src": "images/icon-192.png",
       "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "any maskable"
-    },
-    {
-      "src": "images/icon-384.png",
-      "sizes": "384x384",
       "type": "image/png",
       "purpose": "any maskable"
     },
@@ -65,3 +38,4 @@
       "purpose": "any maskable"
     }
   ]
+}
