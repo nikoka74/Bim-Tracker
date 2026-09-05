@@ -1,4 +1,6 @@
+// ============================================================
 // Global Toast Notification
+// ============================================================
 function showNotification(message, type = 'success') {
     const container = document.getElementById('toast-container');
     if (!container) return;
@@ -14,7 +16,9 @@ function showNotification(message, type = 'success') {
     setTimeout(() => { toast.remove(); }, 3500);
 }
 
+// ============================================================
 // Firebase Config
+// ============================================================
 const firebaseConfig = {
     apiKey: "AIzaSyDdX6iplyIuYevuh6Ceyd7SMRZWmZy8pqY",
     authDomain: "bim-operations.firebaseapp.com",
@@ -28,6 +32,9 @@ const firebaseConfig = {
 if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
 const db = firebase.database();
 
+// ============================================================
+// Global Variables
+// ============================================================
 let currentSection = 'lfd';
 let headerClickCount = 0;
 let mapInstance = null;
@@ -35,6 +42,7 @@ let liveMarkers = {};
 let currentFilter = 'all';
 let statsChartInstance = null;
 let teamCoordinates = null;
+let currentSelectedTeam = null;
 
 const ADMIN_PIN = "Razwan";
 
@@ -43,18 +51,15 @@ for (let i = 1; i <= 150; i++) {
     TEAM_PINS[`team_${i}`] = String(1000 + i);
 }
 
-// 📱 دەستنیشانکردنی جۆری ئامێر و مۆبایلی بەکارهێنەر (Device Info)
+// ============================================================
+// Device Info
+// ============================================================
 function getDeviceInfo() {
     const ua = navigator.userAgent;
     let device = "Desktop / PC";
-    
-    if (/android/i.test(ua)) {
-        device = "Android Mobile";
-    } else if (/iPad|iPhone|iPod/.test(ua) && !window.MSStream) {
-        device = "iOS / iPhone";
-    } else if (/tablet/i.test(ua)) {
-        device = "Tablet";
-    }
+    if (/android/i.test(ua)) device = "Android Mobile";
+    else if (/iPad|iPhone|iPod/.test(ua) && !window.MSStream) device = "iOS / iPhone";
+    else if (/tablet/i.test(ua)) device = "Tablet";
 
     let browser = "Web Browser";
     if (ua.indexOf("Chrome") > -1) browser = "Google Chrome";
@@ -65,7 +70,9 @@ function getDeviceInfo() {
     return `${device} (${browser})`;
 }
 
-// 📋 تۆمارکردنی چالاکییەکان لە داتابەیس (Audit Log)
+// ============================================================
+// Audit Log
+// ============================================================
 function logActivity(actionType, description) {
     const deviceInfo = getDeviceInfo();
     const logData = {
@@ -78,7 +85,9 @@ function logActivity(actionType, description) {
     db.ref('auditLogs').push(logData);
 }
 
+// ============================================================
 // Populate Team Dropdowns
+// ============================================================
 function populateTeamDropdowns() {
     const adminSelect = document.getElementById('privateMsgTeam');
     const kmlSelect = document.getElementById('kmlTargetTeam');
@@ -113,10 +122,14 @@ function populateTeamDropdowns() {
     }
 }
 
-// Team Custom Input & GPS Capture + Live Location Update
+// ============================================================
+// Load Team Data (including GPS)
+// ============================================================
 function loadTeamData() {
     const select = document.getElementById('teamSelect');
-    if (select && select.value === 'custom') {
+    if (!select) return;
+
+    if (select.value === 'custom') {
         const customName = prompt("تکایە ناوی تیمەکەت بنووسە:");
         if (customName && customName.trim()) {
             const customKey = customName.toLowerCase().replace(/\s+/g, '_');
@@ -134,6 +147,9 @@ function loadTeamData() {
         }
     }
 
+    currentSelectedTeam = select.value;
+
+    // GPS Watch
     if (navigator.geolocation && select.value) {
         const teamKey = select.value;
         const teamName = select.options[select.selectedIndex].text;
@@ -144,7 +160,6 @@ function loadTeamData() {
                 lng: position.coords.longitude
             };
 
-            // ناردنی لایڤ شوێنی تیمەکە ڕاستەوخۆ بۆ فایەربەیس بۆ لایڤ ڤیو
             db.ref(`liveLocations/${teamKey}`).set({
                 teamName: teamName,
                 lat: teamCoordinates.lat,
@@ -156,9 +171,17 @@ function loadTeamData() {
             console.log('GPS Error:', error.message);
         }, { enableHighAccuracy: true, maximumAge: 10000, timeout: 5000 });
     }
+
+    // Check for private messages and team file
+    if (select.value) {
+        checkPrivateMessage(select.value);
+        checkTeamFile(select.value);
+    }
 }
 
-// Admin Panel Trigger (3 Clicks)
+// ============================================================
+// Admin Panel Trigger (3 clicks)
+// ============================================================
 function handleHeaderClick() {
     headerClickCount++;
     if (headerClickCount >= 3) {
@@ -184,6 +207,9 @@ function handleHeaderClick() {
     }
 }
 
+// ============================================================
+// Prompt PIN and Save
+// ============================================================
 function promptPinAndSave() {
     const selectedTeam = document.getElementById('teamSelect')?.value;
     if (!selectedTeam) {
@@ -210,6 +236,9 @@ function promptPinAndSave() {
     };
 }
 
+// ============================================================
+// Save Report to Database
+// ============================================================
 function saveReportToDatabase(teamKey, teamName) {
     const isOffday = document.getElementById('c_offday')?.checked || false;
     const notes = document.getElementById('c_notes')?.value || '';
@@ -241,15 +270,25 @@ function saveReportToDatabase(teamKey, teamName) {
     });
 }
 
+// ============================================================
+// Close Custom Modal
+// ============================================================
 function closeCustomModal(clear) {
     document.getElementById('customModalOverlay').style.display = 'none';
     if(clear) document.getElementById('customModalInput').value = '';
 }
 
+// ============================================================
 // Load Admin Data, Leaderboard & Analytics
+// ============================================================
 function loadAdminData() {
-    const todayDate = new Date().toISOString().split('T')[0];
-    db.ref(`reports/${todayDate}`).on('value', (snapshot) => {
+    const dateSelector = document.getElementById('adminDateSelector');
+    let targetDate = dateSelector ? dateSelector.value : null;
+    if (!targetDate) {
+        targetDate = new Date().toISOString().split('T')[0];
+    }
+
+    db.ref(`reports/${targetDate}`).on('value', (snapshot) => {
         const container = document.getElementById('leaderboardContainer');
         if(!container) return;
         container.innerHTML = '';
@@ -262,7 +301,17 @@ function loadAdminData() {
         let chartLabels = [];
         let chartValues = [];
 
-        sortedTeams.forEach((item, index) => {
+        // Apply filter
+        let filteredTeams = sortedTeams;
+        if (currentFilter === 'achieved') {
+            filteredTeams = sortedTeams.filter(item => item.total >= 7);
+        } else if (currentFilter === 'missed') {
+            filteredTeams = sortedTeams.filter(item => item.total < 7 && item.total > 0);
+        } else if (currentFilter === 'offday') {
+            filteredTeams = sortedTeams.filter(item => item.offday === true);
+        }
+
+        filteredTeams.forEach((item, index) => {
             grandTotal += item.total || 0;
             if(index < 7) {
                 chartLabels.push(item.teamName);
@@ -278,6 +327,7 @@ function loadAdminData() {
                     <span style="font-weight:bold; color:#34d399;">${item.total} خاڵ</span>
                 </div>
                 ${item.notes ? `<div style="color:#f87171; margin-top:2px;">تێبینی: ${item.notes}</div>` : ''}
+                ${item.offday ? `<div style="color:#fbbf24; margin-top:2px;">🔆 پشوو</div>` : ''}
             `;
             container.appendChild(div);
         });
@@ -291,9 +341,13 @@ function loadAdminData() {
         updateStatsChart(chartLabels, chartValues);
     });
 
+    // Load audit logs
     loadAuditLogsIntoAdmin();
 }
 
+// ============================================================
+// Load Audit Logs
+// ============================================================
 function loadAuditLogsIntoAdmin() {
     db.ref('auditLogs').limitToLast(100).on('value', (snapshot) => {
         let logContainer = document.getElementById('auditLogsContainer');
@@ -336,6 +390,9 @@ function loadAuditLogsIntoAdmin() {
     });
 }
 
+// ============================================================
+// Update Stats Chart
+// ============================================================
 function updateStatsChart(labels, dataValues) {
     const canvas = document.getElementById('statsChart');
     if (!canvas) return;
@@ -368,7 +425,9 @@ function updateStatsChart(labels, dataValues) {
     });
 }
 
+// ============================================================
 // Section Switching
+// ============================================================
 function switchSection(sec) {
     currentSection = sec;
     document.getElementById('tabLFD')?.classList.remove('active');
@@ -391,6 +450,9 @@ function switchSection(sec) {
     renderCasesGrid();
 }
 
+// ============================================================
+// Render Cases Grid
+// ============================================================
 function renderCasesGrid() {
     const container = document.getElementById('casesGridContainer');
     if (!container) return;
@@ -412,9 +474,14 @@ function renderCasesGrid() {
             <div class="case-item">BIM Team <input type="number" id="c_bim_team" min="0" placeholder="0"></div>
         `;
     }
+
+    // Load draft from localStorage
+    loadDraftStateLocally();
 }
 
+// ============================================================
 // Broadcast & Live Push
+// ============================================================
 db.ref('broadcastMessage').on('value', (snapshot) => {
     const data = snapshot.val();
     const ticker = document.getElementById('broadcastTicker');
@@ -438,6 +505,9 @@ function saveBroadcastMessage() {
     });
 }
 
+// ============================================================
+// Private Message
+// ============================================================
 function sendPrivateTeamMessage() {
     const team = document.getElementById('privateMsgTeam').value;
     const msg = document.getElementById('privateMsgInput').value;
@@ -449,7 +519,24 @@ function sendPrivateTeamMessage() {
     });
 }
 
-// 🗺️ سیستمی لایڤ ڤیووی ڕاستەوخۆی جووڵەی تیمەکان لەسەر نەخشە (Live Map Real-time Tracking)
+// Check private messages for current team
+function checkPrivateMessage(teamKey) {
+    db.ref(`privateMessages/${teamKey}`).on('value', (snapshot) => {
+        const data = snapshot.val();
+        const box = document.getElementById('teamPrivateMsgBox');
+        const text = document.getElementById('teamPrivateMsgText');
+        if (data && data.text) {
+            box.style.display = 'block';
+            text.innerText = data.text;
+        } else {
+            box.style.display = 'none';
+        }
+    });
+}
+
+// ============================================================
+// 🗺️ Live Map Real-time Tracking
+// ============================================================
 function openLiveMapModal() {
     document.getElementById('liveMapModalOverlay').style.display = 'flex';
     
@@ -462,7 +549,6 @@ function openLiveMapModal() {
         setTimeout(() => { mapInstance.invalidateSize(); }, 200);
     }
 
-    // گوێگرتن لە گۆڕانکارییەکانی شوێنی لایڤی هەموو تیمەکان لە فاینەربەیس بە شێوەی ڕاستەوخۆ
     db.ref('liveLocations').on('value', (snapshot) => {
         const locations = snapshot.val() || {};
 
@@ -470,11 +556,9 @@ function openLiveMapModal() {
             const loc = locations[teamKey];
             if (loc && loc.lat && loc.lng) {
                 if (liveMarkers[teamKey]) {
-                    // نوێکردنەوەی شوێنی نیشانەکە ئەگەر هەبێت
                     liveMarkers[teamKey].setLatLng([loc.lat, loc.lng]);
                     liveMarkers[teamKey].bindPopup(`<b>🟢 ${loc.teamName} (لایڤ)</b><br>دوایین نوێکردنەوە: ${new Date(loc.timestamp).toLocaleTimeString()}`);
                 } else {
-                    // دروستکردنی نیشانەی نوێ بۆ تیمەکە لەسەر نەخشە
                     const marker = L.marker([loc.lat, loc.lng]).addTo(mapInstance)
                         .bindPopup(`<b>🟢 ${loc.teamName} (لایڤ)</b><br>دوایین نوێکردنەوە: ${new Date(loc.timestamp).toLocaleTimeString()}`);
                     liveMarkers[teamKey] = marker;
@@ -484,13 +568,19 @@ function openLiveMapModal() {
     });
 }
 
+// ============================================================
+// Filter
+// ============================================================
 function setFilter(filterType) {
     currentFilter = filterType;
     document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
     document.getElementById(`f_${filterType}`)?.classList.add('active');
+    loadAdminData(); // Reload with filter
 }
 
+// ============================================================
 // Chat System
+// ============================================================
 function sendChatMessage() {
     const input = document.getElementById('chatMessageInput');
     const msg = input.value.trim();
@@ -522,6 +612,9 @@ function loadChatMessages() {
     });
 }
 
+// ============================================================
+// Init Chart (Trend)
+// ============================================================
 function initChart() {
     const canvas = document.getElementById('trendChartCanvas');
     if (!canvas) return;
@@ -547,12 +640,602 @@ function initChart() {
     });
 }
 
+// ============================================================
+// Manual Refresh
+// ============================================================
 function manualRefreshData() {
     loadAdminData();
     showNotification('داتاکان نوێکرانەوە');
 }
 
+// ============================================================
+// Admin Date Change
+// ============================================================
+function onAdminDateChange() {
+    loadAdminData();
+    showNotification('داتاکانی بەرواری هەڵبژێردراو بارکران');
+}
+
+// ============================================================
+// Admin Export Excel (Daily, Monthly, Range)
+// ============================================================
+function adminExportExcel(type) {
+    let targetDate = new Date().toISOString().split('T')[0];
+    const dateSelector = document.getElementById('adminDateSelector');
+    if (dateSelector && dateSelector.value) {
+        targetDate = dateSelector.value;
+    }
+
+    let path = `reports/${targetDate}`;
+    if (type === 'monthly') {
+        const month = targetDate.substring(0, 7);
+        path = `reports_monthly/${month}`;
+    }
+
+    db.ref(path).once('value', (snapshot) => {
+        const data = snapshot.val();
+        if (!data) {
+            return showNotification('هیچ داتایەک نەدۆزرایەوە بۆ ئەم مەودایە', 'error');
+        }
+
+        const rows = [];
+        rows.push(['تیم', 'کۆی خاڵ', 'پشوو', 'تێبینی', 'کات']);
+        Object.keys(data).forEach(key => {
+            const item = data[key];
+            rows.push([
+                item.teamName || key,
+                item.total || 0,
+                item.offday ? 'بەڵێ' : 'نەخێر',
+                item.notes || '',
+                new Date(item.timestamp || Date.now()).toLocaleString()
+            ]);
+        });
+
+        const wb = XLSX.utils.book_new();
+        const ws = XLSX.utils.aoa_to_sheet(rows);
+        XLSX.utils.book_append_sheet(wb, ws, 'Report');
+        const fileName = `report_${type}_${targetDate}.xlsx`;
+        XLSX.writeFile(wb, fileName);
+        showNotification(`فایلی ${fileName} بە سەرکەوتوویی داگیرا`);
+        logActivity("Export Excel", `${type} export بۆ ${targetDate}`);
+    });
+}
+
+// ============================================================
+// Export Range Excel
+// ============================================================
+function exportRangeExcel() {
+    const start = document.getElementById('rangeStart').value;
+    const end = document.getElementById('rangeEnd').value;
+    if (!start || !end) {
+        return showNotification('تکایە هەر دوو بەروارەکان دیاری بکە', 'error');
+    }
+    if (start > end) {
+        return showNotification('بەرواری دەستپێک دەبێت پێش کۆتایی بێت', 'error');
+    }
+
+    const rows = [];
+    rows.push(['بەروار', 'تیم', 'کۆی خاڵ', 'پشوو', 'تێبینی']);
+
+    let current = new Date(start);
+    const endDate = new Date(end);
+    let promises = [];
+
+    while (current <= endDate) {
+        const dateStr = current.toISOString().split('T')[0];
+        promises.push(
+            db.ref(`reports/${dateStr}`).once('value').then(snapshot => {
+                const data = snapshot.val();
+                if (data) {
+                    Object.keys(data).forEach(key => {
+                        const item = data[key];
+                        rows.push([
+                            dateStr,
+                            item.teamName || key,
+                            item.total || 0,
+                            item.offday ? 'بەڵێ' : 'نەخێر',
+                            item.notes || ''
+                        ]);
+                    });
+                }
+            })
+        );
+        current.setDate(current.getDate() + 1);
+    }
+
+    Promise.all(promises).then(() => {
+        if (rows.length === 1) {
+            return showNotification('هیچ داتایەک لەم مەودایەدا نەدۆزرایەوە', 'error');
+        }
+        const wb = XLSX.utils.book_new();
+        const ws = XLSX.utils.aoa_to_sheet(rows);
+        XLSX.utils.book_append_sheet(wb, ws, 'Range Report');
+        const fileName = `report_range_${start}_to_${end}.xlsx`;
+        XLSX.writeFile(wb, fileName);
+        showNotification(`فایلی ${fileName} داگیرا`);
+        logActivity("Export Range", `ڕاپۆرتی مەودا لە ${start} تا ${end}`);
+        document.getElementById('rangeExportModalOverlay').style.display = 'none';
+    });
+}
+
+// ============================================================
+// Copy Yesterday Data to Current
+// ============================================================
+function copyYesterdayDataToCurrent() {
+    const selectedTeam = document.getElementById('teamSelect')?.value;
+    if (!selectedTeam) {
+        return showNotification('تکایە تیمەکەت هەڵبژێرە!', 'error');
+    }
+
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    const yesterdayStr = yesterday.toISOString().split('T')[0];
+    const todayStr = new Date().toISOString().split('T')[0];
+
+    db.ref(`reports/${yesterdayStr}/${selectedTeam}`).once('value', (snapshot) => {
+        const data = snapshot.val();
+        if (!data) {
+            return showNotification('هیچ داتایەک بۆ دوێنێ نەدۆزرایەوە', 'error');
+        }
+
+        // Remove offday flag so they can work today
+        delete data.offday;
+        data.notes = (data.notes || '') + ' (هێنراوە لە دوێنێ)';
+
+        db.ref(`reports/${todayStr}/${selectedTeam}`).set(data).then(() => {
+            showNotification('داتاکانی دوێنێ بۆ ئەمڕۆ کۆپی کران');
+            logActivity("Copy Yesterday", `کۆپی دوێنێ بۆ ${selectedTeam}`);
+            loadAdminData();
+            loadTeamData();
+        });
+    });
+}
+
+// ============================================================
+// Open Team History Modal
+// ============================================================
+function openTeamHistoryModal() {
+    const selectedTeam = document.getElementById('teamSelect')?.value;
+    if (!selectedTeam) {
+        return showNotification('تکایە تیمەکەت هەڵبژێرە!', 'error');
+    }
+
+    const modal = document.getElementById('historyModalOverlay');
+    const list = document.getElementById('historyContentList');
+    list.innerHTML = 'باردەکە...';
+
+    const today = new Date();
+    let promises = [];
+    for (let i = 0; i < 7; i++) {
+        const d = new Date(today);
+        d.setDate(d.getDate() - i);
+        const dateStr = d.toISOString().split('T')[0];
+        promises.push(
+            db.ref(`reports/${dateStr}/${selectedTeam}`).once('value').then(snapshot => {
+                return { date: dateStr, data: snapshot.val() };
+            })
+        );
+    }
+
+    Promise.all(promises).then(results => {
+        list.innerHTML = '';
+        results.forEach(item => {
+            const div = document.createElement('div');
+            div.style.cssText = "padding:6px 0; border-bottom:1px solid rgba(255,255,255,0.05);";
+            if (item.data) {
+                div.innerHTML = `
+                    <span style="color:#38bdf8;">${item.date}</span>
+                    <span style="float:left;">خاڵ: <strong style="color:#34d399;">${item.data.total || 0}</strong>
+                    ${item.data.offday ? ' 🔆 پشوو' : ''}</span>
+                    ${item.data.notes ? `<div style="font-size:10px; color:#f87171;">${item.data.notes}</div>` : ''}
+                `;
+            } else {
+                div.innerHTML = `<span style="color:#64748b;">${item.date}</span> <span style="float:left; color:#64748b;">هیچ ڕاپۆرتێک نییە</span>`;
+            }
+            list.appendChild(div);
+        });
+        modal.style.display = 'flex';
+    });
+}
+
+// ============================================================
+// Save Draft State Locally
+// ============================================================
+function saveDraftStateLocally() {
+    const selectedTeam = document.getElementById('teamSelect')?.value;
+    if (!selectedTeam) return;
+
+    const inputs = document.querySelectorAll('#casesGridContainer input');
+    const data = {};
+    inputs.forEach(inp => {
+        data[inp.id] = inp.value;
+    });
+    data.offday = document.getElementById('c_offday')?.checked || false;
+    data.notes = document.getElementById('c_notes')?.value || '';
+
+    localStorage.setItem(`draft_${selectedTeam}`, JSON.stringify(data));
+}
+
+function loadDraftStateLocally() {
+    const selectedTeam = document.getElementById('teamSelect')?.value;
+    if (!selectedTeam) return;
+
+    const saved = localStorage.getItem(`draft_${selectedTeam}`);
+    if (!saved) return;
+
+    try {
+        const data = JSON.parse(saved);
+        Object.keys(data).forEach(key => {
+            if (key === 'offday') {
+                const chk = document.getElementById('c_offday');
+                if (chk) chk.checked = data[key];
+            } else if (key === 'notes') {
+                const txt = document.getElementById('c_notes');
+                if (txt) txt.value = data[key];
+            } else {
+                const inp = document.getElementById(key);
+                if (inp) inp.value = data[key];
+            }
+        });
+    } catch (e) {}
+}
+
+// ============================================================
+// Share to WhatsApp
+// ============================================================
+function shareToWhatsApp() {
+    const date = new Date().toISOString().split('T')[0];
+    db.ref(`reports/${date}`).once('value', (snapshot) => {
+        const data = snapshot.val();
+        if (!data) {
+            return showNotification('هیچ داتایەک بۆ ئەمڕۆ نییە', 'error');
+        }
+
+        let msg = `📊 *ڕاپۆرتی گشتی ئەمڕۆ (${date})*\n\n`;
+        let sorted = Object.keys(data).map(k => ({ key: k, ...data[k] }));
+        sorted.sort((a, b) => b.total - a.total);
+
+        sorted.forEach((item, i) => {
+            msg += `${i+1}. ${item.teamName}: ${item.total} خاڵ`;
+            if (item.offday) msg += ' 🔆 پشوو';
+            if (item.notes) msg += ` (${item.notes})`;
+            msg += '\n';
+        });
+
+        const url = `https://wa.me/?text=${encodeURIComponent(msg)}`;
+        window.open(url, '_blank');
+        logActivity("WhatsApp Share", "ڕاپۆرتی گشتی بۆ واتساپ نێردرا");
+    });
+}
+
+function shareMyTeamToWhatsApp() {
+    const selectedTeam = document.getElementById('teamSelect')?.value;
+    if (!selectedTeam) {
+        return showNotification('تکایە تیمەکەت هەڵبژێرە!', 'error');
+    }
+
+    const date = new Date().toISOString().split('T')[0];
+    db.ref(`reports/${date}/${selectedTeam}`).once('value', (snapshot) => {
+        const data = snapshot.val();
+        if (!data) {
+            return showNotification('هیچ ڕاپۆرتێک بۆ تیمەکەت نییە', 'error');
+        }
+
+        let msg = `📊 *ڕاپۆرتی تیمی ${data.teamName || selectedTeam}* (${date})\n`;
+        msg += `خاڵ: ${data.total || 0}\n`;
+        if (data.offday) msg += '🔆 پشوو\n';
+        if (data.notes) msg += `تێبینی: ${data.notes}\n`;
+
+        const url = `https://wa.me/?text=${encodeURIComponent(msg)}`;
+        window.open(url, '_blank');
+        logActivity("WhatsApp Share", `ڕاپۆرتی تیمی ${selectedTeam} بۆ واتساپ نێردرا`);
+    });
+}
+
+// ============================================================
+// Export as Image (html2canvas)
+// ============================================================
+function exportAsImage() {
+    const element = document.getElementById('reportArea');
+    if (!element) return showNotification('شوێنی ڕاپۆرت نەدۆزرایەوە', 'error');
+
+    html2canvas(element, {
+        backgroundColor: '#090d16',
+        scale: 2,
+        useCORS: true
+    }).then(canvas => {
+        const link = document.createElement('a');
+        link.download = `report_${new Date().toISOString().split('T')[0]}.png`;
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+        showNotification('وێنەی ڕاپۆرت داگیرا');
+        logActivity("Export Image", "ڕاپۆرت وەک وێنە داگیرا");
+    }).catch(err => {
+        showNotification('هەڵە لە دروستکردنی وێنە: ' + err.message, 'error');
+    });
+}
+
+// ============================================================
+// Open Audit Log Modal
+// ============================================================
+function openAuditLogModal() {
+    const modal = document.getElementById('auditLogModalOverlay');
+    const container = document.getElementById('auditLogContainer');
+    container.innerHTML = 'باردەکە...';
+    modal.style.display = 'flex';
+
+    db.ref('auditLogs').limitToLast(50).once('value', (snapshot) => {
+        container.innerHTML = '';
+        const logs = snapshot.val() || {};
+        Object.keys(logs).reverse().forEach(key => {
+            const item = logs[key];
+            const div = document.createElement('div');
+            div.style.cssText = "padding:6px 8px; background:rgba(255,255,255,0.03); border-radius:6px; border:1px solid rgba(255,255,255,0.05);";
+            div.innerHTML = `
+                <div style="display:flex; justify-content:space-between; font-size:9px; color:#94a3b8;">
+                    <span>${item.dateFormatted || 'N/A'}</span>
+                    <span>${item.device || 'Unknown'}</span>
+                </div>
+                <div style="font-size:11px;"><strong style="color:#facc15;">${item.action}:</strong> ${item.desc}</div>
+            `;
+            container.appendChild(div);
+        });
+    });
+}
+
+// ============================================================
+// Admin Clear Data
+// ============================================================
+function adminClearData() {
+    const date = document.getElementById('adminDateSelector')?.value || new Date().toISOString().split('T')[0];
+    if (!confirm(`ئایا دڵنیای دەتەوێت هەموو داتاکانی ڕۆژی ${date} بسڕیتەوە؟`)) return;
+
+    db.ref(`reports/${date}`).remove().then(() => {
+        showNotification(`داتاکانی ڕۆژی ${date} سڕینەوە`);
+        logActivity("Clear Data", `داتاکانی ڕۆژی ${date} سڕینەوە لەلایەن ئەدمین`);
+        loadAdminData();
+    }).catch(err => {
+        showNotification('هەڵە لە سڕینەوە: ' + err.message, 'error');
+    });
+}
+
+// ============================================================
+// Convert CSV to KML
+// ============================================================
+function convertExcelToKml() {
+    const fileInput = document.getElementById('csvFileForKml');
+    const file = fileInput.files[0];
+    if (!file) return showNotification('تکایە فایلێکی CSV هەڵبژێرە', 'error');
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        try {
+            const csv = e.target.result;
+            const lines = csv.split('\n').filter(line => line.trim());
+            if (lines.length < 2) {
+                return showNotification('فایلەکە ڕیزبەندی پێویستی تیا نییە', 'error');
+            }
+
+            const headers = lines[0].split(',').map(h => h.trim());
+            const latIdx = headers.findIndex(h => /lat/i.test(h));
+            const lngIdx = headers.findIndex(h => /lng|lon/i.test(h));
+            const nameIdx = headers.findIndex(h => /name|title/i.test(h));
+
+            if (latIdx === -1 || lngIdx === -1) {
+                return showNotification('فایلەکە دەبێت کۆڵەکەی "lat" و "lng"ی تیا بێت', 'error');
+            }
+
+            let kml = '<?xml version="1.0" encoding="UTF-8"?>\n';
+            kml += '<kml xmlns="http://www.opengis.net/kml/2.2">\n';
+            kml += '<Document>\n';
+
+            for (let i = 1; i < lines.length; i++) {
+                const cols = lines[i].split(',').map(c => c.trim());
+                const lat = parseFloat(cols[latIdx]);
+                const lng = parseFloat(cols[lngIdx]);
+                const name = nameIdx !== -1 ? cols[nameIdx] || `Point ${i}` : `Point ${i}`;
+
+                if (!isNaN(lat) && !isNaN(lng)) {
+                    kml += `<Placemark>\n`;
+                    kml += `<name>${name}</name>\n`;
+                    kml += `<Point><coordinates>${lng},${lat},0</coordinates></Point>\n`;
+                    kml += `</Placemark>\n`;
+                }
+            }
+
+            kml += '</Document>\n</kml>';
+
+            const blob = new Blob([kml], { type: 'application/vnd.google-earth.kml+xml' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `converted_${file.name.replace('.csv', '.kml')}`;
+            link.click();
+            URL.revokeObjectURL(link.href);
+            showNotification('فایلی KML بە سەرکەوتوویی دروستکرا');
+            logActivity("CSV to KML", "گۆڕینی CSV بۆ KML");
+        } catch (err) {
+            showNotification('هەڵە لە گۆڕینی فایل: ' + err.message, 'error');
+        }
+    };
+    reader.readAsText(file);
+}
+
+// ============================================================
+// Upload File for Specific Team
+// ============================================================
+function uploadFileForSpecificTeam() {
+    const team = document.getElementById('kmlTargetTeam').value;
+    const fileInput = document.getElementById('teamFileUploader');
+    const file = fileInput.files[0];
+
+    if (!team) return showNotification('تکایە تیمێک هەڵبژێرە', 'error');
+    if (!file) return showNotification('تکایە فایلێک هەڵبژێرە', 'error');
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        const content = e.target.result;
+        // Store file in Firebase under team files
+        db.ref(`teamFiles/${team}`).set({
+            fileName: file.name,
+            fileType: file.type,
+            content: content,
+            uploadedAt: Date.now()
+        }).then(() => {
+            showNotification(`فایلی ${file.name} بۆ تیمی ${team} نێردرا`);
+            logActivity("Upload File", `فایل ${file.name} بۆ تیمی ${team} نێردرا`);
+            fileInput.value = '';
+        }).catch(err => {
+            showNotification('هەڵە لە ناردن: ' + err.message, 'error');
+        });
+    };
+    reader.readAsDataURL(file);
+}
+
+// ============================================================
+// Check Team File
+// ============================================================
+function checkTeamFile(teamKey) {
+    db.ref(`teamFiles/${teamKey}`).on('value', (snapshot) => {
+        const data = snapshot.val();
+        const box = document.getElementById('teamFileDownloadBox');
+        if (data && data.fileName) {
+            box.style.display = 'block';
+            document.getElementById('lblTeamFileTitle').innerText = `📁 فایلی تایبەت بە تیمەکەت: ${data.fileName}`;
+        } else {
+            box.style.display = 'none';
+        }
+    });
+}
+
+// ============================================================
+// Prompt PIN and Download Team File
+// ============================================================
+function promptPinAndDownloadTeamFile() {
+    const selectedTeam = document.getElementById('teamSelect')?.value;
+    if (!selectedTeam) return showNotification('تکایە تیمەکەت هەڵبژێرە', 'error');
+
+    const teamLabel = document.getElementById('teamSelect').options[document.getElementById('teamSelect').selectedIndex].text;
+
+    document.getElementById('customModalOverlay').style.display = 'flex';
+    document.getElementById('modalTitle').innerText = "پشتڕاستکردنەوەی تیم";
+    document.getElementById('modalDesc').innerText = `تکایە پین کۆدی تیمەکەت بنووسە بۆ داگرتنی فایل:`;
+
+    document.getElementById('modalConfirmBtn').onclick = () => {
+        const inputPin = document.getElementById('customModalInput').value;
+        const correctPin = TEAM_PINS[selectedTeam];
+
+        if ((correctPin && inputPin === correctPin) || inputPin === ADMIN_PIN) {
+            closeCustomModal(true);
+            downloadTeamFile(selectedTeam);
+        } else {
+            showNotification('پین کۆد هەڵەیە!', 'error');
+        }
+    };
+}
+
+function downloadTeamFile(teamKey) {
+    db.ref(`teamFiles/${teamKey}`).once('value', (snapshot) => {
+        const data = snapshot.val();
+        if (!data || !data.content) {
+            return showNotification('هیچ فایلێک بۆ ئەم تیمە نییە', 'error');
+        }
+
+        const link = document.createElement('a');
+        link.href = data.content;
+        link.download = data.fileName || 'file';
+        link.click();
+        showNotification(`فایل ${data.fileName} داگیرا`);
+        logActivity("Download File", `فایلی ${data.fileName} داگیرا لەلایەن ${teamKey}`);
+    });
+}
+
+// ============================================================
+// Feedback System
+// ============================================================
+function openFeedbackModal() {
+    document.getElementById('feedbackModalOverlay').style.display = 'flex';
+    document.getElementById('feedbackText').value = '';
+    document.getElementById('feedbackAuthor').value = '';
+}
+
+function submitFeedbackFinal() {
+    const author = document.getElementById('feedbackAuthor').value || 'نەناسراو';
+    const text = document.getElementById('feedbackText').value.trim();
+    if (!text) return showNotification('تکایە پێشنیارەکەت بنووسە', 'error');
+
+    db.ref('feedbacks').push({
+        author: author,
+        text: text,
+        timestamp: Date.now()
+    }).then(() => {
+        showNotification('پێشنیارەکەت بە سەرکەوتوویی نێردرا');
+        logActivity("Feedback", `پێشنیار لەلایەن ${author}`);
+        document.getElementById('feedbackModalOverlay').style.display = 'none';
+    }).catch(err => {
+        showNotification('هەڵە لە ناردن: ' + err.message, 'error');
+    });
+}
+
+function openAdminFeedbackModal() {
+    const modal = document.getElementById('adminFeedbackModalOverlay');
+    const list = document.getElementById('adminFeedbackListContent');
+    list.innerHTML = 'باردەکە...';
+    modal.style.display = 'flex';
+
+    db.ref('feedbacks').limitToLast(30).once('value', (snapshot) => {
+        list.innerHTML = '';
+        const data = snapshot.val() || {};
+        let count = 0;
+        Object.keys(data).reverse().forEach(key => {
+            const item = data[key];
+            count++;
+            const div = document.createElement('div');
+            div.style.cssText = "padding:8px; background:rgba(255,255,255,0.03); border-radius:8px; border:1px solid rgba(255,255,255,0.05);";
+            div.innerHTML = `
+                <div style="display:flex; justify-content:space-between; font-size:9px; color:#94a3b8;">
+                    <span>${item.author || 'نەناسراو'}</span>
+                    <span>${new Date(item.timestamp).toLocaleString()}</span>
+                </div>
+                <div style="font-size:11px; margin-top:3px;">${item.text}</div>
+            `;
+            list.appendChild(div);
+        });
+        document.getElementById('feedbackCounterBadge').innerText = count;
+    });
+}
+
+// ============================================================
+// Add New Team
+// ============================================================
+function addNewTeam() {
+    const section = document.getElementById('newTeamSection').value;
+    const nameInput = document.getElementById('newTeamNameInput');
+    const name = nameInput.value.trim();
+    if (!name) return showNotification('تکایە ناوی تیمەکە بنووسە', 'error');
+
+    const key = name.toLowerCase().replace(/\s+/g, '_');
+    const position = document.getElementById('newTeamPositionSelect').value;
+
+    // Add to team lists in Firebase for future reference
+    db.ref('teamList').push({
+        name: name,
+        key: key,
+        section: section,
+        position: position,
+        createdAt: Date.now()
+    }).then(() => {
+        showNotification(`تیمی ${name} زیادکرا`);
+        logActivity("Add Team", `تیمی نوێ زیادکرا: ${name} لە بەشی ${section}`);
+        nameInput.value = '';
+        populateTeamDropdowns();
+    }).catch(err => {
+        showNotification('هەڵە لە زیادکردن: ' + err.message, 'error');
+    });
+}
+
+// ============================================================
 // Startup Listener
+// ============================================================
 window.onload = function() {
     renderCasesGrid();
     populateTeamDropdowns();
