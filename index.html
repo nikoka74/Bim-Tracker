@@ -16,88 +16,20 @@
     <script defer src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     <script defer src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
     
-    <!-- Leaflet.js (Lightweight Maps) -->
+    <!-- Leaflet.js -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script defer src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
-    <!-- Custom CSS -->
+    <!-- Custom CSS & JS -->
     <link rel="stylesheet" href="style.css">
-    
-    <!-- Custom JS -->
     <script defer src="script.js"></script>
 </head>
 <body>
-    <div id="toast" class="toast">Saved!</div>
-    <div id="toast-container" style="position: fixed; bottom: 20px; left: 20px; z-index: 9999;"></div>
-
-    <!-- Modals -->
-    <div id="customModalOverlay" class="custom-modal-overlay">
-        <div class="custom-modal-box">
-            <h3 id="modalTitle">تەماشاكردنی پاراستن</h3>
-            <p id="modalDesc">تکایە پین کۆدی تیمەکەت بنووسە</p>
-            <input type="password" id="customModalInput" placeholder="••••" autocomplete="off">
-            <div class="modal-btn-row">
-                <button class="modal-btn modal-btn-cancel" onclick="closeCustomModal(false)">پەشیمانبوونەوە</button>
-                <button class="modal-btn modal-btn-confirm" id="modalConfirmBtn">پشتڕاستکردنەوە</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="historyModalOverlay" class="custom-modal-overlay">
-        <div class="custom-modal-box" style="max-width: 380px; text-align: right;">
-            <h3 id="historyModalTitle" style="text-align: center; color: var(--primary); margin-bottom: 12px;">مێژووی ٧ ڕۆژی ڕابردوو</h3>
-            <div id="historyContentList" style="max-height: 250px; overflow-y: auto; font-size: 11px; margin-bottom: 14px;"></div>
-            <button class="modal-btn modal-btn-cancel" style="width: 100%;" onclick="document.getElementById('historyModalOverlay').style.display='none'">داخستن</button>
-        </div>
-    </div>
-
-    <div id="feedbackModalOverlay" class="custom-modal-overlay">
-        <div class="custom-modal-box" style="max-width: 380px; text-align: right;">
-            <h3 style="text-align: center; color: var(--primary); margin-bottom: 12px;">بەشی پێشنیار و گلەییەکان</h3>
-            <p style="margin-bottom: 8px;">ناو یان نیشانەی خۆت (ئارەزوومەندانە):</p>
-            <input type="text" id="feedbackAuthor" placeholder="ناوی تیم یان کارمەند..." style="margin-bottom: 10px;">
-            <p style="margin-bottom: 8px;">پێشنیار، کێشە یان تێبینییەکەت بنووسە:</p>
-            <textarea id="feedbackText" rows="4" placeholder="لێرە بنووسە..." style="background: var(--input-bg); color: var(--text-color); border: 1px solid var(--border-color); border-radius: 10px; padding: 10px; width: 100%; font-size: 12px; margin-bottom: 14px; outline: none; resize: vertical;"></textarea>
-            <div class="modal-btn-row">
-                <button class="modal-btn modal-btn-cancel" onclick="document.getElementById('feedbackModalOverlay').style.display='none'">پەشیمانبوونەوە</button>
-                <button class="modal-btn modal-btn-confirm" onclick="submitFeedbackFinal()">ناردن</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="adminFeedbackModalOverlay" class="custom-modal-overlay">
-        <div class="custom-modal-box" style="max-width: 440px; text-align: right;">
-            <h3 style="text-align: center; color: var(--primary); margin-bottom: 12px;">پێشنیار و گلەیییە نێردراوەکان</h3>
-            <div id="adminFeedbackListContent" style="max-height: 300px; overflow-y: auto; font-size: 11px; margin-bottom: 14px; display: flex; flex-direction: column; gap: 8px;"></div>
-            <button class="modal-btn modal-btn-cancel" style="width: 100%;" onclick="document.getElementById('adminFeedbackModalOverlay').style.display='none'">داخستن</button>
-        </div>
-    </div>
-
-    <div id="liveMapModalOverlay" class="custom-modal-overlay">
-        <div class="custom-modal-box" style="max-width: 500px; width: 95%; text-align: right;">
-            <h3 style="text-align: center; color: var(--primary); margin-bottom: 10px;">🗺️ نەخشەی ڕاستەوخۆی خاڵەکان</h3>
-            <div id="mapContainer" style="width: 100%; height: 300px; border-radius: 12px; margin-bottom: 14px; border: 1px solid var(--border-color);"></div>
-            <button class="modal-btn modal-btn-cancel" style="width: 100%;" onclick="document.getElementById('liveMapModalOverlay').style.display='none'">داخستن</button>
-        </div>
-    </div>
-
-    <div id="rangeExportModalOverlay" class="custom-modal-overlay">
-        <div class="custom-modal-box" style="max-width: 380px; text-align: right;">
-            <h3 style="text-align: center; color: var(--primary); margin-bottom: 12px;">📈 دەرکردنی ڕاپۆرت بە مەودای بەروار</h3>
-            <label style="font-size:10px;">لە بەرواری:</label>
-            <input type="date" id="rangeStart" style="margin-bottom:8px; font-size:11px;">
-            <label style="font-size:10px;">تا بەرواری:</label>
-            <input type="date" id="rangeEnd" style="margin-bottom:14px; font-size:11px;">
-            <div class="modal-btn-row">
-                <button class="modal-btn modal-btn-cancel" onclick="document.getElementById('rangeExportModalOverlay').style.display='none'">پەشیمانبوونەوە</button>
-                <button class="modal-btn modal-btn-confirm" onclick="exportRangeExcel()">داگرتنی Excel</button>
-            </div>
-        </div>
-    </div>
+    <div id="toast-container" style="position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 99999;"></div>
 
     <div class="app-container" id="reportArea">
         <div class="app-header-bar">
-            <div class="brand-box" onclick="handleHeaderClick()" title="دەکرێت کرتەی سێ قۆڵی بکەیت بۆ ئەدمین">
+            <div class="brand-box" id="headerBrandBox" style="cursor: pointer;">
                 <div class="brand-logo">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"></path>
@@ -111,19 +43,14 @@
             
             <div class="top-tools">
                 <div class="tools-left-group">
-                    <button id="installAppBtn" class="tool-btn install-btn" onclick="installPwaApp()">📲 داگرتنی ئەپ</button>
-                    <button class="tool-btn" onclick="openFeedbackModal()" title="پێشنیار و گلەییەکان">💬 پێشنیار</button>
+                    <button id="installAppBtn" class="tool-btn install-btn" onclick="installPwaApp()">📲 داگرتن</button>
+                    <!-- 🔐 دوگمەی ئاشکرای ئەدمین بۆ چوونەژوورەوەی خێرا -->
+                    <button class="tool-btn" onclick="openAdminAuthModal()" style="background: rgba(239, 68, 68, 0.2); border-color: #ef4444; color: #f87171; font-weight: bold;">🔐 ئەدمین</button>
                 </div>
                 <div style="display: flex; gap: 6px; align-items: center;">
-                    <button class="tool-btn refresh-btn" onclick="refreshData()" id="btnRefreshMain" title="نوێکردنەوەی داتاکان">
-                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
-                        <span id="lblRefreshText">نوێکردنەوە</span>
+                    <button class="tool-btn refresh-btn" onclick="refreshData()" id="btnRefreshMain">
+                        <span>نوێکردنەوە</span>
                     </button>
-                    <select id="langSelect" class="tool-btn" style="padding: 6px 10px;" onchange="changeLanguage()">
-                        <option value="ku" selected>کوردی</option>
-                        <option value="en">EN</option>
-                        <option value="ar">AR</option>
-                    </select>
                 </div>
             </div>
         </div>
@@ -140,19 +67,6 @@
                 <div class="trend-header-row">
                     <h3 id="lblGrandTotalTitle">جۆرەکان و کۆی گشتی ئەمڕۆ</h3>
                     <span id="grandTotalPoints" class="counter">0</span>
-                </div>
-                <!-- Performance Stats Dashboard -->
-                <div id="lightweightStatsContainer" class="lightweight-stats-grid">
-                    <div class="stat-box">
-                        <span class="stat-label">تیمە بەشداربووەکان</span>
-                        <div class="stat-value" id="statActiveTeams">0 / 0</div>
-                        <div class="progress-bg"><div class="progress-fill" id="fillActiveTeams" style="width: 0%;"></div></div>
-                    </div>
-                    <div class="stat-box">
-                        <span class="stat-label">ڕێژەی ئامانج (Target)</span>
-                        <div class="stat-value" id="statTargetPercent">0%</div>
-                        <div class="progress-bg"><div class="progress-fill highlight" id="fillTargetPercent" style="width: 0%;"></div></div>
-                    </div>
                 </div>
             </div>
 
@@ -172,47 +86,27 @@
                 </button>
             </div>
 
-            <!-- FULL ADMIN PANEL & DEVICE LOGS (HIDDEN BY DEFAULT) -->
-            <div class="admin-panel" id="adminPanel" style="display: none; margin-top: 20px;">
+            <!-- FULL ADMIN PANEL (شاردراوەتەوە تا پاسۆرد لێدەدرێت) -->
+            <div class="admin-panel" id="adminPanel" style="display: none; margin-top: 20px; padding: 15px; background: rgba(15, 23, 42, 0.8); border: 1px solid var(--primary); border-radius: 12px;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                    <h3 style="font-size:12px; color:var(--primary); font-weight: 700;" id="lblAdminTitle">بەشی بەڕێوەبەر (Admin Panel)</h3>
-                    <button class="tool-btn" onclick="refreshData()" style="padding: 4px 8px; font-size: 10px;">نوێکردنەوە</button>
+                    <h3 style="font-size:14px; color:var(--primary); font-weight: 700;">بەشی بەڕێوەبەر (Admin Panel)</h3>
+                    <button class="tool-btn" onclick="toggleAdminPanel(false)" style="background: #ef4444; color: white;">داخستنی ئەدمین</button>
                 </div>
 
-                <div style="display: flex; gap: 6px; margin-bottom: 8px;">
-                    <button class="btn" style="background: rgba(56,189,248,0.2); border:1px solid var(--primary); flex:1; font-size:10px;" onclick="openLiveMapModal()">🗺️ نەخشەی خاڵەکان</button>
-                    <button class="btn" style="background: rgba(16,185,129,0.2); border:1px solid #10b981; flex:1; font-size:10px;" onclick="openAdminFeedbackModal()">💬 پێشنیارەکان (<span id="feedbackCounterBadge">0</span>)</button>
-                </div>
-
-                <!-- Device & Submission Logs Sub-Section -->
-                <div class="admin-sub-box" style="border: 1px solid var(--primary); margin-bottom: 12px;">
-                    <label style="font-size: 10px; color: var(--primary); font-weight: bold;">📱 لۆگی ڕاستەوخۆ و ئامێری نێرەرەکان:</label>
-                    <div id="adminLogsList" style="display: flex; flex-direction: column; gap: 6px; margin-top: 8px; max-height: 200px; overflow-y: auto;"></div>
-                </div>
-
-                <div class="admin-sub-box" style="border: 1px dashed #10b981; margin-bottom: 12px;">
-                    <label style="font-size: 10px; color: #10b981; font-weight: bold;">گۆڕینی فایلی CSV بۆ فایلی KML:</label>
-                    <input type="file" id="csvFileForKml" accept=".csv" style="font-size: 10px; margin-bottom: 6px; margin-top: 6px;">
-                    <button class="btn" style="background: #10b981; width: 100%; padding: 6px; font-size: 10px;" onclick="convertExcelToKml()">دروستکردن و داگرتنی KML</button>
-                </div>
-
-                <div style="display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap;">
-                    <button class="btn" style="background:#10b981; flex:1; font-size: 10px;" onclick="adminExportExcel('daily')" id="btnExcelAdmin">Excel (ڕۆژانە)</button>
-                    <button class="btn" style="background:#3b82f6; flex:1; font-size: 10px;" onclick="document.getElementById('rangeExportModalOverlay').style.display='flex'">مەودای بەروار</button>
-                    <button class="btn" style="background:#7c3aed; flex:1; font-size: 10px;" onclick="window.print()" id="btnPdfAdmin">PDF</button>
+                <!-- Audit Logs List -->
+                <div class="admin-sub-box" style="margin-bottom: 12px;">
+                    <label style="font-size: 11px; color: var(--primary); font-weight: bold;">📱 تێبینی و لۆگی ڕاستەوخۆ (ئامێرەکانی نێرەر):</label>
+                    <div id="adminLogsList" style="display: flex; flex-direction: column; gap: 6px; margin-top: 8px; max-height: 250px; overflow-y: auto;"></div>
                 </div>
             </div>
         </div>
 
-        <!-- CHAT SECTION CONTAINER -->
-        <div id="chatSectionContainer" class="chat-section-container">
-            <div style="padding: 12px; background: rgba(17, 28, 46, 0.9); border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
-                <h3 style="font-size: 12px; color: var(--primary); font-weight: bold;">💬 چاتی گشتی تیمەکان</h3>
-            </div>
+        <!-- CHAT SECTION -->
+        <div id="chatSectionContainer" class="chat-section-container" style="display:none;">
             <div class="chat-messages-area" id="chatMessagesArea"></div>
             <div class="chat-input-bar">
                 <input type="text" id="chatMessageInput" placeholder="پەیامەکەت بنووسە..." onkeydown="if(event.key==='Enter') sendChatMessage()">
-                <button class="btn" style="background: var(--primary); color: #090d16; padding: 8px 16px; font-size: 11px; font-weight: 700;" onclick="sendChatMessage()">ناردن</button>
+                <button class="btn" onclick="sendChatMessage()">ناردن</button>
             </div>
         </div>
 
