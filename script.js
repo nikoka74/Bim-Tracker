@@ -1,4 +1,18 @@
-// Firebase Configuration
+// Toast Notification
+function showNotification(message, type = 'success') {
+    const container = document.getElementById('toast-container');
+    const toast = document.createElement('div');
+    toast.style.cssText = `
+        background: ${type === 'success' ? '#10b981' : '#ef4444'};
+        color: white; padding: 10px 16px; margin-top: 8px; border-radius: 10px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.3); font-size: 12px; z-index: 99999;
+    `;
+    toast.innerText = message;
+    container.appendChild(toast);
+    setTimeout(() => { toast.remove(); }, 3500);
+}
+
+// Firebase Config
 const firebaseConfig = {
     apiKey: "AIzaSyDdX6iplyIuYevuh6Ceyd7SMRZWmZy8pqY",
     authDomain: "bim-operations.firebaseapp.com",
@@ -6,422 +20,283 @@ const firebaseConfig = {
     projectId: "bim-operations",
     storageBucket: "bim-operations.firebasestorage.app",
     messagingSenderId: "601649835431",
-    appId: "1:601649835431:web:da5fd50f5f6dfb330d5a82",
-    measurementId: "G-JKY20T7HDR"
+    appId: "1:601649835431:web:da5fd50f5f6dfb330d5a82"
 };
 
 if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
 const db = firebase.database();
+const auth = firebase.auth();
 
-// Global Variables
-let defaultLfdTeams = [];
-for(let i = 1; i <= 150; i++) { defaultLfdTeams.push(`Team ${i}`); }
-let lfdTeams = JSON.parse(localStorage.getItem('bim_lfd_teams')) || defaultLfdTeams;
-lfdTeams = [...new Set([...lfdTeams, ...defaultLfdTeams])];
-
-let defaultMoveInTeams = [];
-for(let i = 1; i <= 150; i++) { defaultMoveInTeams.push(`Team ${i}`); }
-let moveInTeams = JSON.parse(localStorage.getItem('bim_movein_teams')) || defaultMoveInTeams;
-moveInTeams = [...new Set([...moveInTeams, ...defaultMoveInTeams])];
-
+let currentUserAccount = JSON.parse(localStorage.getItem('bim_chat_user')) || null;
 let currentSection = 'lfd';
-let cloudStore = {};
-let chatMessagesStore = {};
-let todayFormatted = new Date().toISOString().split('T')[0];
-
-// 🔒 🔑 بەشی پاسۆردی ئەدمین و ژمارەی کلیکەکان
 let headerClickCount = 0;
-let headerClickTimer = null;
-const ADMIN_PASSWORD = "1234"; // 👈 لێرە دەتوانیت پاسۆردی ئەدمین بگۆڕیت
+let mapInstance = null;
 
+// Authentication Functions
+function switchAuthTab(tab) {
+    document.getElementById('authTabLoginBtn').classList.remove('active');
+    document.getElementById('authTabRegisterBtn').classList.remove('active');
+    document.getElementById('loginFormPanel').classList.remove('active');
+    document.getElementById('registerFormPanel').classList.remove('active');
+
+    if (tab === 'login') {
+        document.getElementById('authTabLoginBtn').classList.add('active');
+        document.getElementById('loginFormPanel').classList.add('active');
+    } else {
+        document.getElementById('authTabRegisterBtn').classList.add('active');
+        document.getElementById('registerFormPanel').classList.add('active');
+        populateRegisterTeamSelect();
+    }
+}
+
+function bypassAuthAsGuest() {
+    document.getElementById('accountModalOverlay').style.display = 'none';
+    showNotification('وەک میوان بەردەوامیت');
+}
+
+function handleFirebaseLogin() {
+    const email = document.getElementById('loginEmailInput').value;
+    const pass = document.getElementById('loginPasswordInput').value;
+    if(!email || !pass) return showNotification('تکایە زانیارییەکان تەواو بکە', 'error');
+
+    auth.signInWithEmailAndPassword(email, pass).then((res) => {
+        currentUserAccount = { uid: res.user.uid, email: res.user.email };
+        localStorage.setItem('bim_chat_user', JSON.stringify(currentUserAccount));
+        document.getElementById('accountModalOverlay').style.display = 'none';
+        showNotification('چوونەژوورەوە سەرکەوتوو بوو');
+    }).catch(err => showNotification(err.message, 'error'));
+}
+
+function handleFirebaseRegister() {
+    const name = document.getElementById('regUsernameInput').value;
+    const team = document.getElementById('regTeamSelect').value;
+    const email = document.getElementById('regEmailInput').value;
+    const pass = document.getElementById('regPasswordInput').value;
+
+    if(!name || !email || !pass) return showNotification('تکایە زانیارییەکان پڕبکەرەوە', 'error');
+
+    auth.createUserWithEmailAndPassword(email, pass).then((res) => {
+        const userData = { uid: res.user.uid, name, team, email };
+        db.ref(`users/${res.user.uid}`).set(userData);
+        currentUserAccount = userData;
+        localStorage.setItem('bim_chat_user', JSON.stringify(currentUserAccount));
+        document.getElementById('accountModalOverlay').style.display = 'none';
+        showNotification('ئەکاونتەکەت بە سەرکەوتوویی دروستکرا');
+    }).catch(err => showNotification(err.message, 'error'));
+}
+
+function populateRegisterTeamSelect() {
+    const select = document.getElementById('regTeamSelect');
+    const adminSelect = document.getElementById('privateMsgTeam');
+    if(!select) return;
+    
+    select.innerHTML = '<option value="">-- هەڵبژاردنی تیم --</option>';
+    if(adminSelect) adminSelect.innerHTML = '<option value="">-- تیم --</option>';
+
+    db.ref('teams').once('value', (snapshot) => {
+        const teams = snapshot.val() || {};
+        Object.keys(teams).forEach(teamKey => {
+            const option = document.createElement('option');
+            option.value = teamKey;
+            option.textContent = teams[teamKey].name || teamKey;
+            select.appendChild(option);
+            if(adminSelect) adminSelect.appendChild(option.cloneNode(true));
+        });
+    });
+}
+
+// Navigation & Admin Controls
 function handleHeaderClick() {
     headerClickCount++;
-    if (headerClickCount === 1) {
-        headerClickTimer = setTimeout(() => {
-            headerClickCount = 0;
-        }, 1200);
-    } else if (headerClickCount >= 3) {
-        clearTimeout(headerClickTimer);
-        headerClickCount = 0;
-        openAdminAuthModal();
-    }
-}
-
-function openAdminAuthModal() {
-    let modal = document.getElementById('customModalOverlay');
-    let title = document.getElementById('modalTitle');
-    let desc = document.getElementById('modalDesc');
-    let input = document.getElementById('customModalInput');
-    let confirmBtn = document.getElementById('modalConfirmBtn');
-
-    if (modal) {
-        if (title) title.innerText = "چوونەژوورەوەی ئەدمین";
-        if (desc) desc.innerText = "تکایە پاسۆردی بەڕێوەبەر بنووسە:";
-        if (input) {
-            input.value = "";
-            input.type = "password";
-        }
-        modal.style.display = "flex";
-
-        confirmBtn.onclick = function() {
-            if (input.value === ADMIN_PASSWORD) {
+    if (headerClickCount >= 3) {
+        document.getElementById('customModalOverlay').style.display = 'flex';
+        document.getElementById('modalConfirmBtn').onclick = () => {
+            const pin = document.getElementById('customModalInput').value;
+            if (pin === '1234') { 
+                document.getElementById('adminPanel').classList.toggle('active');
+                showNotification('بەشی ئەدمین بە سەرکەوتوویی کرایەوە');
                 closeCustomModal(true);
-                toggleAdminPanel(true);
-                showNotification("بە سەرکەوتوویی چوویەتە بەشی ئەدمین!");
             } else {
-                showNotification("پاسۆرد هەڵەیە!", "error");
+                showNotification('پین کۆد هەڵەیە', 'error');
             }
         };
-    } else {
-        // ئەگەر موداڵ لە HTML نەبوو بە Promptی ئاسایی داوای دەکات
-        let pass = prompt("تکایە پاسۆردی ئەدمین بنووسە:");
-        if (pass === ADMIN_PASSWORD) {
-            toggleAdminPanel(true);
-            showNotification("بە سەرکەوتوویی چوویەتە بەشی ئەدمین!");
-        } else if (pass !== null) {
-            showNotification("پاسۆرد هەڵەیە!", "error");
-        }
+        headerClickCount = 0;
     }
 }
 
-function closeCustomModal(success) {
-    let modal = document.getElementById('customModalOverlay');
-    if (modal) modal.style.display = "none";
+function closeCustomModal(clear) {
+    document.getElementById('customModalOverlay').style.display = 'none';
+    if(clear) document.getElementById('customModalInput').value = '';
 }
 
-function toggleAdminPanel(show) {
-    let adminPanel = document.getElementById('adminPanel');
-    if (adminPanel) {
-        adminPanel.style.display = show ? 'block' : 'none';
-        if (show) {
-            adminPanel.scrollIntoView({ behavior: 'smooth' });
-            renderAdminAuditLogs();
-        }
-    }
-}
-
-// 📱 دیاریکردنی جۆری مۆبایل و ئامێر
-function getDeviceInfo() {
-    const ua = navigator.userAgent;
-    if (/android/i.test(ua)) return "📱 Android Mobile";
-    if (/iPhone|iPad|iPod/i.test(ua)) return "🍎 iOS Device (iPhone/iPad)";
-    if (/Win/i.test(ua)) return "💻 Windows PC";
-    if (/Mac/i.test(ua)) return "💻 Mac Computer";
-    return "📱/💻 Unknown Device";
-}
-
-// Notifications System
-function showNotification(message, type = 'success') {
-    const container = document.getElementById('toast-container') || document.body;
-    const toast = document.createElement('div');
-    toast.style.cssText = `
-        position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
-        background: ${type === 'success' ? '#10b981' : '#ef4444'};
-        color: white; padding: 10px 20px; border-radius: 10px;
-        box-shadow: 0 8px 20px rgba(0,0,0,0.4); font-size: 12px; font-weight: 600;
-        transition: opacity 0.3s ease; opacity: 1; z-index: 99999; backdrop-filter: blur(8px);
-    `;
-    toast.innerText = message;
-    container.appendChild(toast);
-    setTimeout(() => {
-        toast.style.opacity = '0';
-        setTimeout(() => toast.remove(), 300);
-    }, 4000);
-}
-
-// UI Refresh
-function refreshData() {
-    const btn = document.getElementById('btnRefreshMain');
-    if (btn) btn.classList.add('spinning');
-    
-    db.ref(`operations_data/${currentSection}/${todayFormatted}`).once('value')
-        .then((snapshot) => {
-            cloudStore = snapshot.val() || {};
-            renderAdminAuditLogs();
-            showNotification("داتاکان نوێکرانەوە!");
-        })
-        .catch(err => {
-            showNotification("کێشە لە نوێکردنەوە: " + err.message, 'error');
-        })
-        .finally(() => {
-            if (btn) setTimeout(() => btn.classList.remove('spinning'), 600);
-        });
-}
-
-// Section Switching
 function switchSection(sec) {
     currentSection = sec;
-    document.getElementById('tabLFD')?.classList.remove('active');
-    document.getElementById('tabMoveIn')?.classList.remove('active');
-    document.getElementById('tabChat')?.classList.remove('active');
+    document.getElementById('tabLFD').classList.remove('active');
+    document.getElementById('tabMoveIn').classList.remove('active');
+    document.getElementById('tabChat').classList.remove('active');
     
-    let mainWrapper = document.getElementById('operationsMainWrapper');
-    let chatContainer = document.getElementById('chatSectionContainer');
+    document.getElementById('operationsMainWrapper').style.display = 'block';
+    document.getElementById('chatSectionContainer').classList.remove('active');
 
-    if (sec === 'chat') {
-        document.getElementById('tabChat')?.classList.add('active');
-        if (mainWrapper) mainWrapper.style.display = 'none';
-        if (chatContainer) chatContainer.classList.add('active');
-        renderChatMessages();
-        return;
-    } else {
-        if (mainWrapper) mainWrapper.style.display = 'block';
-        if (chatContainer) chatContainer.classList.remove('active');
-    }
-
-    if (sec === 'lfd') {
-        document.getElementById('tabLFD')?.classList.add('active');
-    } else {
-        document.getElementById('tabMoveIn')?.classList.add('active');
-    }
-    renderCasesGrid();
-    populateTeamDropdown();
-    listenToRealtimeLogs();
-}
-
-// Grid Render
-function renderCasesGrid() {
-    let container = document.getElementById('casesGridContainer');
-    if (!container) return;
-    if (currentSection === 'lfd') {
-        container.innerHTML = `
-            <div class="case-item">Paid <input type="number" id="c_paid" min="0" placeholder="0"></div>
-            <div class="case-item">Disconnected <input type="number" id="c_disc" min="0" placeholder="0"></div>
-            <div class="case-item">Reconnected <input type="number" id="c_reconn" min="0" placeholder="0"></div>
-            <div class="case-item">Distribution <input type="number" id="c_dist" min="0" placeholder="0"></div>
-            <div class="case-item">Special <input type="number" id="c_special" min="0" placeholder="0"></div>
-            <div class="case-item">Tampered <input type="number" id="c_tampered" min="0" placeholder="0"></div>
-            <div class="case-item">Denied <input type="number" id="c_denied" min="0" placeholder="0"></div>
-            <div class="case-item">NotFound <input type="number" id="c_notfound" min="0" placeholder="0"></div>
-            <div class="case-item">Inaccessible <input type="number" id="c_inaccess" min="0" placeholder="0"></div>
-            <div class="case-item" style="grid-column: span 3;">Other <input type="number" id="c_other" min="0" placeholder="0"></div>
-        `;
-    } else if (currentSection === 'movein') {
-        container.innerHTML = `
-            <div class="case-item">Inst. Meter <input type="number" id="c_inst_meter" min="0" placeholder="0"></div>
-            <div class="case-item">Inst. Encl <input type="number" id="c_inst_encl" min="0" placeholder="0"></div>
-            <div class="case-item">3P Encl <input type="number" id="c_inst_3p" min="0" placeholder="0"></div>
-            <div class="case-item">BIM Team <input type="number" id="c_bim_team" min="0" placeholder="0"></div>
-            <div class="case-item">Other Team <input type="number" id="c_other_team" min="0" placeholder="0"></div>
-        `;
+    if(sec === 'lfd') {
+        document.getElementById('tabLFD').classList.add('active');
+    } else if(sec === 'movein') {
+        document.getElementById('tabMoveIn').classList.add('active');
+    } else if(sec === 'chat') {
+        document.getElementById('tabChat').classList.add('active');
+        document.getElementById('operationsMainWrapper').style.display = 'none';
+        document.getElementById('chatSectionContainer').classList.add('active');
+        loadChatMessages();
     }
 }
 
-function populateTeamDropdown() {
-    let teamSelect = document.getElementById('teamSelect');
-    let teamsList = currentSection === 'lfd' ? lfdTeams : moveInTeams;
-
-    let html = `<option value="">-- تیم هەڵبژێرە --</option>`;
-    teamsList.forEach(t => { html += `<option value="${t}">${t}</option>`; });
-    if (teamSelect) teamSelect.innerHTML = html;
+// Admin Operations
+function saveBroadcastMessage() {
+    const msg = document.getElementById('adminBroadcastInput').value;
+    if(!msg.trim()) return showNotification('دەق بنووسە', 'error');
+    db.ref('broadcastMessage').set({ text: msg, timestamp: Date.now() }).then(() => {
+        showNotification('پەیامەکە بڵاوکرایەوە');
+        document.getElementById('adminBroadcastInput').value = '';
+    });
 }
 
-// 📤 ناردنی فۆڕم و تۆمارکردنی زانیاری ئامێر
-function submitMainForm() {
-    let team = document.getElementById('teamSelect')?.value;
-    if (!team) {
-        showNotification("تکایە سەرەتا تیم هەڵبژێرە!", 'error');
-        return;
-    }
+function sendPrivateTeamMessage() {
+    const team = document.getElementById('privateMsgTeam').value;
+    const msg = document.getElementById('privateMsgInput').value;
+    if(!team || !msg) return showNotification('زانیارییەکان بەتاڵن', 'error');
+    db.ref(`privateMessages/${team}`).set({ text: msg, timestamp: Date.now() }).then(() => {
+        showNotification('پەیامی تایبەت نێردرا');
+        document.getElementById('privateMsgInput').value = '';
+    });
+}
 
-    let casesData = {};
-    if (currentSection === 'lfd') {
-        casesData = {
-            paid: parseInt(document.getElementById('c_paid')?.value) || 0,
-            disconnected: parseInt(document.getElementById('c_disc')?.value) || 0,
-            reconnected: parseInt(document.getElementById('c_reconn')?.value) || 0,
-            distribution: parseInt(document.getElementById('c_dist')?.value) || 0,
-            special: parseInt(document.getElementById('c_special')?.value) || 0,
-            tampered: parseInt(document.getElementById('c_tampered')?.value) || 0,
-            denied: parseInt(document.getElementById('c_denied')?.value) || 0,
-            notFound: parseInt(document.getElementById('c_notfound')?.value) || 0,
-            inaccessible: parseInt(document.getElementById('c_inaccess')?.value) || 0,
-            other: parseInt(document.getElementById('c_other')?.value) || 0
-        };
-    } else {
-        casesData = {
-            instMeter: parseInt(document.getElementById('c_inst_meter')?.value) || 0,
-            instEncl: parseInt(document.getElementById('c_inst_encl')?.value) || 0,
-            inst3p: parseInt(document.getElementById('c_inst_3p')?.value) || 0,
-            bimTeam: parseInt(document.getElementById('c_bim_team')?.value) || 0,
-            otherTeam: parseInt(document.getElementById('c_other_team')?.value) || 0
-        };
-    }
+function addNewTeam() {
+    const section = document.getElementById('newTeamSection').value;
+    const name = document.getElementById('newTeamNameInput').value;
+    if(!name.trim()) return showNotification('ناوی تیم بنووسە', 'error');
 
-    let deviceInfo = getDeviceInfo();
-    let timeLogged = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    const key = name.toLowerCase().replace(/\s+/g, '_');
+    db.ref(`teams/${key}`).set({ name, section, createdAt: Date.now() }).then(() => {
+        showNotification('تیم بە سەرکەوتوویی زیادکرا');
+        document.getElementById('newTeamNameInput').value = '';
+        populateRegisterTeamSelect();
+    });
+}
 
-    let entryData = {
-        team: team,
-        section: currentSection,
-        device: deviceInfo,
-        cases: casesData,
-        date: todayFormatted,
-        time: timeLogged,
-        timestamp: firebase.database.ServerValue.TIMESTAMP
+function convertExcelToKml() {
+    const fileInput = document.getElementById('csvFileForKml');
+    if (!fileInput.files.length) return showNotification('تکایە فایلی CSV هەڵبژێرە', 'error');
+
+    const reader = new FileReader();
+    reader.onload = function (e) {
+        const text = e.target.result;
+        const lines = text.split('\n');
+        let kmlContent = `<?xml version="1.0" encoding="UTF-8"?>\n<kml xmlns="http://www.opengis.net/kml/2.2"><Document>\n`;
+
+        lines.forEach((line, idx) => {
+            if (idx === 0 || !line.trim()) return;
+            const cols = line.split(',');
+            if (cols.length >= 3) {
+                const name = cols[0].trim();
+                const lat = cols[1].trim();
+                const lng = cols[2].trim();
+                kmlContent += `<Placemark><name>${name}</name><Point><coordinates>${lng},${lat},0</coordinates></Point></Placemark>\n`;
+            }
+        });
+        kmlContent += `</Document></kml>`;
+
+        const blob = new Blob([kmlContent], { type: 'application/vnd.google-earth.kml+xml' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'points.kml';
+        a.click();
+        showNotification('فایلی KML بە سەرکەوتوویی دروستکرا');
     };
-
-    let newLogRef = db.ref(`operations_data/${currentSection}/${todayFormatted}/${team}`).push();
-    
-    newLogRef.set(entryData)
-        .then(() => {
-            showNotification(`ڕاپۆرت بە سەرکەوتوویی نێردرا! (${deviceInfo})`);
-            clearFormInputs();
-        })
-        .catch((error) => {
-            showNotification("کێشە لە ناردنی داتا: " + error.message, 'error');
-        });
+    reader.readAsText(fileInput.files[0]);
 }
 
-function clearFormInputs() {
-    let inputs = document.querySelectorAll('#casesGridContainer input');
-    inputs.forEach(input => input.value = '');
-}
-
-// 📊 نیشاندانی لۆگی ئامێرەکان تەنها لە بەشی ئەدمین (Admin Panel)
-function listenToRealtimeLogs() {
-    db.ref(`operations_data/${currentSection}/${todayFormatted}`).on('value', (snapshot) => {
-        cloudStore = snapshot.val() || {};
-        renderAdminAuditLogs();
-    });
-}
-
-function renderAdminAuditLogs() {
-    let logContainer = document.getElementById('adminLogsList');
-    if (!logContainer) return;
-
-    let html = '';
-    let hasLogs = false;
-
-    Object.keys(cloudStore).forEach(teamName => {
-        let teamEntries = cloudStore[teamName];
-        Object.keys(teamEntries).forEach(logId => {
-            hasLogs = true;
-            let log = teamEntries[logId];
-            html += `
-                <div class="leaderboard-item" style="background: rgba(255,255,255,0.03); padding: 8px; border-radius: 8px; border: 1px solid var(--border-color);">
-                    <div style="display:flex; justify-content:space-between; font-size:11px;">
-                        <strong>👥 ${log.team}</strong>
-                        <span style="color: var(--primary); font-weight: bold;">${log.device}</span>
-                    </div>
-                    <div style="font-size: 10px; opacity: 0.7; margin-top: 4px; display: flex; justify-content: space-between;">
-                        <span>⏰ کات: ${log.time}</span>
-                        <span>بەش: ${log.section ? log.section.toUpperCase() : ''}</span>
-                    </div>
-                </div>
-            `;
-        });
-    });
-
-    if (!hasLogs) {
-        logContainer.innerHTML = `<p style="text-align:center; opacity:0.5; font-size:11px; padding:10px;">هیچ لۆگێکی نێردراو بۆ ئەمڕۆ نییە.</p>`;
-    } else {
-        logContainer.innerHTML = html;
+function openLiveMapModal() {
+    document.getElementById('liveMapModalOverlay').style.display = 'flex';
+    if (!mapInstance) {
+        mapInstance = L.map('mapContainer').setView([36.19, 44.01], 11);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19
+        }).addTo(mapInstance);
     }
 }
 
-// Chat Functionalities
+// Chat Functionality
 function sendChatMessage() {
-    let input = document.getElementById('chatMessageInput');
-    let text = input.value.trim();
-    if (!text) return;
+    const input = document.getElementById('chatMessageInput');
+    const msg = input.value.trim();
+    if (!msg) return;
 
-    let deviceInfo = getDeviceInfo();
-    let chatObj = {
-        username: deviceInfo,
-        text: text,
-        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        date: todayFormatted
-    };
-    db.ref('chat_messages').push(chatObj).then(() => { input.value = ''; });
-}
-
-function renderChatMessages() {
-    let area = document.getElementById('chatMessagesArea');
-    if (!area) return;
-    let keys = Object.keys(chatMessagesStore);
-    if (keys.length === 0) {
-        area.innerHTML = `<p style="text-align:center; opacity:0.6; margin-top: 20px; font-size: 11px;">هیچ پەیامێک لە چاتدا نییە.</p>`;
-        return;
-    }
-    let html = '';
-    keys.forEach(key => {
-        let msg = chatMessagesStore[key];
-        html += `
-            <div class="chat-msg-bubble" style="background: rgba(255,255,255,0.05); padding: 8px; border-radius: 8px; margin-bottom: 6px;">
-                <div style="display:flex; justify-content:space-between; font-size: 10px; color: var(--primary);">
-                    <span>${msg.username}</span>
-                    <span style="opacity: 0.6;">${msg.timestamp}</span>
-                </div>
-                <p style="word-break: break-word; font-size: 11px; margin-top: 4px;">${msg.text}</p>
-            </div>
-        `;
+    const sender = currentUserAccount ? (currentUserAccount.name || currentUserAccount.email) : 'میوان';
+    db.ref('chats').push({
+        sender: sender,
+        text: msg,
+        timestamp: Date.now()
+    }).then(() => {
+        input.value = '';
     });
-    area.innerHTML = html;
-    area.scrollTop = area.scrollHeight;
 }
 
-db.ref('chat_messages').limitToLast(50).on('value', (snapshot) => {
-    chatMessagesStore = snapshot.val() || {};
-    if (document.getElementById('tabChat')?.classList.contains('active')) {
-        renderChatMessages();
+function loadChatMessages() {
+    db.ref('chats').limitToLast(30).on('value', (snapshot) => {
+        const area = document.getElementById('chatMessagesArea');
+        area.innerHTML = '';
+        const data = snapshot.val() || {};
+        Object.keys(data).forEach(key => {
+            const item = data[key];
+            const div = document.createElement('div');
+            const myName = currentUserAccount ? (currentUserAccount.name || currentUserAccount.email) : 'میوان';
+            const isMe = item.sender === myName;
+            div.className = `chat-msg-bubble ${isMe ? 'my-msg' : ''}`;
+            div.innerHTML = `<strong>${item.sender}</strong>: <div>${item.text}</div>`;
+            area.appendChild(div);
+        });
+        area.scrollTop = area.scrollHeight;
+    });
+}
+
+// Initialize Chart
+function initChart() {
+    const ctx = document.getElementById('trendChartCanvas').getContext('2d');
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: ['شەممە', 'یەکشەممە', 'دووشەممە', 'سێشەممە', 'چوارشەممە', 'پێنجشەممە'],
+            datasets: [{
+                label: 'کۆی گشتی خاڵەکان',
+                data: [12, 19, 15, 25, 22, 30],
+                borderColor: '#38bdf8',
+                backgroundColor: 'rgba(56, 189, 248, 0.1)',
+                fill: true,
+                tension: 0.4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } }
+        }
+    });
+}
+
+// Real-time Listeners
+db.ref('broadcastMessage').on('value', (snapshot) => {
+    const data = snapshot.val();
+    const ticker = document.getElementById('broadcastTicker');
+    const content = document.getElementById('broadcastTextContent');
+    if (data && data.text) {
+        content.innerText = data.text;
+        ticker.style.display = 'flex';
+    } else {
+        ticker.style.display = 'none';
     }
 });
 
-// CSV to KML Converter
-function convertExcelToKml() {
-    let fileInput = document.getElementById('csvFileForKml');
-    if (!fileInput || !fileInput.files.length) return alert("تکایە فایلی CSV هەڵبژێرە!");
-
-    let file = fileInput.files[0];
-    let reader = new FileReader();
-
-    reader.onload = function (e) {
-        let text = e.target.result;
-        let lines = text.split(/\r\n|\n/);
-        let kmlHeader = `<?xml version="1.0" encoding="UTF-8"?>\n<kml xmlns="http://www.opengis.net/kml/2.2">\n<Document>`;
-        let kmlFooter = `\n</Document>\n</kml>`;
-        let kmlBody = '';
-
-        for (let i = 1; i < lines.length; i++) {
-            let line = lines[i].trim();
-            if (!line) continue;
-            let cols = line.split(',');
-            if (cols.length >= 3) {
-                let name = cols[0].trim().replace(/"/g, '');
-                let lat = parseFloat(cols[1].trim());
-                let lng = parseFloat(cols[2].trim());
-                if (!isNaN(lat) && !isNaN(lng)) {
-                    kmlBody += `
-  <Placemark>
-    <name>${name}</name>
-    <Point>
-      <coordinates>${lng},${lat},0</coordinates>
-    </Point>
-  </Placemark>`;
-                }
-            }
-        }
-
-        if (!kmlBody) {
-            alert("هیچ داتایەکی دروست نادۆزرایەوە!");
-            return;
-        }
-
-        let blob = new Blob([kmlHeader + kmlBody + kmlFooter], { type: 'application/vnd.google-earth.kml+xml' });
-        let link = document.createElement('a');
-        link.href = URL.createObjectURL(blob);
-        link.download = file.name.replace(/\.[^/.]+$/, "") + '.kml';
-        link.click();
-        showNotification("فایلی KML دروستکرا!");
-    };
-
-    reader.readAsText(file);
-}
-
-// Startup
 window.onload = function() {
-    renderCasesGrid();
-    populateTeamDropdown();
-    listenToRealtimeLogs();
+    populateRegisterTeamSelect();
+    initChart();
 };
