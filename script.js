@@ -32,66 +32,11 @@ let currentSection = 'lfd';
 let headerClickCount = 0;
 let mapInstance = null;
 
-// Authentication Functions
-function switchAuthTab(tab) {
-    document.getElementById('authTabLoginBtn').classList.remove('active');
-    document.getElementById('authTabRegisterBtn').classList.remove('active');
-    document.getElementById('loginFormPanel').classList.remove('active');
-    document.getElementById('registerFormPanel').classList.remove('active');
-
-    if (tab === 'login') {
-        document.getElementById('authTabLoginBtn').classList.add('active');
-        document.getElementById('loginFormPanel').classList.add('active');
-    } else {
-        document.getElementById('authTabRegisterBtn').classList.add('active');
-        document.getElementById('registerFormPanel').classList.add('active');
-        populateRegisterTeamSelect();
-    }
-}
-
-function bypassAuthAsGuest() {
-    document.getElementById('accountModalOverlay').style.display = 'none';
-    showNotification('وەک میوان بەردەوامیت');
-}
-
-function handleFirebaseLogin() {
-    const email = document.getElementById('loginEmailInput').value;
-    const pass = document.getElementById('loginPasswordInput').value;
-    if(!email || !pass) return showNotification('تکایە زانیارییەکان تەواو بکە', 'error');
-
-    auth.signInWithEmailAndPassword(email, pass).then((res) => {
-        currentUserAccount = { uid: res.user.uid, email: res.user.email };
-        localStorage.setItem('bim_chat_user', JSON.stringify(currentUserAccount));
-        document.getElementById('accountModalOverlay').style.display = 'none';
-        showNotification('چوونەژوورەوە سەرکەوتوو بوو');
-    }).catch(err => showNotification(err.message, 'error'));
-}
-
-function handleFirebaseRegister() {
-    const name = document.getElementById('regUsernameInput').value;
-    const team = document.getElementById('regTeamSelect').value;
-    const email = document.getElementById('regEmailInput').value;
-    const pass = document.getElementById('regPasswordInput').value;
-
-    if(!name || !email || !pass) return showNotification('تکایە زانیارییەکان پڕبکەرەوە', 'error');
-
-    auth.createUserWithEmailAndPassword(email, pass).then((res) => {
-        const userData = { uid: res.user.uid, name, team, email };
-        db.ref(`users/${res.user.uid}`).set(userData);
-        currentUserAccount = userData;
-        localStorage.setItem('bim_chat_user', JSON.stringify(currentUserAccount));
-        document.getElementById('accountModalOverlay').style.display = 'none';
-        showNotification('ئەکاونتەکەت بە سەرکەوتوویی دروستکرا');
-    }).catch(err => showNotification(err.message, 'error'));
-}
-
 function populateRegisterTeamSelect() {
-    const select = document.getElementById('regTeamSelect');
     const adminSelect = document.getElementById('privateMsgTeam');
-    if(!select) return;
+    if(!adminSelect) return;
     
-    select.innerHTML = '<option value="">-- هەڵبژاردنی تیم --</option>';
-    if(adminSelect) adminSelect.innerHTML = '<option value="">-- تیم --</option>';
+    adminSelect.innerHTML = '<option value="">-- تیم --</option>';
 
     db.ref('teams').once('value', (snapshot) => {
         const teams = snapshot.val() || {};
@@ -99,8 +44,7 @@ function populateRegisterTeamSelect() {
             const option = document.createElement('option');
             option.value = teamKey;
             option.textContent = teams[teamKey].name || teamKey;
-            select.appendChild(option);
-            if(adminSelect) adminSelect.appendChild(option.cloneNode(true));
+            adminSelect.appendChild(option);
         });
     });
 }
