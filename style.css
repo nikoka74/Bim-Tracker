@@ -1,19 +1,16 @@
 @import url('https://fonts.googleapis.com/css2?family=Readex+Pro:wght@300;400;500;600;700&display=swap');
 
 :root {
-    --bg-color: #07090e;
-    --card-bg: rgba(13, 18, 30, 0.95);
+    --bg-color: #0b0f19;
+    --card-bg: #111827;
     --primary: #38bdf8;
-    --primary-glow: rgba(56, 189, 248, 0.3);
-    --secondary: #818cf8;
-    --text-color: #f8fafc;
-    --text-muted: #94a3b8;
-    --border-color: rgba(56, 189, 248, 0.25);
-    --success: #10b981;
-    --danger: #ef4444;
-    --warning: #f59e0b;
-    --radius: 14px;
-    --transition: all 0.25s ease;
+    --primary-glow: rgba(56, 189, 248, 0.2);
+    --secondary: #6366f1;
+    --text-main: #f9fafb;
+    --text-muted: #9ca3af;
+    --border: rgba(255, 255, 255, 0.08);
+    --border-focus: rgba(56, 189, 248, 0.4);
+    --radius: 12px;
 }
 
 * {
@@ -26,33 +23,32 @@
 
 body {
     background-color: var(--bg-color);
-    color: var(--text-color);
+    color: var(--text-main);
     min-height: 100vh;
     display: flex;
     justify-content: center;
     align-items: center;
-    padding: 10px;
+    padding: 12px;
 }
 
 .app-container {
     width: 100%;
-    max-width: 520px;
+    max-width: 480px;
     background: var(--card-bg);
-    border: 1px solid var(--border-color);
+    border: 1px solid var(--border);
     border-radius: var(--radius);
-    padding: 14px;
-    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6);
+    padding: 16px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
 }
 
-/* Header & Top Tools Fix */
+/* Header & Brand */
 .app-header-bar {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    border-bottom: 1px solid var(--border-color);
+    border-bottom: 1px solid var(--border);
     padding-bottom: 12px;
-    margin-bottom: 12px;
-    gap: 8px;
+    margin-bottom: 14px;
 }
 
 .brand-box {
@@ -62,84 +58,82 @@ body {
 }
 
 .brand-logo {
-    width: 38px;
-    height: 38px;
+    width: 36px;
+    height: 36px;
     background: linear-gradient(135deg, var(--primary), var(--secondary));
-    border-radius: 10px;
+    border-radius: 8px;
     display: flex;
     align-items: center;
     justify-content: center;
+    color: #fff;
+    font-weight: bold;
 }
 
 .brand-box h1 {
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 700;
-    color: var(--text-color);
+    color: var(--text-main);
 }
 
 .brand-box p {
-    font-size: 10px;
+    font-size: 9px;
     color: var(--text-muted);
 }
 
-/* Fix for top overlapping buttons */
+/* Top Toolbar Buttons */
 .top-tools {
     display: flex;
-    flex-wrap: wrap;
     gap: 4px;
-    justify-content: flex-end;
-    max-width: 180px;
 }
 
 .tool-btn {
-    background: rgba(255, 255, 255, 0.06);
-    border: 1px solid var(--border-color);
-    color: var(--text-color);
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--border);
+    color: var(--text-main);
     padding: 5px 8px;
     border-radius: 6px;
     font-size: 10px;
-    font-weight: 500;
     cursor: pointer;
-    transition: var(--transition);
-    white-space: nowrap;
+    transition: 0.2s;
 }
 
 .tool-btn:hover {
     background: var(--primary);
-    color: #07090e;
+    color: #0b0f19;
+    border-color: var(--primary);
 }
 
-/* Section Tabs */
+/* Tabs */
 .section-tabs {
     display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
+    grid-template-columns: repeat(3, 1fr);
     gap: 6px;
-    margin-bottom: 12px;
+    margin-bottom: 14px;
 }
 
 .section-tab-btn {
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid var(--border-color);
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid var(--border);
     color: var(--text-muted);
-    padding: 8px 4px;
+    padding: 8px;
     border-radius: 8px;
     font-size: 11px;
     font-weight: 600;
     cursor: pointer;
     text-align: center;
-    transition: var(--transition);
+    transition: 0.2s;
 }
 
 .section-tab-btn.active {
-    background: linear-gradient(135deg, var(--primary), var(--secondary));
-    color: #07090e;
-    border-color: transparent;
+    background: var(--primary);
+    color: #0b0f19;
+    border-color: var(--primary);
 }
 
-/* Total Points Card */
-.total-points-card {
-    background: rgba(11, 15, 25, 0.8);
-    border: 1px solid var(--border-color);
+/* Cards & Containers */
+.total-points-card, .control-group {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid var(--border);
     border-radius: 10px;
     padding: 12px;
     margin-bottom: 12px;
@@ -158,51 +152,37 @@ body {
 }
 
 .counter {
-    font-size: 18px;
+    font-size: 16px;
     font-weight: 700;
     color: var(--primary);
 }
 
-.trend-chart-container {
-    height: 60px;
-    width: 100%;
-}
-
-/* Controls & Inputs */
-.control-group {
-    background: rgba(11, 15, 25, 0.6);
-    border: 1px solid var(--border-color);
-    border-radius: 10px;
-    padding: 12px;
-    margin-bottom: 12px;
-}
-
+/* Inputs & Selects */
 label {
     display: block;
     font-size: 11px;
     margin-bottom: 5px;
     color: var(--text-muted);
-    font-weight: 500;
 }
 
 select, input[type="text"], input[type="password"], input[type="date"], textarea {
     width: 100%;
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid var(--border-color);
+    background: rgba(0, 0, 0, 0.25);
+    border: 1px solid var(--border);
     border-radius: 8px;
-    padding: 9px 12px;
-    color: var(--text-color);
+    padding: 9px 10px;
+    color: var(--text-main);
     font-size: 12px;
     outline: none;
-    transition: var(--transition);
+    transition: 0.2s;
 }
 
 select:focus, input:focus, textarea:focus {
     border-color: var(--primary);
-    background: rgba(255, 255, 255, 0.08);
+    box-shadow: 0 0 8px var(--primary-glow);
 }
 
-/* Clean & Clear Cases Grid (Fixed the ugly look) */
+/* Cases Grid (The Input Boxes) */
 .cases-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
@@ -211,49 +191,48 @@ select:focus, input:focus, textarea:focus {
 }
 
 .case-card {
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid var(--border-color);
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid var(--border);
     border-radius: 8px;
-    padding: 8px 10px;
+    padding: 8px;
     display: flex;
     flex-direction: column;
     gap: 4px;
 }
 
 .case-card span {
-    font-size: 11px;
-    font-weight: 600;
-    color: var(--text-color);
+    font-size: 10px;
+    color: var(--text-muted);
+    font-weight: 500;
 }
 
 .case-card input {
     text-align: center;
     font-weight: 700;
-    font-size: 14px;
+    font-size: 13px;
     padding: 6px;
-    background: rgba(0, 0, 0, 0.3);
-    border-radius: 6px;
+    background: rgba(0, 0, 0, 0.4);
     color: var(--primary);
+    border-radius: 6px;
 }
 
 /* Buttons */
 .btn-submit-main {
     width: 100%;
-    background: linear-gradient(135deg, var(--primary), var(--secondary));
-    color: #07090e;
+    background: var(--primary);
+    color: #0b0f19;
     border: none;
     border-radius: 8px;
-    padding: 11px;
+    padding: 10px;
     font-size: 12px;
     font-weight: 700;
     cursor: pointer;
     margin-top: 10px;
-    transition: var(--transition);
+    transition: 0.2s;
 }
 
 .btn-submit-main:hover {
     opacity: 0.9;
-    transform: translateY(-1px);
 }
 
 .btn-toolbar {
@@ -264,12 +243,21 @@ select:focus, input:focus, textarea:focus {
 }
 
 .btn-myteam { background: #0284c7; color: #fff; font-size: 10px; border-radius: 6px; padding: 7px; border: none; font-weight: 600; cursor: pointer; }
-.btn-whatsapp { background: #25d366; color: #fff; font-size: 10px; border-radius: 6px; padding: 7px; border: none; font-weight: 600; cursor: pointer; }
-.btn-image { background: #8b5cf6; color: #fff; font-size: 10px; border-radius: 6px; padding: 7px; border: none; font-weight: 600; cursor: pointer; }
-.btn-pdf { background: #ec4899; color: #fff; font-size: 10px; border-radius: 6px; padding: 7px; border: none; font-weight: 600; cursor: pointer; }
+.btn-whatsapp { background: #16a34a; color: #fff; font-size: 10px; border-radius: 6px; padding: 7px; border: none; font-weight: 600; cursor: pointer; }
+.btn-image { background: #7c3aed; color: #fff; font-size: 10px; border-radius: 6px; padding: 7px; border: none; font-weight: 600; cursor: pointer; }
+.btn-pdf { background: #db2777; color: #fff; font-size: 10px; border-radius: 6px; padding: 7px; border: none; font-weight: 600; cursor: pointer; }
 .btn-excel { background: #059669; color: #fff; font-size: 10px; border-radius: 6px; padding: 7px; border: none; font-weight: 600; cursor: pointer; }
 
-/* Footer */
+/* Admin Panel (Hidden by default for teams) */
+.admin-panel {
+    display: none;
+    background: rgba(17, 24, 39, 0.95);
+    border: 1px dashed var(--primary);
+    border-radius: 10px;
+    padding: 12px;
+    margin-bottom: 12px;
+}
+
 .site-footer-copy {
     text-align: center;
     font-size: 9px;
