@@ -44,8 +44,7 @@ let statsChartInstance = null;
 let teamCoordinates = null;
 let currentSelectedTeam = null;
 
-// پینی ئەدمین (لە JSـدا، بەڵام دەتوانیت دواتر بچیتە Firebase)
-const ADMIN_PIN = "Razwan";
+// 🔐 پینی ئەدمین لە JSـەوە لابرا، تەنها لە Firebaseـەوە دەخوێنرێتەوە
 
 const TEAM_PINS = {};
 for (let i = 1; i <= 150; i++) {
@@ -84,6 +83,26 @@ function logActivity(actionType, description) {
         dateFormatted: new Date().toLocaleString()
     };
     db.ref('auditLogs').push(logData).catch(err => console.log('Log error:', err));
+}
+
+// ============================================================
+// 🔐 پشتڕاستکردنەوەی پینی ئەدمین لە Firebase
+// ============================================================
+function verifyAdminPin(inputPin) {
+    return new Promise((resolve, reject) => {
+        db.ref('adminPin').once('value').then(snapshot => {
+            const data = snapshot.val();
+            // دڵنیابە کە پینەکە هەیە و بەراوردی بکە
+            if (data && data.pin === inputPin) {
+                resolve(true);
+            } else {
+                resolve(false);
+            }
+        }).catch(err => {
+            console.error('Error verifying admin pin:', err);
+            reject(err);
+        });
+    });
 }
 
 // ============================================================
@@ -181,7 +200,7 @@ function loadTeamData() {
 }
 
 // ============================================================
-// Admin Panel Trigger (3 clicks)
+// Admin Panel Trigger (3 clicks) - Firebase PIN only
 // ============================================================
 function handleHeaderClick() {
     headerClickCount++;
@@ -190,9 +209,10 @@ function handleHeaderClick() {
         document.getElementById('modalTitle').innerText = "پشتڕاستکردنەوەی ئەدمین";
         document.getElementById('modalDesc').innerText = "تکایە پین کۆدی بەڕێوەبەر (Admin) بنووسە:";
         
-        document.getElementById('modalConfirmBtn').onclick = () => {
+        document.getElementById('modalConfirmBtn').onclick = async () => {
             const pin = document.getElementById('customModalInput').value;
-            if (pin === ADMIN_PIN) { 
+            const isValid = await verifyAdminPin(pin);
+            if (isValid) {
                 const adminPanel = document.getElementById('adminPanel');
                 adminPanel.classList.toggle('active');
                 showNotification('بەشی ئەدمین بە سەرکەوتوویی کرایەوە');
@@ -223,11 +243,14 @@ function promptPinAndSave() {
     document.getElementById('modalTitle').innerText = "پشتڕاستکردنەوەی تیم";
     document.getElementById('modalDesc').innerText = `تکایە پین کۆدی تایبەت بە ${teamLabel} بنووسە:`;
 
-    document.getElementById('modalConfirmBtn').onclick = () => {
+    document.getElementById('modalConfirmBtn').onclick = async () => {
         const inputPin = document.getElementById('customModalInput').value;
         const correctPin = TEAM_PINS[selectedTeam];
-
-        if ((correctPin && inputPin === correctPin) || inputPin === ADMIN_PIN || !correctPin) {
+        
+        // ئەگەر پینی تیمەکە دروست بوو، یان پینی ئەدمین (لە Firebase) دروست بوو
+        const isAdminPin = await verifyAdminPin(inputPin);
+        
+        if ((correctPin && inputPin === correctPin) || isAdminPin || !correctPin) {
             closeCustomModal(true);
             saveReportToDatabase(selectedTeam, teamLabel);
         } else {
@@ -1144,11 +1167,12 @@ function promptPinAndDownloadTeamFile() {
     document.getElementById('modalTitle').innerText = "پشتڕاستکردنەوەی تیم";
     document.getElementById('modalDesc').innerText = `تکایە پین کۆدی تیمەکەت بنووسە بۆ داگرتنی فایل:`;
 
-    document.getElementById('modalConfirmBtn').onclick = () => {
+    document.getElementById('modalConfirmBtn').onclick = async () => {
         const inputPin = document.getElementById('customModalInput').value;
         const correctPin = TEAM_PINS[selectedTeam];
+        const isAdminPin = await verifyAdminPin(inputPin);
 
-        if ((correctPin && inputPin === correctPin) || inputPin === ADMIN_PIN) {
+        if ((correctPin && inputPin === correctPin) || isAdminPin) {
             closeCustomModal(true);
             downloadTeamFile(selectedTeam);
         } else {
