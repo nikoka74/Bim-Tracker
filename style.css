@@ -2448,3 +2448,21 @@ REDUCED MOTION
         transition-duration: .01ms !important;
     }
 }
+.dashboard-summary{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;margin-bottom:16px}
+.dash-card{display:flex;align-items:center;gap:10px;padding:11px 12px;background:rgba(255,255,255,.055);border:1px solid var(--border-color);border-radius:15px;backdrop-filter:blur(14px);transition:all .28s ease}
+.dash-card:hover{transform:translateY(-3px);border-color:rgba(56,189,248,.28)}
+.dash-icon{font-size:18px;width:36px;height:36px;display:flex;align-items:center;justify-content:center;border-radius:11px;background:rgba(255,255,255,.045)}
+.dash-label{font-size:8px;color:var(--muted);font-weight:600}
+.dash-value{font-size:17px;font-weight:800;margin:0}
+#dashTotal .dash-value{color:#38bdf8}
+#dashTopTeam .dash-value{color:#fbbf24}
+#dashSuccess .dash-value{color:#34d399}
+#dashOffday .dash-value{color:#f87171}
+.heatmap-container{padding:13px;margin-bottom:16px;background:rgba(255,255,255,.045);border:1px solid var(--border-color);border-radius:15px}
+.heatmap-cell{aspect-ratio:1/1;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:800;color:#fff;transition:.2s}
+.heatmap-cell:hover{transform:scale(1.1)}
+.medal{display:inline-block;width:25px;height:25px;line-height:25px;text-align:center;border-radius:50%;font-weight:800;font-size:11px;margin-left:6px}
+.medal-gold{background:#fbbf24;color:#451a03;box-shadow:0 0 12px #fbbf2470}
+.medal-silver{background:#cbd5e1;color:#1e293b;box-shadow:0 0 10px #cbd5e170}
+.medal-bronze{background:#d97706;color:#fff;box-shadow:0 0 10px #d9770670}
+@media(max-width:600px){.dashboard-summary{grid-template-columns:repeat(2,1fr);gap:7px}.dash-card{padding:9px 10px}.dash-value{font-size:15px}}
