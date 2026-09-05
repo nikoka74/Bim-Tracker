@@ -156,27 +156,7 @@
                 </div>
             </div>
 
-            <div id="liveAlertBanner" class="live-alert-banner">
-                <span id="liveAlertText">ئاگاداری نوێ!</span>
-                <button onclick="document.getElementById('liveAlertBanner').style.display='none'" style="background:none; border:none; color:white; font-weight:bold; cursor:pointer;">✕</button>
-            </div>
-
-            <div id="broadcastTicker" class="broadcast-ticker" style="display:none;">
-                <span>ئاگاداری:</span> <span id="broadcastTextContent"></span>
-            </div>
-
-            <!-- ADMIN AUDIT & LOGS PANEL -->
-            <div class="admin-panel" id="adminPanel" style="display: block;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                    <h3 style="font-size:12px; color:var(--primary); font-weight: 700;" id="lblAdminTitle">📱 تێبینی و لۆگی ڕاستەوخۆ (ئامێرەکانی نێرەر)</h3>
-                    <button class="tool-btn" onclick="refreshData()" style="padding: 4px 8px; font-size: 10px;">نوێکردنەوە</button>
-                </div>
-                
-                <div class="leaderboard-box" style="margin-top: 6px;">
-                    <div id="adminLogsList" style="display: flex; flex-direction: column; gap: 8px;"></div>
-                </div>
-            </div>
-
+            <!-- MAIN FORM SECTION -->
             <div class="control-group">
                 <label for="teamSelect" id="lblSelectTeam">تیمەکەت هەڵبژێرە:</label>
                 <div style="display: flex; gap: 6px;">
@@ -190,6 +170,37 @@
                 <button class="btn-submit-main" id="btnSave" onclick="submitMainForm()" style="margin-top: 15px;">
                     <span id="btnSubmitText">ناردنی ڕاپۆرت</span>
                 </button>
+            </div>
+
+            <!-- FULL ADMIN PANEL & DEVICE LOGS (HIDDEN BY DEFAULT) -->
+            <div class="admin-panel" id="adminPanel" style="display: none; margin-top: 20px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                    <h3 style="font-size:12px; color:var(--primary); font-weight: 700;" id="lblAdminTitle">بەشی بەڕێوەبەر (Admin Panel)</h3>
+                    <button class="tool-btn" onclick="refreshData()" style="padding: 4px 8px; font-size: 10px;">نوێکردنەوە</button>
+                </div>
+
+                <div style="display: flex; gap: 6px; margin-bottom: 8px;">
+                    <button class="btn" style="background: rgba(56,189,248,0.2); border:1px solid var(--primary); flex:1; font-size:10px;" onclick="openLiveMapModal()">🗺️ نەخشەی خاڵەکان</button>
+                    <button class="btn" style="background: rgba(16,185,129,0.2); border:1px solid #10b981; flex:1; font-size:10px;" onclick="openAdminFeedbackModal()">💬 پێشنیارەکان (<span id="feedbackCounterBadge">0</span>)</button>
+                </div>
+
+                <!-- Device & Submission Logs Sub-Section -->
+                <div class="admin-sub-box" style="border: 1px solid var(--primary); margin-bottom: 12px;">
+                    <label style="font-size: 10px; color: var(--primary); font-weight: bold;">📱 لۆگی ڕاستەوخۆ و ئامێری نێرەرەکان:</label>
+                    <div id="adminLogsList" style="display: flex; flex-direction: column; gap: 6px; margin-top: 8px; max-height: 200px; overflow-y: auto;"></div>
+                </div>
+
+                <div class="admin-sub-box" style="border: 1px dashed #10b981; margin-bottom: 12px;">
+                    <label style="font-size: 10px; color: #10b981; font-weight: bold;">گۆڕینی فایلی CSV بۆ فایلی KML:</label>
+                    <input type="file" id="csvFileForKml" accept=".csv" style="font-size: 10px; margin-bottom: 6px; margin-top: 6px;">
+                    <button class="btn" style="background: #10b981; width: 100%; padding: 6px; font-size: 10px;" onclick="convertExcelToKml()">دروستکردن و داگرتنی KML</button>
+                </div>
+
+                <div style="display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap;">
+                    <button class="btn" style="background:#10b981; flex:1; font-size: 10px;" onclick="adminExportExcel('daily')" id="btnExcelAdmin">Excel (ڕۆژانە)</button>
+                    <button class="btn" style="background:#3b82f6; flex:1; font-size: 10px;" onclick="document.getElementById('rangeExportModalOverlay').style.display='flex'">مەودای بەروار</button>
+                    <button class="btn" style="background:#7c3aed; flex:1; font-size: 10px;" onclick="window.print()" id="btnPdfAdmin">PDF</button>
+                </div>
             </div>
         </div>
 
