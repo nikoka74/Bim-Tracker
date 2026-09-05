@@ -29,25 +29,17 @@ let cloudStore = {};
 let chatMessagesStore = {};
 let todayFormatted = new Date().toISOString().split('T')[0];
 
-// 📱 فەرمانی دیاریکردنی جۆری مۆبایل/ئامێر
+// 📱 دیاریکردنی جۆری مۆبایل و ئامێر
 function getDeviceInfo() {
     const ua = navigator.userAgent;
-    if (/android/i.test(ua)) {
-        return "📱 Android Mobile";
-    }
-    if (/iPhone|iPad|iPod/i.test(ua)) {
-        return "🍎 iOS Device (iPhone/iPad)";
-    }
-    if (/Win/i.test(ua)) {
-        return "💻 Windows PC";
-    }
-    if (/Mac/i.test(ua)) {
-        return "💻 Mac Computer";
-    }
+    if (/android/i.test(ua)) return "📱 Android Mobile";
+    if (/iPhone|iPad|iPod/i.test(ua)) return "🍎 iOS Device (iPhone/iPad)";
+    if (/Win/i.test(ua)) return "💻 Windows PC";
+    if (/Mac/i.test(ua)) return "💻 Mac Computer";
     return "📱/💻 Unknown Device";
 }
 
-// Notifications
+// Notifications System
 function showNotification(message, type = 'success') {
     const container = document.getElementById('toast-container') || document.body;
     const toast = document.createElement('div');
@@ -66,9 +58,9 @@ function showNotification(message, type = 'success') {
     }, 4000);
 }
 
-// UI Refresh Action
+// UI Refresh
 function refreshData() {
-    const btn = document.getElementById('refreshBtn');
+    const btn = document.getElementById('btnRefreshMain');
     if (btn) btn.classList.add('spinning');
     
     db.ref(`operations_data/${currentSection}/${todayFormatted}`).once('value')
@@ -116,7 +108,7 @@ function switchSection(sec) {
     listenToRealtimeLogs();
 }
 
-// UI Grid Generators
+// Grid Render
 function renderCasesGrid() {
     let container = document.getElementById('casesGridContainer');
     if (!container) return;
@@ -153,7 +145,7 @@ function populateTeamDropdown() {
     if (teamSelect) teamSelect.innerHTML = html;
 }
 
-// 📤 ناردنی داتای فۆڕم + دیاریکردنی جۆری مۆبایل
+// 📤 ناردنی فۆڕم و تۆمارکردنی زانیاری ئامێر
 function submitMainForm() {
     let team = document.getElementById('teamSelect')?.value;
     if (!team) {
@@ -202,7 +194,7 @@ function submitMainForm() {
     
     newLogRef.set(entryData)
         .then(() => {
-            showNotification(`داتاکان بە سەرکەوتوویی نێردران! (${deviceInfo})`);
+            showNotification(`ڕاپۆرت بە سەرکەوتوویی نێردرا! (${deviceInfo})`);
             clearFormInputs();
         })
         .catch((error) => {
@@ -215,7 +207,7 @@ function clearFormInputs() {
     inputs.forEach(input => input.value = '');
 }
 
-// 📊 ڕێندەرکردنی بەشی لۆگەکانی ئەدمین (پاداشتی زانینی ئامێرەکان)
+// 📊 نیشاندانی لۆگی ئامێرەکان تەنها لە بەشی ئەدمین (Admin Panel)
 function listenToRealtimeLogs() {
     db.ref(`operations_data/${currentSection}/${todayFormatted}`).on('value', (snapshot) => {
         cloudStore = snapshot.val() || {};
@@ -236,10 +228,10 @@ function renderAdminAuditLogs() {
             hasLogs = true;
             let log = teamEntries[logId];
             html += `
-                <div class="leaderboard-item">
-                    <div class="leaderboard-row-top">
+                <div class="leaderboard-item" style="background: rgba(255,255,255,0.03); padding: 8px; border-radius: 8px; border: 1px solid var(--border-color);">
+                    <div style="display:flex; justify-content:space-between; font-size:11px;">
                         <strong>👥 ${log.team}</strong>
-                        <span style="color: #38bdf8; font-weight: bold;">${log.device}</span>
+                        <span style="color: var(--primary); font-weight: bold;">${log.device}</span>
                     </div>
                     <div style="font-size: 10px; opacity: 0.7; margin-top: 4px; display: flex; justify-content: space-between;">
                         <span>⏰ کات: ${log.time}</span>
@@ -251,13 +243,13 @@ function renderAdminAuditLogs() {
     });
 
     if (!hasLogs) {
-        logContainer.innerHTML = `<p style="text-align:center; opacity:0.5; font-size:11px; padding:10px;">هیچ لۆگێک بۆ ئاوەدانکردنەوەی ئەمڕۆ تۆمار نەکراوە.</p>`;
+        logContainer.innerHTML = `<p style="text-align:center; opacity:0.5; font-size:11px; padding:10px;">هیچ لۆگێکی نێردراو بۆ ئەمڕۆ نییە.</p>`;
     } else {
         logContainer.innerHTML = html;
     }
 }
 
-// 💬 چات
+// Chat Functionalities
 function sendChatMessage() {
     let input = document.getElementById('chatMessageInput');
     let text = input.value.trim();
@@ -285,12 +277,12 @@ function renderChatMessages() {
     keys.forEach(key => {
         let msg = chatMessagesStore[key];
         html += `
-            <div class="chat-msg-bubble">
-                <div class="chat-msg-header">
+            <div class="chat-msg-bubble" style="background: rgba(255,255,255,0.05); padding: 8px; border-radius: 8px; margin-bottom: 6px;">
+                <div style="display:flex; justify-content:space-between; font-size: 10px; color: var(--primary);">
                     <span>${msg.username}</span>
-                    <span style="font-size: 8px; opacity: 0.6;">${msg.timestamp}</span>
+                    <span style="opacity: 0.6;">${msg.timestamp}</span>
                 </div>
-                <p style="word-break: break-word; white-space: pre-wrap;">${msg.text}</p>
+                <p style="word-break: break-word; font-size: 11px; margin-top: 4px;">${msg.text}</p>
             </div>
         `;
     });
@@ -305,7 +297,7 @@ db.ref('chat_messages').limitToLast(50).on('value', (snapshot) => {
     }
 });
 
-// CSV to KML
+// CSV to KML Converter
 function convertExcelToKml() {
     let fileInput = document.getElementById('csvFileForKml');
     if (!fileInput || !fileInput.files.length) return alert("تکایە فایلی CSV هەڵبژێرە!");
@@ -350,13 +342,13 @@ function convertExcelToKml() {
         link.href = URL.createObjectURL(blob);
         link.download = file.name.replace(/\.[^/.]+$/, "") + '.kml';
         link.click();
-        showNotification("فایلی KML لەسەر بنەمای CSV دروستکرا!");
+        showNotification("فایلی KML دروستکرا!");
     };
 
     reader.readAsText(file);
 }
 
-// App Startup Initializers
+// Startup
 window.onload = function() {
     renderCasesGrid();
     populateTeamDropdown();
