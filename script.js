@@ -29,6 +29,77 @@ let cloudStore = {};
 let chatMessagesStore = {};
 let todayFormatted = new Date().toISOString().split('T')[0];
 
+// 🔒 🔑 بەشی پاسۆردی ئەدمین و ژمارەی کلیکەکان
+let headerClickCount = 0;
+let headerClickTimer = null;
+const ADMIN_PASSWORD = "1234"; // 👈 لێرە دەتوانیت پاسۆردی ئەدمین بگۆڕیت
+
+function handleHeaderClick() {
+    headerClickCount++;
+    if (headerClickCount === 1) {
+        headerClickTimer = setTimeout(() => {
+            headerClickCount = 0;
+        }, 1200);
+    } else if (headerClickCount >= 3) {
+        clearTimeout(headerClickTimer);
+        headerClickCount = 0;
+        openAdminAuthModal();
+    }
+}
+
+function openAdminAuthModal() {
+    let modal = document.getElementById('customModalOverlay');
+    let title = document.getElementById('modalTitle');
+    let desc = document.getElementById('modalDesc');
+    let input = document.getElementById('customModalInput');
+    let confirmBtn = document.getElementById('modalConfirmBtn');
+
+    if (modal) {
+        if (title) title.innerText = "چوونەژوورەوەی ئەدمین";
+        if (desc) desc.innerText = "تکایە پاسۆردی بەڕێوەبەر بنووسە:";
+        if (input) {
+            input.value = "";
+            input.type = "password";
+        }
+        modal.style.display = "flex";
+
+        confirmBtn.onclick = function() {
+            if (input.value === ADMIN_PASSWORD) {
+                closeCustomModal(true);
+                toggleAdminPanel(true);
+                showNotification("بە سەرکەوتوویی چوویەتە بەشی ئەدمین!");
+            } else {
+                showNotification("پاسۆرد هەڵەیە!", "error");
+            }
+        };
+    } else {
+        // ئەگەر موداڵ لە HTML نەبوو بە Promptی ئاسایی داوای دەکات
+        let pass = prompt("تکایە پاسۆردی ئەدمین بنووسە:");
+        if (pass === ADMIN_PASSWORD) {
+            toggleAdminPanel(true);
+            showNotification("بە سەرکەوتوویی چوویەتە بەشی ئەدمین!");
+        } else if (pass !== null) {
+            showNotification("پاسۆرد هەڵەیە!", "error");
+        }
+    }
+}
+
+function closeCustomModal(success) {
+    let modal = document.getElementById('customModalOverlay');
+    if (modal) modal.style.display = "none";
+}
+
+function toggleAdminPanel(show) {
+    let adminPanel = document.getElementById('adminPanel');
+    if (adminPanel) {
+        adminPanel.style.display = show ? 'block' : 'none';
+        if (show) {
+            adminPanel.scrollIntoView({ behavior: 'smooth' });
+            renderAdminAuditLogs();
+        }
+    }
+}
+
 // 📱 دیاریکردنی جۆری مۆبایل و ئامێر
 function getDeviceInfo() {
     const ua = navigator.userAgent;
