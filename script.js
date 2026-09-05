@@ -44,7 +44,7 @@ let statsChartInstance = null;
 let teamCoordinates = null;
 let currentSelectedTeam = null;
 
-// 🔐 پینی ئەدمین لە JSـەوە لابرا، تەنها لە Firebaseـەوە دەخوێنرێتەوە
+// پینی ئەدمین لە JSـەوە لابرا، تەنها لە Firebaseـەوە دەخوێنرێتەوە
 
 const TEAM_PINS = {};
 for (let i = 1; i <= 150; i++) {
@@ -92,7 +92,6 @@ function verifyAdminPin(inputPin) {
     return new Promise((resolve, reject) => {
         db.ref('adminPin').once('value').then(snapshot => {
             const data = snapshot.val();
-            // دڵنیابە کە پینەکە هەیە و بەراوردی بکە
             if (data && data.pin === inputPin) {
                 resolve(true);
             } else {
@@ -246,8 +245,6 @@ function promptPinAndSave() {
     document.getElementById('modalConfirmBtn').onclick = async () => {
         const inputPin = document.getElementById('customModalInput').value;
         const correctPin = TEAM_PINS[selectedTeam];
-        
-        // ئەگەر پینی تیمەکە دروست بوو، یان پینی ئەدمین (لە Firebase) دروست بوو
         const isAdminPin = await verifyAdminPin(inputPin);
         
         if ((correctPin && inputPin === correctPin) || isAdminPin || !correctPin) {
@@ -1277,6 +1274,46 @@ function addNewTeam() {
         populateTeamDropdowns();
     }).catch(err => {
         showNotification('هەڵە لە زیادکردن: ' + err.message, 'error');
+    });
+}
+
+// ============================================================
+// PWA Installation (زیادکراو بۆ داگرتنی ئەپ)
+// ============================================================
+let deferredPrompt;
+
+window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    const installBtn = document.getElementById('installAppBtn');
+    if (installBtn) {
+        installBtn.style.display = 'flex';
+        installBtn.onclick = installPwaApp;
+    }
+});
+
+function installPwaApp() {
+    if (deferredPrompt) {
+        deferredPrompt.prompt();
+        deferredPrompt.userChoice.then((choiceResult) => {
+            if (choiceResult.outcome === 'accepted') {
+                showNotification('ئەپەکە بە سەرکەوتوویی دابەزی! 📱');
+                logActivity("App Install", "بەکارهێنەر ئەپەکەی دابەزی");
+            } else {
+                showNotification('داگرتن ڕەتکرایەوە', 'error');
+            }
+            deferredPrompt = null;
+        });
+    } else {
+        showNotification('ئەم وێبگەڕە پشتیوانی لە داگرتنی ئەپ ناکات', 'error');
+    }
+}
+
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js')
+            .then(reg => console.log('Service Worker تۆمارکرا ✅'))
+            .catch(err => console.log('Service Worker تۆمار نەکرا ❌', err));
     });
 }
 
