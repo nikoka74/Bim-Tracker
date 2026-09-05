@@ -42,7 +42,7 @@ for (let i = 1; i <= 150; i++) {
     TEAM_PINS[`team_${i}`] = String(1000 + i);
 }
 
-// 📱 وەرگرتنی زانیاری ئامێر و مۆبایلی بەکارهێنەر (Device Info Parser)
+// 📱 دەستنیشانکردنی جۆری ئامێر و مۆبایلی بەکارهێنەر (Device Info)
 function getDeviceInfo() {
     const ua = navigator.userAgent;
     let device = "Desktop / PC";
@@ -55,7 +55,6 @@ function getDeviceInfo() {
         device = "Tablet";
     }
 
-    // دەرهێنانی ناوی کورتکراوەی بڕاوزەر یان سیستمه‌که‌
     let browser = "Web Browser";
     if (ua.indexOf("Chrome") > -1) browser = "Google Chrome";
     else if (ua.indexOf("Safari") > -1) browser = "Safari";
@@ -65,7 +64,7 @@ function getDeviceInfo() {
     return `${device} (${browser})`;
 }
 
-// تۆمارکردنی چالاکییەکان لە Audit Log
+// 📋 تۆمارکردنی چالاکییەکان لە داتابەیس (Audit Log)
 function logActivity(actionType, description) {
     const deviceInfo = getDeviceInfo();
     const logData = {
@@ -161,7 +160,7 @@ function handleHeaderClick() {
                 adminPanel.classList.toggle('active');
                 showNotification('بەشی ئەدمین بە سەرکەوتوویی کرایەوە');
                 closeCustomModal(true);
-                logActivity("Admin Login", "ئەدمین (Razwan) چووە ژوورەوە");
+                logActivity("Admin Login", "ئەدمین (Razwan) چووە ژوورەوە بۆ پانێڵ");
                 loadAdminData();
             } else {
                 showNotification('کۆدی ئەدمین هەڵەیە!', 'error');
@@ -235,56 +234,7 @@ function closeCustomModal(clear) {
     if(clear) document.getElementById('customModalInput').value = '';
 }
 
-// Feedback Modals
-function openFeedbackModal() {
-    document.getElementById('feedbackModalOverlay').style.display = 'flex';
-}
-
-function submitFeedbackFinal() {
-    const author = document.getElementById('feedbackAuthor').value.trim() || 'نەناسراو';
-    const text = document.getElementById('feedbackText').value.trim();
-    if(!text) return showNotification('تکایە تێبینی یان پێشنیارەکەت بنووسە', 'error');
-
-    db.ref('feedbacks').push({
-        author: author,
-        text: text,
-        timestamp: Date.now()
-    }).then(() => {
-        showNotification('پێشنیارەکەت نێردرا');
-        logActivity("Feedback Sent", `پێشنیار/تێبینی نێردرا لەلایەن ${author}`);
-        document.getElementById('feedbackText').value = '';
-        document.getElementById('feedbackAuthor').value = '';
-        document.getElementById('feedbackModalOverlay').style.display = 'none';
-        loadAdminFeedbacksList();
-    });
-}
-
-function openAdminFeedbackModal() {
-    document.getElementById('adminFeedbackModalOverlay').style.display = 'flex';
-    loadAdminFeedbacksList();
-}
-
-function loadAdminFeedbacksList() {
-    db.ref('feedbacks').once('value', (snapshot) => {
-        const container = document.getElementById('adminFeedbackListContent');
-        if(!container) return;
-        container.innerHTML = '';
-        const data = snapshot.val() || {};
-        let count = 0;
-        Object.keys(data).forEach(key => {
-            count++;
-            const item = data[key];
-            const div = document.createElement('div');
-            div.style.cssText = "background:rgba(255,255,255,0.03); padding:8px; border-radius:8px; border:1px solid rgba(255,255,255,0.08);";
-            div.innerHTML = `<strong style="color:var(--primary);">${item.author}:</strong> <p style="margin-top:4px;">${item.text}</p>`;
-            container.appendChild(div);
-        });
-        const badge = document.getElementById('feedbackCounterBadge');
-        if(badge) badge.innerText = count;
-    });
-}
-
-// Load Admin Data, Leaderboard, Analytics & Audit Logs
+// Load Admin Data, Leaderboard, Analytics & Audit Logs (لە جێگەی پێشنیارەکان)
 function loadAdminData() {
     const todayDate = new Date().toISOString().split('T')[0];
     db.ref(`reports/${todayDate}`).on('value', (snapshot) => {
@@ -329,23 +279,28 @@ function loadAdminData() {
         updateStatsChart(chartLabels, chartValues);
     });
 
-    loadAdminFeedbacksList();
-    loadAuditLogsIntoAdmin(); // هێنانی لۆگەکان بۆ بەشی ئەدمین
+    // 📋 بارکردنی لۆگی چالاکییەکان لە بەشی ئەدمیندا
+    loadAuditLogsIntoAdmin();
 }
 
-// 📋 هێنانی مێژووی چالاکییە گشتییەکان و Device Info بۆ بەشی ئەدمین
+// 📋 پیشاندانی تەواوی مێژووی لۆگی چالاکییەکان و زانیاری مۆبایل (Device Info)
 function loadAuditLogsIntoAdmin() {
-    db.ref('auditLogs').limitToLast(50).on('value', (snapshot) => {
-        // گەڕان بەدوای کۆنتێنەری لۆگ لە HTMLدا (دەتوانیت لە ئەدمیندا سەکشنێکی بۆ دروست بکەیت)
+    db.ref('auditLogs').limitToLast(100).on('value', (snapshot) => {
+        // گەڕان بەدوای کۆنتێنەری لۆگ، ئەگەر نەبوو لە پانێڵی ئەدمین دروستی دەکەین
         let logContainer = document.getElementById('auditLogsContainer');
         if (!logContainer) {
-            // ئەگەر لە HTML نەبوو، لە کۆتایی پەنێڵی ئەدمین دروستی دەکەین بە شێوەی خۆکار
             const adminPanel = document.getElementById('adminPanel');
             if (adminPanel) {
                 let section = document.createElement('div');
                 section.id = 'auditLogsSection';
-                section.style.cssText = "margin-top:15px; padding:10px; background:rgba(0,0,0,0.3); border-radius:8px; border:1px solid rgba(255,255,255,0.1); max-height:200px; overflow-y:auto;";
-                section.innerHTML = `<h4 style="color:#38bdf8; font-size:13px; margin-bottom:8px;">📋 مێژووی لۆگی چالاکییە گشتییەکان و ئامێرەکان (Device Info)</h4><div id="auditLogsContainer"></div>`;
+                section.style.cssText = "margin-top:15px; padding:12px; background:rgba(0,0,0,0.4); border-radius:10px; border:1px solid rgba(56,189,248,0.2); max-height:250px; overflow-y:auto;";
+                section.innerHTML = `
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                        <h4 style="color:#38bdf8; font-size:13px; margin:0;">📋 مێژووی لۆگی چالاکییە گشتییەکان (Audit Logs)</h4>
+                        <span style="font-size:10px; color:#94a3b8; background:rgba(255,255,255,0.05); padding:2px 6px; border-radius:4px;">Device & Action History</span>
+                    </div>
+                    <div id="auditLogsContainer"></div>
+                `;
                 adminPanel.appendChild(section);
                 logContainer = document.getElementById('auditLogsContainer');
             } else {
@@ -359,13 +314,13 @@ function loadAuditLogsIntoAdmin() {
         Object.keys(logs).reverse().forEach(key => {
             const item = logs[key];
             const div = document.createElement('div');
-            div.style.cssText = "font-size:10px; padding:6px; margin-bottom:4px; border-bottom:1px solid rgba(255,255,255,0.05); color:#e2e8f0;";
+            div.style.cssText = "font-size:11px; padding:8px; margin-bottom:6px; background:rgba(255,255,255,0.03); border-radius:6px; border:1px solid rgba(255,255,255,0.05); color:#e2e8f0;";
             div.innerHTML = `
-                <div style="display:flex; justify-content:space-between; color:#94a3b8;">
+                <div style="display:flex; justify-content:space-between; color:#94a3b8; font-size:10px; margin-bottom:3px;">
                     <span>🕒 ${item.dateFormatted || 'N/A'}</span>
                     <span style="color:#38bdf8; font-weight:bold;">📱 ${item.device || 'Unknown Device'}</span>
                 </div>
-                <div style="margin-top:2px;"><strong style="color:#facc15;">[${item.action}]</strong> ${item.desc}</div>
+                <div><strong style="color:#facc15;">[${item.action}]:</strong> ${item.desc}</div>
             `;
             logContainer.appendChild(div);
         });
@@ -582,5 +537,5 @@ window.onload = function() {
     populateTeamDropdowns();
     initChart();
     loadAdminData();
-    logActivity("App Launch", "سیستمەکە کرایەوە لەسەر مۆبایل/ئامێر");
+    logActivity("App Launch", "سیستمەکە کرایەوە لەسەر ئامێر");
 };
