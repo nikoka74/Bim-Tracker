@@ -1,15 +1,13 @@
 @import url('https://fonts.googleapis.com/css2?family=Readex+Pro:wght@300;400;500;600;700&display=swap');
 
 :root {
-    --bg-color: #0b0f19;
-    --card-bg: #111827;
+    --bg-color: #07090e;
+    --card-bg: #0d121e;
     --primary: #38bdf8;
-    --primary-glow: rgba(56, 189, 248, 0.2);
     --secondary: #6366f1;
-    --text-main: #f9fafb;
-    --text-muted: #9ca3af;
-    --border: rgba(255, 255, 255, 0.08);
-    --border-focus: rgba(56, 189, 248, 0.4);
+    --text-main: #f8fafc;
+    --text-muted: #94a3b8;
+    --border: rgba(56, 189, 248, 0.2);
     --radius: 12px;
 }
 
@@ -27,39 +25,42 @@ body {
     min-height: 100vh;
     display: flex;
     justify-content: center;
-    align-items: center;
-    padding: 12px;
+    align-items: flex-start;
+    padding: 8px;
+    overflow-x: hidden; /* ڕێگری دەکات لە لادانی شاشە بۆ لای ڕاست و چەپ */
 }
 
 .app-container {
     width: 100%;
-    max-width: 480px;
+    max-width: 100%;
     background: var(--card-bg);
     border: 1px solid var(--border);
     border-radius: var(--radius);
-    padding: 16px;
+    padding: 12px;
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+    position: relative;
 }
 
-/* Header & Brand */
+/* ڕێکخستنی سەرەوەی ئەپەکە */
 .app-header-bar {
     display: flex;
     justify-content: space-between;
     align-items: center;
     border-bottom: 1px solid var(--border);
-    padding-bottom: 12px;
-    margin-bottom: 14px;
+    padding-bottom: 10px;
+    margin-bottom: 10px;
+    gap: 6px;
 }
 
 .brand-box {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
 }
 
 .brand-logo {
-    width: 36px;
-    height: 36px;
+    width: 34px;
+    height: 34px;
     background: linear-gradient(135deg, var(--primary), var(--secondary));
     border-radius: 8px;
     display: flex;
@@ -70,9 +71,8 @@ body {
 }
 
 .brand-box h1 {
-    font-size: 13px;
+    font-size: 12px;
     font-weight: 700;
-    color: var(--text-main);
 }
 
 .brand-box p {
@@ -80,187 +80,139 @@ body {
     color: var(--text-muted);
 }
 
-/* Top Toolbar Buttons */
 .top-tools {
     display: flex;
-    gap: 4px;
+    gap: 3px;
 }
 
 .tool-btn {
-    background: rgba(255, 255, 255, 0.04);
+    background: rgba(255, 255, 255, 0.05);
     border: 1px solid var(--border);
     color: var(--text-main);
-    padding: 5px 8px;
-    border-radius: 6px;
-    font-size: 10px;
+    padding: 4px 6px;
+    border-radius: 5px;
+    font-size: 9px;
     cursor: pointer;
-    transition: 0.2s;
 }
 
-.tool-btn:hover {
-    background: var(--primary);
-    color: #0b0f19;
-    border-color: var(--primary);
-}
-
-/* Tabs */
+/* تەبەسەکان */
 .section-tabs {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 6px;
-    margin-bottom: 14px;
+    gap: 4px;
+    margin-bottom: 10px;
 }
 
 .section-tab-btn {
     background: rgba(255, 255, 255, 0.02);
     border: 1px solid var(--border);
     color: var(--text-muted);
-    padding: 8px;
-    border-radius: 8px;
-    font-size: 11px;
+    padding: 7px 4px;
+    border-radius: 6px;
+    font-size: 10px;
     font-weight: 600;
-    cursor: pointer;
     text-align: center;
-    transition: 0.2s;
+    cursor: pointer;
 }
 
 .section-tab-btn.active {
     background: var(--primary);
-    color: #0b0f19;
+    color: #07090e;
     border-color: var(--primary);
 }
 
-/* Cards & Containers */
+/* کارتەکان و خانەکان */
 .total-points-card, .control-group {
     background: rgba(255, 255, 255, 0.02);
     border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 12px;
-    margin-bottom: 12px;
+    border-radius: 8px;
+    padding: 10px;
+    margin-bottom: 10px;
 }
 
-.trend-header-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 6px;
-}
-
-.trend-header-row h3 {
-    font-size: 11px;
-    color: var(--text-muted);
-}
-
-.counter {
-    font-size: 16px;
-    font-weight: 700;
-    color: var(--primary);
-}
-
-/* Inputs & Selects */
 label {
     display: block;
-    font-size: 11px;
-    margin-bottom: 5px;
+    font-size: 10px;
+    margin-bottom: 4px;
     color: var(--text-muted);
 }
 
 select, input[type="text"], input[type="password"], input[type="date"], textarea {
     width: 100%;
-    background: rgba(0, 0, 0, 0.25);
+    background: rgba(0, 0, 0, 0.3);
     border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 9px 10px;
+    border-radius: 6px;
+    padding: 8px;
     color: var(--text-main);
-    font-size: 12px;
+    font-size: 11px;
     outline: none;
-    transition: 0.2s;
 }
 
 select:focus, input:focus, textarea:focus {
     border-color: var(--primary);
-    box-shadow: 0 0 8px var(--primary-glow);
 }
 
-/* Cases Grid (The Input Boxes) */
+/* خانەکانی داتاکان (Disconnected, Paid, ...) */
 .cases-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 8px;
-    margin-top: 10px;
+    gap: 6px;
+    margin-top: 8px;
 }
 
 .case-card {
     background: rgba(255, 255, 255, 0.02);
     border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 8px;
+    border-radius: 6px;
+    padding: 6px 8px;
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 2px;
 }
 
 .case-card span {
     font-size: 10px;
     color: var(--text-muted);
-    font-weight: 500;
 }
 
 .case-card input {
     text-align: center;
     font-weight: 700;
     font-size: 13px;
-    padding: 6px;
-    background: rgba(0, 0, 0, 0.4);
+    padding: 4px;
+    background: rgba(0, 0, 0, 0.5);
     color: var(--primary);
-    border-radius: 6px;
+    border-radius: 4px;
 }
 
-/* Buttons */
+/* دوگمەکان */
 .btn-submit-main {
     width: 100%;
     background: var(--primary);
-    color: #0b0f19;
+    color: #07090e;
     border: none;
-    border-radius: 8px;
-    padding: 10px;
-    font-size: 12px;
+    border-radius: 6px;
+    padding: 9px;
+    font-size: 11px;
     font-weight: 700;
     cursor: pointer;
-    margin-top: 10px;
-    transition: 0.2s;
-}
-
-.btn-submit-main:hover {
-    opacity: 0.9;
+    margin-top: 8px;
 }
 
 .btn-toolbar {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 6px;
-    margin-bottom: 12px;
+    gap: 4px;
+    margin-bottom: 10px;
 }
 
-.btn-myteam { background: #0284c7; color: #fff; font-size: 10px; border-radius: 6px; padding: 7px; border: none; font-weight: 600; cursor: pointer; }
-.btn-whatsapp { background: #16a34a; color: #fff; font-size: 10px; border-radius: 6px; padding: 7px; border: none; font-weight: 600; cursor: pointer; }
-.btn-image { background: #7c3aed; color: #fff; font-size: 10px; border-radius: 6px; padding: 7px; border: none; font-weight: 600; cursor: pointer; }
-.btn-pdf { background: #db2777; color: #fff; font-size: 10px; border-radius: 6px; padding: 7px; border: none; font-weight: 600; cursor: pointer; }
-.btn-excel { background: #059669; color: #fff; font-size: 10px; border-radius: 6px; padding: 7px; border: none; font-weight: 600; cursor: pointer; }
+.btn-myteam { background: #0284c7; color: #fff; font-size: 9px; border-radius: 5px; padding: 6px; border: none; font-weight: 600; cursor: pointer; }
+.btn-whatsapp { background: #16a34a; color: #fff; font-size: 9px; border-radius: 5px; padding: 6px; border: none; font-weight: 600; cursor: pointer; }
+.btn-image { background: #7c3aed; color: #fff; font-size: 9px; border-radius: 5px; padding: 6px; border: none; font-weight: 600; cursor: pointer; }
+.btn-pdf { background: #db2777; color: #fff; font-size: 9px; border-radius: 5px; padding: 6px; border: none; font-weight: 600; cursor: pointer; }
+.btn-excel { background: #059669; color: #fff; font-size: 9px; border-radius: 5px; padding: 6px; border: none; font-weight: 600; cursor: pointer; }
 
-/* Admin Panel (Hidden by default for teams) */
-.admin-panel {
-    display: none;
-    background: rgba(17, 24, 39, 0.95);
-    border: 1px dashed var(--primary);
-    border-radius: 10px;
-    padding: 12px;
-    margin-bottom: 12px;
-}
-
-.site-footer-copy {
-    text-align: center;
-    font-size: 9px;
-    color: var(--text-muted);
-    margin-top: 10px;
+/* شاردنەوەی ڕەهای ئەو بەشانەی دەچنە دەرەوە لای ڕاست بۆ ئەوەی ناشرین نەبێت */
+.admin-panel, .modal-hidden-area, div[id*="modal"], div[id*="admin"] {
+    max-width: 100%;
 }
