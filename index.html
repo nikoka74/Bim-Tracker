@@ -11,7 +11,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="BIM Operations">
 
-    <!-- Firebase Compat Libraries (Loaded with defer for performance) -->
+    <!-- Firebase Compat Libraries -->
     <script defer src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script defer src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     <script defer src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
@@ -23,43 +23,12 @@
     <!-- Custom CSS -->
     <link rel="stylesheet" href="style.css">
     
-    <!-- Custom JS (Loaded with defer) -->
+    <!-- Custom JS -->
     <script defer src="script.js"></script>
 </head>
 <body>
     <div id="toast" class="toast">Saved!</div>
     <div id="toast-container" style="position: fixed; bottom: 20px; left: 20px; z-index: 9999;"></div>
-
-    <!-- Account Setup / Login Modal -->
-    <div id="accountModalOverlay" class="custom-modal-overlay" style="display: flex;">
-        <div class="custom-modal-box" style="max-width: 380px; text-align: right;">
-            <h3 id="authModalTitle">🔐 چوونەژوورەوە یان دروستکردنی ئەکاونت</h3>
-            <p id="authModalDesc">تکایە بۆ بەشداریکردن لە سیستم و چات، لۆگین بکە یان ئەکاونت دروست بکە:</p>
-            
-            <div class="auth-tabs">
-                <button class="auth-tab-btn active" id="authTabLoginBtn" onclick="switchAuthTab('login')">چوونەژوورەوە</button>
-                <button class="auth-tab-btn" id="authTabRegisterBtn" onclick="switchAuthTab('register')">دروستکردنی ئەکاونت</button>
-            </div>
-
-            <div id="loginFormPanel" class="auth-form-panel active">
-                <input type="email" id="loginEmailInput" placeholder="ئیمەیڵ (Email)..." autocomplete="email">
-                <input type="password" id="loginPasswordInput" placeholder="وشەی تێپەڕ (Password)..." autocomplete="current-password">
-                <button class="modal-btn modal-btn-confirm" style="width: 100%; padding: 12px; margin-top: 4px;" onclick="handleFirebaseLogin()">چوونەژوورەوە</button>
-            </div>
-
-            <div id="registerFormPanel" class="auth-form-panel">
-                <input type="text" id="regUsernameInput" placeholder="ناوی تەواو / کارمەند..." autocomplete="off">
-                <select id="regTeamSelect" style="margin-bottom: 8px;">
-                    <option value="">-- هەڵبژاردنی تیم --</option>
-                </select>
-                <input type="email" id="regEmailInput" placeholder="ئیمەیڵ (Email)..." autocomplete="email">
-                <input type="password" id="regPasswordInput" placeholder="وشەی تێپەڕ (Password)..." autocomplete="new-password">
-                <button class="modal-btn modal-btn-confirm" style="width: 100%; padding: 12px; margin-top: 4px;" onclick="handleFirebaseRegister()">تۆمارکردن و دەستپێکردن</button>
-            </div>
-
-            <button class="modal-btn modal-btn-cancel" style="width: 100%; margin-top: 10px;" onclick="bypassAuthAsGuest()">بەردەوامبوون وەک میوان</button>
-        </div>
-    </div>
 
     <!-- Modals -->
     <div id="customModalOverlay" class="custom-modal-overlay">
@@ -146,7 +115,7 @@
                     <button class="tool-btn" onclick="openFeedbackModal()" title="پێشنیار و گلەییەکان">💬 پێشنیار</button>
                 </div>
                 <div style="display: flex; gap: 6px; align-items: center;">
-                    <button class="tool-btn refresh-btn" onclick="manualRefreshData()" id="btnRefreshMain" title="نوێکردنەوەی داتاکان">
+                    <button class="tool-btn refresh-btn" onclick="refreshData()" id="btnRefreshMain" title="نوێکردنەوەی داتاکان">
                         <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
                         <span id="lblRefreshText">نوێکردنەوە</span>
                     </button>
@@ -172,7 +141,7 @@
                     <h3 id="lblGrandTotalTitle">جۆرەکان و کۆی گشتی ئەمڕۆ</h3>
                     <span id="grandTotalPoints" class="counter">0</span>
                 </div>
-                <!-- Lightweight Performance Stats Dashboard -->
+                <!-- Performance Stats Dashboard -->
                 <div id="lightweightStatsContainer" class="lightweight-stats-grid">
                     <div class="stat-box">
                         <span class="stat-label">تیمە بەشداربووەکان</span>
@@ -196,157 +165,31 @@
                 <span>ئاگاداری:</span> <span id="broadcastTextContent"></span>
             </div>
 
-            <div class="admin-panel" id="adminPanel">
+            <!-- ADMIN AUDIT & LOGS PANEL -->
+            <div class="admin-panel" id="adminPanel" style="display: block;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                    <h3 style="font-size:12px; color:var(--primary); font-weight: 700;" id="lblAdminTitle">بەشی بەڕێوەبەر و ناردنی فایل</h3>
-                    <div style="display: flex; gap: 6px;">
-                        <button class="tool-btn" onclick="openAdminFeedbackModal()" style="padding: 4px 8px; font-size: 10px; background: rgba(56,189,248,0.2); border-color: var(--primary);">💬 پێشنیارەکان (<span id="feedbackCounterBadge">0</span>)</button>
-                        <button class="tool-btn" onclick="manualRefreshData()" style="padding: 4px 8px; font-size: 10px;">نوێکردنەوە</button>
-                    </div>
-                </div>
-
-                <div style="display: flex; gap: 6px; margin-bottom: 8px;">
-                    <button class="btn" style="background: rgba(56,189,248,0.2); border:1px solid var(--primary); flex:1; font-size:10px;" onclick="openLiveMapModal()">🗺️ نەخشەی خاڵەکان</button>
-                    <button class="btn" style="background: rgba(16,185,129,0.2); border:1px solid #10b981; flex:1; font-size:10px;" onclick="openAuditLogModal()">📋 مێژووی لۆگی چالاکییەکان</button>
-                </div>
-
-                <div class="admin-sub-box">
-                    <label style="font-size: 10px; color: var(--primary); font-weight: bold;">ناردنی ئاگاداری گشتی بۆ هەمووان:</label>
-                    <div style="display: flex; gap: 6px; margin-top: 6px;">
-                        <input type="text" id="adminBroadcastInput" placeholder="پەیام بنووسە..." style="flex: 2; font-size: 11px;">
-                        <button class="btn" style="background: var(--primary); color: #090d16; flex: 1; font-size: 10px; font-weight: 700;" onclick="saveBroadcastMessage()">بڵاوکردنەوە</button>
-                    </div>
-                </div>
-
-                <div class="admin-sub-box" style="border: 1px dashed var(--primary);">
-                    <label style="font-size: 10px; color: var(--primary); font-weight: bold;">ناردنی پەیامی تایبەت بۆ تیمی دیاریکراو:</label>
-                    <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 6px; margin-top: 6px;">
-                        <select id="privateMsgTeam" style="font-size: 10px;"><option value="">-- تیم --</option></select>
-                        <input type="text" id="privateMsgInput" placeholder="پەیامی تایبەت..." style="font-size: 10px;">
-                    </div>
-                    <button class="btn" style="background: var(--primary); color: #090d16; width: 100%; padding: 6px; font-size: 10px; margin-top: 6px; font-weight: 700;" onclick="sendPrivateTeamMessage()">ناردنی پەیامی تایبەت</button>
-                </div>
-
-                <div class="admin-sub-box" style="border: 1px dashed #10b981;">
-                    <label style="font-size: 10px; color: #10b981; font-weight: bold;">گۆڕینی فایلی CSV بۆ فایلی KML:</label>
-                    <input type="file" id="csvFileForKml" accept=".csv" style="font-size: 10px; margin-bottom: 6px; margin-top: 6px;">
-                    <button class="btn" style="background: #10b981; width: 100%; padding: 6px; font-size: 10px;" onclick="convertExcelToKml()">دروستکردن و داگرتنی KML</button>
-                </div>
-
-                <div class="admin-sub-box" style="border: 1px solid var(--primary);">
-                    <label style="font-size: 10px; color: var(--primary); font-weight: bold;">ئەپلۆدکردن و ناردنی فایل بۆ تیمی دیاریکراو:</label>
-                    <div style="display: grid; grid-template-columns: 1fr; gap: 6px; margin-bottom: 6px; margin-top: 6px;">
-                        <select id="kmlTargetTeam" style="font-size: 10px;"><option value="">-- هەڵبژاردنی تیم --</option></select>
-                        <input type="file" id="teamFileUploader" accept=".kml,.csv,.txt,.xlsx,.gpx" style="font-size: 10px;">
-                    </div>
-                    <button class="btn" style="background: var(--primary); color: #090d16; width: 100%; padding: 6px; font-size: 10px; font-weight: 700;" onclick="uploadFileForSpecificTeam()">ئەپلۆد و ناردن بۆ تیم</button>
-                </div>
-
-                <div class="admin-sub-box">
-                    <label style="font-size: 10px; color: var(--primary); font-weight: bold;" id="lblHistoryDate">دیاریکردنی بەروار (ڕۆژانی پێشوو):</label>
-                    <input type="date" id="adminDateSelector" onchange="onAdminDateChange()" style="font-weight: bold; text-align: center; font-size: 11px; margin-top: 6px;">
+                    <h3 style="font-size:12px; color:var(--primary); font-weight: 700;" id="lblAdminTitle">📱 تێبینی و لۆگی ڕاستەوخۆ (ئامێرەکانی نێرەر)</h3>
+                    <button class="tool-btn" onclick="refreshData()" style="padding: 4px 8px; font-size: 10px;">نوێکردنەوە</button>
                 </div>
                 
-                <div class="admin-sub-box">
-                    <label style="color: var(--primary); font-weight: bold; margin-bottom: 6px; font-size: 10px;" id="lblAddTeamTitle">زیادکردنی تیمی نوێ:</label>
-                    <div style="display: flex; gap: 6px; margin-bottom: 6px;">
-                        <select id="newTeamSection" style="flex: 1; font-size: 10px;">
-                            <option value="lfd">بەشی LFD</option>
-                            <option value="movein">بەشی Move-In</option>
-                        </select>
-                        <input type="text" id="newTeamNameInput" placeholder="ناوی تیم (Team 99)" style="flex: 2; font-size: 10px;">
-                    </div>
-                    <div style="display: flex; gap: 6px; margin-bottom: 6px; align-items: center;">
-                        <label style="font-size: 10px; white-space: nowrap; margin-bottom: 0;">شوێن / ڕیزبەندی:</label>
-                        <select id="newTeamPositionSelect" style="font-size: 10px;">
-                            <option value="start">سەرەتا</option>
-                            <option value="end" selected>کۆتایی</option>
-                        </select>
-                    </div>
-                    <button class="btn" style="background: var(--primary); color: #090d16; width: 100%; padding: 6px; font-size: 10px; font-weight: 700;" onclick="addNewTeam()" id="btnAddTeamBtn">زیادکردنی تیم</button>
+                <div class="leaderboard-box" style="margin-top: 6px;">
+                    <div id="adminLogsList" style="display: flex; flex-direction: column; gap: 8px;"></div>
                 </div>
-
-                <div class="filter-bar">
-                    <button class="filter-btn active" id="f_all" onclick="setFilter('all')">هەموو</button>
-                    <button class="filter-btn" id="f_achieved" onclick="setFilter('achieved')">گەیشتوو (≥7)</button>
-                    <button class="filter-btn" id="f_missed" onclick="setFilter('missed')">نەگەیشتوو (<7)</button>
-                    <button class="filter-btn" id="f_offday" onclick="setFilter('offday')">پشوو</button>
-                </div>
-
-                <div style="display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap;">
-                    <button class="btn" style="background:#10b981; flex:1; font-size: 10px;" onclick="adminExportExcel('daily')" id="btnExcelAdmin">Excel (ڕۆژانە)</button>
-                    <button class="btn" style="background:#0d9488; flex:1; font-size: 10px;" onclick="adminExportExcel('monthly')" id="btnExcelMonthly">Excel (مانگانە)</button>
-                    <button class="btn" style="background:#3b82f6; flex:1; font-size: 10px;" onclick="document.getElementById('rangeExportModalOverlay').style.display='flex'">مەودای بەروار</button>
-                    <button class="btn" style="background:#7c3aed; flex:1; font-size: 10px;" onclick="window.print()" id="btnPdfAdmin">PDF</button>
-                    <button class="btn" style="background:#ef4444; flex:1; font-size: 10px;" onclick="adminClearData()" id="btnClearCloud">سڕینەوە</button>
-                </div>
-
-                <div class="leaderboard-box" style="margin-top: 12px;">
-                    <div class="leaderboard-title" id="leaderboardBoxTitle">
-                        <span id="lblLeaderboardTitle">ڕیزبەندی تیمەکان</span>
-                        <span id="adminSectionTotal" style="font-size: 10px; background: var(--primary); color: #090d16; padding: 2px 6px; border-radius: 6px; font-weight: 700;">Total: 0</span>
-                    </div>
-                    <div id="leaderboardContainer"></div>
-                </div>
-            </div>
-
-            <div class="progress-container">
-                <div class="progress-bar" id="progressBar"></div>
-                <div class="progress-text" id="progressText">Submitted: 0%</div>
             </div>
 
             <div class="control-group">
                 <label for="teamSelect" id="lblSelectTeam">تیمەکەت هەڵبژێرە:</label>
                 <div style="display: flex; gap: 6px;">
-                    <select id="teamSelect" onchange="loadTeamData()" style="flex: 2;">
+                    <select id="teamSelect" style="flex: 2;">
                         <option value="" id="optChooseTeam">-- تیم هەڵبژێرە --</option>
                     </select>
-                    <button class="tool-btn" style="flex: 1; font-size: 10px; justify-content: center; background: rgba(16,185,129,0.15); border-color: #10b981; color: #34d399;" onclick="copyYesterdayDataToCurrent()" title="هێنانی داتای دوێنێ">📥 دوێنێ</button>
-                </div>
-
-                <div id="teamPrivateMsgBox" class="admin-sub-box" style="background: rgba(56,189,248,0.08); border: 1px solid var(--primary); display: none; margin-top: 8px;">
-                    <label style="font-size: 10px; color: var(--primary); font-weight: bold;">📢 پەیامی تایبەت بۆ تیمەکەت:</label>
-                    <p id="teamPrivateMsgText" style="font-size: 11px; margin-top: 4px;"></p>
-                </div>
-
-                <div class="team-targets-info" id="teamTargetsBox" style="margin-top: 10px; display: none;">
-                    <div><h5>ڕۆژانە</h5><p id="targetDailyVal">7</p></div>
-                    <div><h5>هەفتانە</h5><p id="targetWeeklyVal">42</p></div>
-                    <div><h5>مانگانە</h5><p id="targetMonthlyVal">180</p></div>
-                </div>
-
-                <button class="tool-btn" style="width: 100%; margin-top: 8px; justify-content: center; background: rgba(255,255,255,0.03); display: none;" onclick="openTeamHistoryModal()" id="btnTeamHistory">
-                    📈 مێژووی کارکردنی ۷ ڕۆژی ڕابردووی تیمەکەم
-                </button>
-
-                <div id="teamFileDownloadBox" class="admin-sub-box" style="border: 1px dashed var(--primary); margin-top: 10px; display: none;">
-                    <label style="font-size: 10px; color: var(--primary); font-weight: bold;" id="lblTeamFileTitle">فایلی نەخشە / ڕێنمایی تایبەت بە تیمەکەت:</label>
-                    <button class="btn" style="background: var(--primary); color: #090d16; width: 100%; padding: 8px; font-size: 11px; margin-top: 6px; font-weight: 700;" onclick="promptPinAndDownloadTeamFile()" id="btnDownloadTeamFile">داگرتنی فایلی تیمەکەم (بە پین کۆد)</button>
                 </div>
 
                 <div class="cases-grid" id="casesGridContainer"></div>
 
-                <div class="offday-container">
-                    <input type="checkbox" id="c_offday" onchange="saveDraftStateLocally()">
-                    <label for="c_offday" id="lblOffdayText" style="margin-bottom:0; cursor:pointer; font-weight:600; font-size:11px; color:#f59e0b;">مۆڵەت / پشوو (Off-Day)</label>
-                </div>
-
-                <div style="margin-top: 10px;">
-                    <label for="c_notes" id="lblNotesTitle" style="color: #f87171; font-weight: 600; font-size:11px;">(ئەمڕۆ هیچ کێشەیەکت هەبوو؟ ئەگەر هەیە بینووسە)</label>
-                    <textarea id="c_notes" rows="2" placeholder="هۆکار..." oninput="saveDraftStateLocally()"></textarea>
-                </div>
-
-                <button class="btn-submit-main" id="btnSave" onclick="promptPinAndSave()">
-                    <span id="btnSubmitText">ناردن یان نوێکردنەوەی ڕاپۆرت</span>
+                <button class="btn-submit-main" id="btnSave" onclick="submitMainForm()" style="margin-top: 15px;">
+                    <span id="btnSubmitText">ناردنی ڕاپۆرت</span>
                 </button>
-            </div>
-
-            <div class="btn-toolbar">
-                <button class="btn btn-myteam" onclick="shareMyTeamToWhatsApp()" id="btnMyTeamWA">ناردنی تیمی خۆم بۆ واتساپ</button>
-                <button class="btn btn-whatsapp" id="btnWhatsapp" onclick="shareToWhatsApp()">ناردنی تۆتەڵی گشتی بۆ واتساپ</button>
-                <button class="btn btn-image" onclick="exportAsImage()" id="btnImg">وێنە</button>
-                <button class="btn btn-pdf" onclick="window.print()" id="btnPdf">PDF</button>
-                <button class="btn btn-excel" onclick="adminExportExcel('daily')" id="btnExcel">Excel</button>
             </div>
         </div>
 
@@ -354,7 +197,6 @@
         <div id="chatSectionContainer" class="chat-section-container">
             <div style="padding: 12px; background: rgba(17, 28, 46, 0.9); border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
                 <h3 style="font-size: 12px; color: var(--primary); font-weight: bold;">💬 چاتی گشتی تیمەکان</h3>
-                <span id="chatUserInfoDisplay" style="font-size: 10px; opacity: 0.8;"></span>
             </div>
             <div class="chat-messages-area" id="chatMessagesArea"></div>
             <div class="chat-input-bar">
