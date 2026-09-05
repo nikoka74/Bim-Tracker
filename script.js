@@ -44,12 +44,13 @@ let modalResolveCallback = null;
 
 // Helper Notifications
 function showNotification(message, type = 'success') {
-    const container = document.getElementById('toast-container');
+    const container = document.getElementById('toast-container') || document.body;
     const toast = document.createElement('div');
     toast.style.cssText = `
+        position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
         background: ${type === 'success' ? '#10b981' : '#ef4444'};
-        color: white; padding: 10px 16px; margin-top: 8px; border-radius: 10px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.3); font-family: inherit; font-size: 12px;
+        color: white; padding: 10px 20px; border-radius: 10px;
+        box-shadow: 0 8px 20px rgba(0,0,0,0.4); font-size: 12px; font-weight: 600;
         transition: opacity 0.3s ease; opacity: 1; z-index: 99999; backdrop-filter: blur(8px);
     `;
     toast.innerText = message;
@@ -58,6 +59,21 @@ function showNotification(message, type = 'success') {
         toast.style.opacity = '0';
         setTimeout(() => toast.remove(), 300);
     }, 4000);
+}
+
+// UI Spin Function
+function refreshData() {
+    const btn = document.getElementById('refreshBtn');
+    if (btn) btn.classList.add('spinning');
+    
+    // ڕا کێشان و نوێکردنەوەی داتاکان لە Firebase
+    db.ref().once('value').then(() => {
+        showNotification("داتاکان بە سەرکەوتوویی نوێکرانەوە!");
+    }).catch(err => {
+        showNotification("کێشە لە نوێکردنەوەی داتاکان: " + err.message, 'error');
+    }).finally(() => {
+        if (btn) setTimeout(() => btn.classList.remove('spinning'), 600);
+    });
 }
 
 // Authentication Handlers
@@ -94,7 +110,8 @@ function handleFirebaseRegister() {
                 currentUserAccount = { name, team, email };
                 localStorage.setItem('bim_chat_user', JSON.stringify(currentUserAccount));
                 document.getElementById('accountModalOverlay').style.display = 'none';
-                document.getElementById('teamSelect').value = team;
+                let teamSelect = document.getElementById('teamSelect');
+                if (teamSelect) teamSelect.value = team;
                 updateChatUserDisplay();
                 showNotification("ئەکاونتەکەت بە سەرکەوتوویی دروستکرا و چوویتە ژوورەوە!");
             });
@@ -136,7 +153,8 @@ function bypassAuthAsGuest() {
 function updateChatUserDisplay() {
     if (currentUserAccount) {
         let displayName = currentUserAccount.name === "میوان" ? "میوان" : `${currentUserAccount.name} (${currentUserAccount.team})`;
-        document.getElementById('chatUserInfoDisplay').innerText = `👤 ${displayName}`;
+        let chatUserElem = document.getElementById('chatUserInfoDisplay');
+        if (chatUserElem) chatUserElem.innerText = `👤 ${displayName}`;
     }
 }
 
@@ -152,13 +170,13 @@ function switchSection(sec) {
 
     if (sec === 'chat') {
         document.getElementById('tabChat').classList.add('active');
-        mainWrapper.style.display = 'none';
-        chatContainer.classList.add('active');
+        if (mainWrapper) mainWrapper.style.display = 'none';
+        if (chatContainer) chatContainer.classList.add('active');
         renderChatMessages();
         return;
     } else {
-        mainWrapper.style.display = 'block';
-        chatContainer.classList.remove('active');
+        if (mainWrapper) mainWrapper.style.display = 'block';
+        if (chatContainer) chatContainer.classList.remove('active');
     }
 
     if (sec === 'lfd') {
@@ -191,6 +209,7 @@ function sendChatMessage() {
 
 function renderChatMessages() {
     let area = document.getElementById('chatMessagesArea');
+    if (!area) return;
     let keys = Object.keys(chatMessagesStore);
     if (keys.length === 0) {
         area.innerHTML = `<p style="text-align:center; opacity:0.6; margin-top: 20px; font-size: 11px;">هیچ پەیامێک لە چاتدا نییە.</p>`;
@@ -217,26 +236,27 @@ function renderChatMessages() {
 // UI Grid Generators
 function renderCasesGrid() {
     let container = document.getElementById('casesGridContainer');
+    if (!container) return;
     if (currentSection === 'lfd') {
         container.innerHTML = `
-            <div class="case-item">Paid <input type="number" id="c_paid" min="0" placeholder=""></div>
-            <div class="case-item">Disconnected <input type="number" id="c_disc" min="0" placeholder=""></div>
-            <div class="case-item">Reconnected <input type="number" id="c_reconn" min="0" placeholder=""></div>
-            <div class="case-item">Distribution <input type="number" id="c_dist" min="0" placeholder=""></div>
-            <div class="case-item">Special <input type="number" id="c_special" min="0" placeholder=""></div>
-            <div class="case-item">Tampered <input type="number" id="c_tampered" min="0" placeholder=""></div>
-            <div class="case-item">Denied <input type="number" id="c_denied" min="0" placeholder=""></div>
-            <div class="case-item">NotFound <input type="number" id="c_notfound" min="0" placeholder=""></div>
-            <div class="case-item">Inaccessible <input type="number" id="c_inaccess" min="0" placeholder=""></div>
-            <div class="case-item" style="grid-column: span 3;">Other <input type="number" id="c_other" min="0" placeholder=""></div>
+            <div class="case-item">Paid <input type="number" id="c_paid" min="0" placeholder="0"></div>
+            <div class="case-item">Disconnected <input type="number" id="c_disc" min="0" placeholder="0"></div>
+            <div class="case-item">Reconnected <input type="number" id="c_reconn" min="0" placeholder="0"></div>
+            <div class="case-item">Distribution <input type="number" id="c_dist" min="0" placeholder="0"></div>
+            <div class="case-item">Special <input type="number" id="c_special" min="0" placeholder="0"></div>
+            <div class="case-item">Tampered <input type="number" id="c_tampered" min="0" placeholder="0"></div>
+            <div class="case-item">Denied <input type="number" id="c_denied" min="0" placeholder="0"></div>
+            <div class="case-item">NotFound <input type="number" id="c_notfound" min="0" placeholder="0"></div>
+            <div class="case-item">Inaccessible <input type="number" id="c_inaccess" min="0" placeholder="0"></div>
+            <div class="case-item" style="grid-column: span 3;">Other <input type="number" id="c_other" min="0" placeholder="0"></div>
         `;
     } else if (currentSection === 'movein') {
         container.innerHTML = `
-            <div class="case-item">Inst. Meter <input type="number" id="c_inst_meter" min="0" placeholder=""></div>
-            <div class="case-item">Inst. Encl <input type="number" id="c_inst_encl" min="0" placeholder=""></div>
-            <div class="case-item">3P Encl <input type="number" id="c_inst_3p" min="0" placeholder=""></div>
-            <div class="case-item">BIM Team <input type="number" id="c_bim_team" min="0" placeholder=""></div>
-            <div class="case-item">Other Team <input type="number" id="c_other_team" min="0" placeholder=""></div>
+            <div class="case-item">Inst. Meter <input type="number" id="c_inst_meter" min="0" placeholder="0"></div>
+            <div class="case-item">Inst. Encl <input type="number" id="c_inst_encl" min="0" placeholder="0"></div>
+            <div class="case-item">3P Encl <input type="number" id="c_inst_3p" min="0" placeholder="0"></div>
+            <div class="case-item">BIM Team <input type="number" id="c_bim_team" min="0" placeholder="0"></div>
+            <div class="case-item">Other Team <input type="number" id="c_other_team" min="0" placeholder="0"></div>
         `;
     }
 }
@@ -250,41 +270,41 @@ function populateTeamDropdown() {
 
     let html = `<option value="">-- تیم هەڵبژێرە --</option>`;
     teamsList.forEach(t => { html += `<option value="${t}">${t}</option>`; });
-    teamSelect.innerHTML = html;
+    if (teamSelect) teamSelect.innerHTML = html;
 
     let kmlHtml = `<option value="">-- هەڵبژاردنی تیم --</option>`;
     allTeamsCombined.forEach(t => { kmlHtml += `<option value="${t}">${t}</option>`; });
-    kmlTeamSelect.innerHTML = kmlHtml;
+    if (kmlTeamSelect) kmlTeamSelect.innerHTML = kmlHtml;
 
     let privateHtml = `<option value="">-- تیم --</option>`;
     allTeamsCombined.forEach(t => { privateHtml += `<option value="${t}">${t}</option>`; });
-    privateSelect.innerHTML = privateHtml;
+    if (privateSelect) privateSelect.innerHTML = privateHtml;
 }
 
-// Convert CSV file to KML
+// Convert CSV file to KML (Updated & Robust)
 function convertExcelToKml() {
     let fileInput = document.getElementById('csvFileForKml');
-    if (!fileInput.files.length) return alert("تکایە فایلی CSV هەڵبژێرە!");
+    if (!fileInput || !fileInput.files.length) return alert("تکایە فایلی CSV هەڵبژێرە!");
 
     let file = fileInput.files[0];
     let reader = new FileReader();
 
     reader.onload = function (e) {
         let text = e.target.result;
-        let lines = text.split('\n');
-        let kmlHeader = `<?xml version="1.0" encoding="UTF-8"?>
-<kml xmlns="http://www.opengis.net/kml/2.2">
-<Document>`;
+        let lines = text.split(/\r\n|\n/);
+        let kmlHeader = `<?xml version="1.0" encoding="UTF-8"?>\n<kml xmlns="http://www.opengis.net/kml/2.2">\n<Document>`;
         let kmlFooter = `\n</Document>\n</kml>`;
         let kmlBody = '';
 
         for (let i = 1; i < lines.length; i++) {
-            let cols = lines[i].split(',');
+            let line = lines[i].trim();
+            if (!line) continue;
+            let cols = line.split(',');
             if (cols.length >= 3) {
-                let name = cols[0].trim();
-                let lat = cols[1].trim();
-                let lng = cols[2].trim();
-                if (lat && lng) {
+                let name = cols[0].trim().replace(/"/g, '');
+                let lat = parseFloat(cols[1].trim());
+                let lng = parseFloat(cols[2].trim());
+                if (!isNaN(lat) && !isNaN(lng)) {
                     kmlBody += `
   <Placemark>
     <name>${name}</name>
@@ -296,12 +316,17 @@ function convertExcelToKml() {
             }
         }
 
+        if (!kmlBody) {
+            alert("هیچ داتایەکی دروست لە فایلی CSVەکەدا نەدۆزرایەوە!");
+            return;
+        }
+
         let blob = new Blob([kmlHeader + kmlBody + kmlFooter], { type: 'application/vnd.google-earth.kml+xml' });
         let link = document.createElement('a');
         link.href = URL.createObjectURL(blob);
-        link.download = file.name.replace('.csv', '') + '.kml';
+        link.download = file.name.replace(/\.[^/.]+$/, "") + '.kml';
         link.click();
-        showNotification("فایلی KML دروستکرا و داگیرا!");
+        showNotification("فایلی KML لەسەر بنەمای CSVەکە دروستکرا و داگیرا!");
     };
 
     reader.readAsText(file);
@@ -310,7 +335,8 @@ function convertExcelToKml() {
 // Realtime Chat Sync
 db.ref('chat_messages').limitToLast(50).on('value', (snapshot) => {
     chatMessagesStore = snapshot.val() || {};
-    if (document.getElementById('tabChat').classList.contains('active')) {
+    let chatTab = document.getElementById('tabChat');
+    if (chatTab && chatTab.classList.contains('active')) {
         renderChatMessages();
     }
 });
@@ -319,4 +345,5 @@ db.ref('chat_messages').limitToLast(50).on('value', (snapshot) => {
 window.onload = function() {
     renderCasesGrid();
     populateTeamDropdown();
+    updateChatUserDisplay();
 };
