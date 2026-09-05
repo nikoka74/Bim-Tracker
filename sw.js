@@ -1,3 +1,7 @@
+// ============================================================
+// Service Worker - BIM Operations
+// ============================================================
+
 const CACHE_NAME = 'bim-ops-v1';
 const urlsToCache = [
   '/',
@@ -16,11 +20,69 @@ const urlsToCache = [
   'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js'
 ];
 
+// ============================================================
+// 🔔 نۆتفیکەیشن و پەیامەکان (Push Notifications)
+// ============================================================
+
+self.addEventListener('push', function(event) {
+    let data = {};
+    if (event.data) {
+        try {
+            data = event.data.json();
+        } catch (e) {
+            data = { title: 'پەیامێکی نوێ', body: event.data.text() };
+        }
+    }
+
+    const options = {
+        body: data.body || 'پەیامێکی نوێ هاتووە',
+        icon: data.icon || 'https://via.placeholder.com/192x192/38bdf8/ffffff?text=BIM',
+        badge: data.badge || 'https://via.placeholder.com/72x72/38bdf8/ffffff?text=BIM',
+        vibrate: [200, 100, 200],
+        data: {
+            url: data.url || '/',
+            team: data.team || null
+        },
+        actions: [
+            { action: 'open', title: 'کردنەوە' },
+            { action: 'close', title: 'داخستن' }
+        ]
+    };
+
+    event.waitUntil(
+        self.registration.showNotification(data.title || 'BIM Operations', options)
+    );
+});
+
+self.addEventListener('notificationclick', function(event) {
+    event.notification.close();
+
+    const url = event.notification.data?.url || '/';
+
+    event.waitUntil(
+        clients.matchAll({ type: 'window', includeUncontrolled: true })
+            .then(windowClients => {
+                for (let client of windowClients) {
+                    if (client.url === url && 'focus' in client) {
+                        return client.focus();
+                    }
+                }
+                if (clients.openWindow) {
+                    return clients.openWindow(url);
+                }
+            })
+    );
+});
+
+// ============================================================
+// کاشی فایلەکان (Cache)
+// ============================================================
+
 self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then(cache => {
-        console.log('فایلەکان هەڵگیران');
+        console.log('فایلەکان هەڵگیران ✅');
         return cache.addAll(urlsToCache);
       })
   );
