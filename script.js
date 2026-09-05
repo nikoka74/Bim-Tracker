@@ -33,13 +33,49 @@ let headerClickCount = 0;
 let mapInstance = null;
 let currentFilter = 'all';
 let statsChartInstance = null;
-let teamCoordinates = null; // برای GPS
+let teamCoordinates = null;
 
 const ADMIN_PIN = "Razwan";
 
 const TEAM_PINS = {};
 for (let i = 1; i <= 150; i++) {
     TEAM_PINS[`team_${i}`] = String(1000 + i);
+}
+
+// 📱 وەرگرتنی زانیاری ئامێر و مۆبایلی بەکارهێنەر (Device Info Parser)
+function getDeviceInfo() {
+    const ua = navigator.userAgent;
+    let device = "Desktop / PC";
+    
+    if (/android/i.test(ua)) {
+        device = "Android Mobile";
+    } else if (/iPad|iPhone|iPod/.test(ua) && !window.MSStream) {
+        device = "iOS / iPhone";
+    } else if (/tablet/i.test(ua)) {
+        device = "Tablet";
+    }
+
+    // دەرهێنانی ناوی کورتکراوەی بڕاوزەر یان سیستمه‌که‌
+    let browser = "Web Browser";
+    if (ua.indexOf("Chrome") > -1) browser = "Google Chrome";
+    else if (ua.indexOf("Safari") > -1) browser = "Safari";
+    else if (ua.indexOf("Firefox") > -1) browser = "Firefox";
+    else if (ua.indexOf("Edge") > -1) browser = "MS Edge";
+
+    return `${device} (${browser})`;
+}
+
+// تۆمارکردنی چالاکییەکان لە Audit Log
+function logActivity(actionType, description) {
+    const deviceInfo = getDeviceInfo();
+    const logData = {
+        action: actionType,
+        desc: description,
+        device: deviceInfo,
+        timestamp: Date.now(),
+        dateFormatted: new Date().toLocaleString()
+    };
+    db.ref('auditLogs').push(logData);
 }
 
 // Populate Team Dropdowns
@@ -92,19 +128,18 @@ function loadTeamData() {
                 select.appendChild(opt);
             }
             select.value = customKey;
+            logActivity("Custom Team", "تیمی نوێی دەستکرد زیادکرا: " + customName);
         } else {
             select.value = "";
         }
     }
 
-    // وەرگرتنی GPS بۆ تیمەکەی هەڵیبژاردووە
     if (navigator.geolocation && select.value) {
         navigator.geolocation.getCurrentPosition((position) => {
             teamCoordinates = {
                 lat: position.coords.latitude,
                 lng: position.coords.longitude
             };
-            showNotification('شوێنی جوگرافی (GPS) بە سەرکەوتوویی وەرگیرا');
         }, (error) => {
             console.log('GPS Error:', error.message);
         }, { enableHighAccuracy: true });
@@ -126,16 +161,18 @@ function handleHeaderClick() {
                 adminPanel.classList.toggle('active');
                 showNotification('بەشی ئەدمین بە سەرکەوتوویی کرایەوە');
                 closeCustomModal(true);
+                logActivity("Admin Login", "ئەدمین (Razwan) چووە ژوورەوە");
                 loadAdminData();
             } else {
                 showNotification('کۆدی ئەدمین هەڵەیە!', 'error');
+                logActivity("Failed Login", "هەوڵی شکستخواردوو بۆ چوونەژوورەوەی ئەدمین");
             }
         };
         headerClickCount = 0;
     }
 }
 
-// Prompt PIN and Save Report with GPS
+// Prompt PIN and Save Report
 function promptPinAndSave() {
     const selectedTeam = document.getElementById('teamSelect')?.value;
     if (!selectedTeam) {
@@ -157,6 +194,7 @@ function promptPinAndSave() {
             saveReportToDatabase(selectedTeam, teamLabel);
         } else {
             showNotification('پین کۆدی ئەم تیمە هەڵەیە!', 'error');
+            logActivity("Team Pin Error", `هەڵە لە پین کۆدی ${teamLabel}`);
         }
     };
 }
@@ -178,10 +216,11 @@ function saveReportToDatabase(teamKey, teamName) {
         total: totalPoints,
         offday: isOffday,
         notes: notes,
-        coords: teamCoordinates || { lat: 36.19, lng: 44.01 }, // GPS coordinates
+        coords: teamCoordinates || { lat: 36.19, lng: 44.01 },
         timestamp: Date.now()
     }).then(() => {
         showNotification(`ڕاپۆرتی ${teamName} بە سەرکەوتوویی نێردرا.`);
+        logActivity("Report Submitted", `ڕاپۆرت نێردرا لەلایەن ${teamName} - کۆی خاڵ: ${totalPoints}`);
         document.getElementById('c_notes').value = '';
         inputs.forEach(inp => inp.value = '');
         if(document.getElementById('c_offday')) document.getElementById('c_offday').checked = false;
@@ -212,6 +251,7 @@ function submitFeedbackFinal() {
         timestamp: Date.now()
     }).then(() => {
         showNotification('پێشنیارەکەت نێردرا');
+        logActivity("Feedback Sent", `پێشنیار/تێبینی نێردرا لەلایەن ${author}`);
         document.getElementById('feedbackText').value = '';
         document.getElementById('feedbackAuthor').value = '';
         document.getElementById('feedbackModalOverlay').style.display = 'none';
@@ -244,7 +284,7 @@ function loadAdminFeedbacksList() {
     });
 }
 
-// Load Admin Data, Leaderboard & Analytics Chart
+// Load Admin Data, Leaderboard, Analytics & Audit Logs
 function loadAdminData() {
     const todayDate = new Date().toISOString().split('T')[0];
     db.ref(`reports/${todayDate}`).on('value', (snapshot) => {
@@ -262,7 +302,7 @@ function loadAdminData() {
 
         sortedTeams.forEach((item, index) => {
             grandTotal += item.total || 0;
-            if(index < 7) { // بۆ گرافیک
+            if(index < 7) {
                 chartLabels.push(item.teamName);
                 chartValues.push(item.total);
             }
@@ -286,10 +326,50 @@ function loadAdminData() {
         const grandCounter = document.getElementById('grandTotalPoints');
         if(grandCounter) grandCounter.innerText = grandTotal;
 
-        // نوێکردنەوەی گرافیکی ئاماری (Analytics Dashboard)
         updateStatsChart(chartLabels, chartValues);
     });
+
     loadAdminFeedbacksList();
+    loadAuditLogsIntoAdmin(); // هێنانی لۆگەکان بۆ بەشی ئەدمین
+}
+
+// 📋 هێنانی مێژووی چالاکییە گشتییەکان و Device Info بۆ بەشی ئەدمین
+function loadAuditLogsIntoAdmin() {
+    db.ref('auditLogs').limitToLast(50).on('value', (snapshot) => {
+        // گەڕان بەدوای کۆنتێنەری لۆگ لە HTMLدا (دەتوانیت لە ئەدمیندا سەکشنێکی بۆ دروست بکەیت)
+        let logContainer = document.getElementById('auditLogsContainer');
+        if (!logContainer) {
+            // ئەگەر لە HTML نەبوو، لە کۆتایی پەنێڵی ئەدمین دروستی دەکەین بە شێوەی خۆکار
+            const adminPanel = document.getElementById('adminPanel');
+            if (adminPanel) {
+                let section = document.createElement('div');
+                section.id = 'auditLogsSection';
+                section.style.cssText = "margin-top:15px; padding:10px; background:rgba(0,0,0,0.3); border-radius:8px; border:1px solid rgba(255,255,255,0.1); max-height:200px; overflow-y:auto;";
+                section.innerHTML = `<h4 style="color:#38bdf8; font-size:13px; margin-bottom:8px;">📋 مێژووی لۆگی چالاکییە گشتییەکان و ئامێرەکان (Device Info)</h4><div id="auditLogsContainer"></div>`;
+                adminPanel.appendChild(section);
+                logContainer = document.getElementById('auditLogsContainer');
+            } else {
+                return;
+            }
+        }
+
+        logContainer.innerHTML = '';
+        const logs = snapshot.val() || {};
+        
+        Object.keys(logs).reverse().forEach(key => {
+            const item = logs[key];
+            const div = document.createElement('div');
+            div.style.cssText = "font-size:10px; padding:6px; margin-bottom:4px; border-bottom:1px solid rgba(255,255,255,0.05); color:#e2e8f0;";
+            div.innerHTML = `
+                <div style="display:flex; justify-content:space-between; color:#94a3b8;">
+                    <span>🕒 ${item.dateFormatted || 'N/A'}</span>
+                    <span style="color:#38bdf8; font-weight:bold;">📱 ${item.device || 'Unknown Device'}</span>
+                </div>
+                <div style="margin-top:2px;"><strong style="color:#facc15;">[${item.action}]</strong> ${item.desc}</div>
+            `;
+            logContainer.appendChild(div);
+        });
+    });
 }
 
 function updateStatsChart(labels, dataValues) {
@@ -371,21 +451,15 @@ function renderCasesGrid() {
     }
 }
 
-// Live Push Notifications & Broadcast (بێ پێویستی بە ڕێفرێش)
+// Broadcast & Live Push
 db.ref('broadcastMessage').on('value', (snapshot) => {
     const data = snapshot.val();
     const ticker = document.getElementById('broadcastTicker');
     const content = document.getElementById('broadcastTextContent');
-    const alertBanner = document.getElementById('liveAlertBanner');
-    const alertText = document.getElementById('liveAlertText');
 
     if (data && data.text) {
         if(content) content.innerText = data.text;
         if(ticker) ticker.style.display = 'flex';
-        
-        // Live Push Notification Banner نیشان دەدات
-        if(alertText) alertText.innerText = "📢 ئاگاداری نوێ: " + data.text;
-        if(alertBanner) alertBanner.style.display = 'flex';
     } else {
         if(ticker) ticker.style.display = 'none';
     }
@@ -395,7 +469,8 @@ function saveBroadcastMessage() {
     const msg = document.getElementById('adminBroadcastInput').value;
     if(!msg.trim()) return showNotification('تکایە پەیام بنووسە', 'error');
     db.ref('broadcastMessage').set({ text: msg, timestamp: Date.now() }).then(() => {
-        showNotification('پەیامی گشتی بە سەرکەوتوویی بڵاوکرایەوە');
+        showNotification('پەیامی گشتی بڵاوکرایەوە');
+        logActivity("Broadcast", "ئەدمین پەیامی گشتی بڵاوکردەوە: " + msg);
         document.getElementById('adminBroadcastInput').value = '';
     });
 }
@@ -406,11 +481,11 @@ function sendPrivateTeamMessage() {
     if(!team || !msg.trim()) return showNotification('تکایە تیم و دەقی پەیامەکە دیاری بکە', 'error');
     db.ref(`privateMessages/${team}`).set({ text: msg, timestamp: Date.now() }).then(() => {
         showNotification('پەیامی تایبەت نێردرا');
+        logActivity("Private Msg", `پەیامی تایبەت نێردرا بۆ ${team}`);
         document.getElementById('privateMsgInput').value = '';
     });
 }
 
-// نیشاندانی نەخشەی خاڵەکان بە GPSی تیمەکان لە بەشی ئەدمین
 function openLiveMapModal() {
     document.getElementById('liveMapModalOverlay').style.display = 'flex';
     if (!mapInstance) {
@@ -439,7 +514,7 @@ function setFilter(filterType) {
     document.getElementById(`f_${filterType}`)?.classList.add('active');
 }
 
-// Chat System Functions
+// Chat System
 function sendChatMessage() {
     const input = document.getElementById('chatMessageInput');
     const msg = input.value.trim();
@@ -471,7 +546,6 @@ function loadChatMessages() {
     });
 }
 
-// Chart.js Setup
 function initChart() {
     const canvas = document.getElementById('trendChartCanvas');
     if (!canvas) return;
@@ -508,4 +582,5 @@ window.onload = function() {
     populateTeamDropdowns();
     initChart();
     loadAdminData();
+    logActivity("App Launch", "سیستمەکە کرایەوە لەسەر مۆبایل/ئامێر");
 };
