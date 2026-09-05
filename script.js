@@ -33,24 +33,16 @@ let headerClickCount = 0;
 let mapInstance = null;
 let currentFilter = 'all';
 
-// 🔑 🔑 🔑 بەشی دیاریکردنی پین کۆدەکان 🔑 🔑 🔑
-const ADMIN_PIN = "Razwan"; // 👈 پین کۆدی نوێی بەڕێوەبەر (Admin)
+// 🔑 بەشی دیاریکردنی پین کۆدی ئەدمین
+const ADMIN_PIN = "Razwan";
 
-// لیستەی کۆدی تایبەت بە هەر تیمێک (دەتوانیت زیادیان بکەیت یان کۆدەکان بگۆڕیت)
-const TEAM_PINS = {
-    "team_1": "1111",
-    "team_2": "2222",
-    "team_3": "3333",
-    "team_4": "4444",
-    "team_5": "5555",
-    "team_6": "6666",
-    "team_7": "7777",
-    "team_8": "8888",
-    "team_9": "9999",
-    "team_10": "1010"
-};
+// 🔑 دروستکردنی دروستکراوی پین کۆد بۆ تیمەکانی 1 تا 150
+const TEAM_PINS = {};
+for (let i = 1; i <= 150; i++) {
+    TEAM_PINS[`team_${i}`] = String(1000 + i); // نموونە: team_1 -> 1001, team_150 -> 1150
+}
 
-// Populate Team Dropdowns
+// Populate Team Dropdowns (تیمەکانی 1 تا 150)
 function populateTeamDropdowns() {
     const adminSelect = document.getElementById('privateMsgTeam');
     const kmlSelect = document.getElementById('kmlTargetTeam');
@@ -58,36 +50,72 @@ function populateTeamDropdowns() {
 
     if (adminSelect) adminSelect.innerHTML = '<option value="">-- تیم --</option>';
     if (kmlSelect) kmlSelect.innerHTML = '<option value="">-- هەڵبژاردنی تیم --</option>';
-    if (mainSelect) mainSelect.innerHTML = '<option value="">-- تیم هەڵبژێرە --</option>';
+    if (mainSelect) mainSelect.innerHTML = '<option value="">-- تیم هەڵبژێرە --</option><option value="custom">✍️ نووسینی ناوی تیم بەدەست...</option>';
 
+    // زیادکردنی 150 تیمەکە بۆ لیستەکان
+    for (let i = 1; i <= 150; i++) {
+        const teamKey = `team_${i}`;
+        const teamName = `Team ${i}`;
+
+        if (mainSelect) {
+            const opt = document.createElement('option');
+            opt.value = teamKey;
+            opt.textContent = teamName;
+            mainSelect.appendChild(opt);
+        }
+        if (adminSelect) {
+            const opt = document.createElement('option');
+            opt.value = teamKey;
+            opt.textContent = teamName;
+            adminSelect.appendChild(opt);
+        }
+        if (kmlSelect) {
+            const opt = document.createElement('option');
+            opt.value = teamKey;
+            opt.textContent = teamName;
+            kmlSelect.appendChild(opt);
+        }
+    }
+
+    // هێنانی تیمە دەستکردە زیادکراوەکانی ناو بنکەداتەش ئەگەر هەبن
     db.ref('teams').once('value', (snapshot) => {
         const teams = snapshot.val() || {};
         Object.keys(teams).forEach(teamKey => {
-            const teamName = teams[teamKey].name || teamKey;
-            
-            if (mainSelect) {
-                const opt = document.createElement('option');
-                opt.value = teamKey;
-                opt.textContent = teamName;
-                mainSelect.appendChild(opt);
-            }
-            if (adminSelect) {
-                const opt = document.createElement('option');
-                opt.value = teamKey;
-                opt.textContent = teamName;
-                adminSelect.appendChild(opt);
-            }
-            if (kmlSelect) {
-                const opt = document.createElement('option');
-                opt.value = teamKey;
-                opt.textContent = teamName;
-                kmlSelect.appendChild(opt);
+            if (!TEAM_PINS[teamKey]) {
+                const teamName = teams[teamKey].name || teamKey;
+                if (mainSelect) {
+                    const opt = document.createElement('option');
+                    opt.value = teamKey;
+                    opt.textContent = teamName;
+                    mainSelect.appendChild(opt);
+                }
             }
         });
     });
 }
 
-// 🔐 چوونەژوورەوە بۆ بەشی ئەدمین بە کۆدی تایبەتی ئەدمین
+// مامەڵەکردن لەگەڵ هەڵبژاردنی تیمی دەستکرد
+function loadTeamData() {
+    const select = document.getElementById('teamSelect');
+    if (select && select.value === 'custom') {
+        const customName = prompt("تکایە ناوی تیمەکەت بنووسە:");
+        if (customName && customName.trim()) {
+            const customKey = customName.toLowerCase().replace(/\s+/g, '_');
+            let exists = Array.from(select.options).some(opt => opt.value === customKey);
+            if (!exists) {
+                const opt = document.createElement('option');
+                opt.value = customKey;
+                opt.textContent = customName.trim();
+                select.appendChild(opt);
+            }
+            select.value = customKey;
+        } else {
+            select.value = "";
+        }
+    }
+}
+
+// 🔐 چوونەژوورەوە بۆ بەشی ئەدمین
 function handleHeaderClick() {
     headerClickCount++;
     if (headerClickCount >= 3) {
@@ -110,33 +138,35 @@ function handleHeaderClick() {
     }
 }
 
-// 🔐 ناردنی ڕاپۆرت بە کۆدی تایبەت بە تیمی هەڵبژێردراو
+// 🔐 ناردنی ڕاپۆرت بە پین کۆدی تیم
 function promptPinAndSave() {
     const selectedTeam = document.getElementById('teamSelect')?.value;
     if (!selectedTeam) {
         return showNotification('تکایە سەرەتا تیمەکەت هەڵبژێرە!', 'error');
     }
 
+    const teamLabel = document.getElementById('teamSelect').options[document.getElementById('teamSelect').selectedIndex].text;
+
     document.getElementById('customModalOverlay').style.display = 'flex';
     document.getElementById('modalTitle').innerText = "پشتڕاستکردنەوەی تیم";
-    document.getElementById('modalDesc').innerText = `تکایە پین کۆدی تایبەت بە ${selectedTeam} بنووسە:`;
+    document.getElementById('modalDesc').innerText = `تکایە پین کۆدی تایبەت بە ${teamLabel} بنووسە:`;
 
     document.getElementById('modalConfirmBtn').onclick = () => {
         const inputPin = document.getElementById('customModalInput').value;
         const correctPin = TEAM_PINS[selectedTeam];
 
-        // ئەگەر تیمەکە لە لیستەکە بوو و کۆدەکە دروست بوو یان کۆدی ئەدمین لێدرا
-        if ((correctPin && inputPin === correctPin) || inputPin === ADMIN_PIN) {
+        // ئەگەر تیمەکە نوێ بوو یان کۆدەکەی لە لیستەکەدا هەبوو یان پینی ئەدمین لێدرا
+        if ((correctPin && inputPin === correctPin) || inputPin === ADMIN_PIN || !correctPin) {
             closeCustomModal(true);
-            submitReportData(selectedTeam);
+            submitReportData(teamLabel);
         } else {
-            showNotification('پین کۆدی ئەم تیمە هەڵەیە! ڕێگەت پێ نادڕێت ناردن بکەیت.', 'error');
+            showNotification('پین کۆدی ئەم تیمە هەڵەیە!', 'error');
         }
     };
 }
 
-function submitReportData(teamKey) {
-    showNotification(`ڕاپۆرتی ${teamKey} بە سەرکەوتوویی نێردرا.`);
+function submitReportData(teamName) {
+    showNotification(`ڕاپۆرتی ${teamName} بە سەرکەوتوویی نێردرا.`);
 }
 
 function closeCustomModal(clear) {
