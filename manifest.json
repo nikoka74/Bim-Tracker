@@ -39,3 +39,10 @@
     }
   ]
 }
+"screenshots": [
+  {
+    "src": "/images/screenshot1.png",
+    "sizes": "540x720",
+    "type": "image/png"
+  }
+]
