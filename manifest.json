@@ -37,12 +37,12 @@
       "type": "image/png",
       "purpose": "any maskable"
     }
+  ],
+  "screenshots": [
+    {
+      "src": "/images/screenshot1.png",
+      "sizes": "540x720",
+      "type": "image/png"
+    }
   ]
 }
-"screenshots": [
-  {
-    "src": "/images/screenshot1.png",
-    "sizes": "540x720",
-    "type": "image/png"
-  }
-]
